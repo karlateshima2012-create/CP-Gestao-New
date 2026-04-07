@@ -89,12 +89,12 @@ jobs:
           CORS_ALLOWED_ORIGINS=https://cpgestaoefidelidade.creativeprintjp.com
           EOT
 
-      - name: Deploy to Hostinger via SCP (Password Auth)
+      - name: Deploy to Hostinger via SCP (SSH Key Auth)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           source: "deploy/*"
           target: "public_html"
@@ -105,7 +105,7 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
             cd public_html/api_backend
@@ -113,3 +113,4 @@ jobs:
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            php artisan storage:link || true
