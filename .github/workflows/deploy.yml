@@ -43,7 +43,7 @@ jobs:
           cp -r frontend/dist/* deploy/
           cp -r backend/* deploy/api_backend/
           
-          # Root .htaccess
+          # Root .htaccess (Single Subdomain)
           cat <<EOT > deploy/.htaccess
           <IfModule mod_rewrite.c>
               RewriteEngine On
@@ -56,7 +56,7 @@ jobs:
           </IfModule>
           EOT
           
-          # API .htaccess
+          # API inner .htaccess
           cat <<EOT > deploy/api/.htaccess
           <IfModule mod_rewrite.c>
               RewriteEngine On
@@ -64,26 +64,51 @@ jobs:
           </IfModule>
           EOT
 
-      - name: Deploy to Hostinger via SSH
+      - name: Create Production .env
+        run: |
+          cat <<EOT > deploy/api_backend/.env
+          APP_NAME=CPGestao
+          APP_ENV=production
+          APP_KEY=${{ secrets.APP_KEY || 'base64:XG8pY6XpD/v77y5S6L7U5P4R3G6B1N7=' }}
+          APP_DEBUG=false
+          APP_URL=https://cpgestaoefidelidade.creativeprintjp.com
+
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=${{ secrets.DB_DATABASE }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+
+          CACHE_DRIVER=file
+          FILESYSTEM_DISK=local
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=file
+          SESSION_LIFETIME=120
+          
+          CORS_ALLOWED_ORIGINS=https://cpgestaoefidelidade.creativeprintjp.com
+          EOT
+
+      - name: Deploy to Hostinger via SCP (Password Auth)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
+          password: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || 65002 }}
           source: "deploy/*"
-          target: "public_html/cpgestaoefidelidade"
+          target: "public_html"
           strip_components: 1
 
-      - name: Finalize Backend (Migrations & Optimization)
+      - name: Finalize Backend (Migrations)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
+          password: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            cd public_html/cpgestaoefidelidade/api_backend
+            cd public_html/api_backend
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
