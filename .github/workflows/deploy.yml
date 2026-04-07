@@ -33,7 +33,7 @@ jobs:
       - name: Install Backend Dependencies
         run: |
           cd backend
-          composer platform-php 8.2.30
+          composer config platform.php 8.2.30
           composer install --no-dev --optimize-autoloader
           cd ..
 
