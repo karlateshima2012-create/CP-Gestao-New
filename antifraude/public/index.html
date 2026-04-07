@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ganhar Ponto — CP Gestão</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, system-ui, BlinkMacSystemFont; background: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); width: 100%; max-width: 400px; text-align: center; }
+    h1 { color: #1e293b; margin-bottom: 1.5rem; font-size: 1.5rem; }
+    input { width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 1rem; box-sizing: border-box; }
+    button { width: 100%; padding: 0.75rem; background: #38B6FF; color: white; border: none; border-radius: 0.5rem; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+    button:disabled { background: #94a3b8; cursor: not-allowed; }
+    #message { margin-top: 1rem; font-size: 0.875rem; color: #475569; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Ganhe seu Ponto</h1>
+    <input type="tel" id="phone" placeholder="Digite seu telefone" maxlength="15">
+    <button id="btn-request">GANHAR PONTO</button>
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const startTime = Date.now();
+    let interacted = false;
+
+    // Capture interactions
+    ['click', 'scroll', 'touchstart'].forEach(type => {
+      window.addEventListener(type, () => interacted = true, { once: true });
+    });
+
+    // Get store ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const storeId = urlParams.get('loja') || 1;
+
+    async function init() {
+      try {
+        const res = await fetch(`/api/init-session?store_id=${storeId}`);
+        const data = await res.json();
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('session_token', data.session_token);
+      } catch (e) {}
+    }
+
+    init();
+
+    document.getElementById('btn-request').addEventListener('click', async (e) => {
+      const btn = e.target;
+      const phone = document.getElementById('phone').value;
+      const message = document.getElementById('message');
+      
+      if (!phone) return alert('Digite seu telefone');
+
+      const timeOnPage = Math.floor((Date.now() - startTime) / 1000);
+      const token = sessionStorage.getItem('token');
+      const sessionToken = sessionStorage.getItem('session_token');
+
+      btn.disabled = true;
+      message.innerText = 'Processando...';
+
+      try {
+        const res = await fetch('/api/request-point', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone,
+            store_id: storeId,
+            token,
+            session_token: sessionToken,
+            time_on_page: timeOnPage,
+            interacted
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.status === 'approved') {
+          message.innerHTML = '<b style="color: #059669">✅ Sucesso! Ponto creditado.</b>';
+        } else {
+          message.innerText = data.message || 'Ponto enviado para análise.';
+          // Lock button for 30s as per requirement
+          setTimeout(() => btn.disabled = false, 30000);
+        }
+      } catch (e) {
+        message.innerText = 'Servidor indisponível.';
+        setTimeout(() => btn.disabled = false, 5000);
+      }
+    });
+  </script>
+</body>
+</html>

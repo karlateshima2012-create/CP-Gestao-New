@@ -1,0 +1,7 @@
+{
+    "timestamp": "2026-04-04 18:02:19",
+    "tenant": "NOT FOUND",
+    "devices": [],
+    "all_devices_count": 0,
+    "db_connection": "sqlite"
+}

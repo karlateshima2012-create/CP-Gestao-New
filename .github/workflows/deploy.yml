@@ -1,0 +1,180 @@
+name: Build and Sync Deploy - CPgestao
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
+          coverage: none
+
+      - name: Install Backend Dependencies (For Analysis)
+        working-directory: ./backend
+        run: |
+          # 1. Baixa o código incluindo o Larastan
+          composer install --optimize-autoloader
+
+      - name: Run Static Analysis (PHPStan Firewall)
+        working-directory: ./backend
+        run: |
+          # 2. Roda a vasculha do código.
+          # Se o PHPStan apontar "Undefined Variable", o deploy aborta AQUI e não quebra o sistema ao vivo.
+          ./vendor/bin/phpstan analyse --error-format=github
+
+      - name: Prepare Clean Backend Dependencies
+        working-directory: ./backend
+        run: |
+          # 3. Análise passou com sucesso! Remove o Larastan do projeto prático para poupar espaço da Hostinger.
+          composer install --no-dev --optimize-autoloader
+
+
+      - name: Prepare Deployment Package
+        run: |
+          mkdir -p deploy_package/api_backend
+          cp -r frontend/dist/* deploy_package/
+          
+          # Copiar backend excluindo arquivos desnecessários
+          cp -r backend/* deploy_package/api_backend/
+          rm -f deploy_package/api_backend/.env
+          rm -rf deploy_package/api_backend/storage/logs/*
+          rm -f deploy_package/api_backend/bootstrap/cache/*.php
+          
+          # Root .htaccess
+          cat <<'EOT' > deploy_package/.htaccess
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteBase /
+              
+              # Regras da API
+              RewriteRule ^api/(.*)$ api_backend/public/$1 [L]
+              
+              # Regras do Frontend (React)
+              RewriteRule ^index\.html$ - [L]
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteRule . /index.html [L]
+          </IfModule>
+          EOT
+          
+          cd deploy_package
+          zip -r ../deploy_package.zip .
+          cd ..
+ 
+      - name: Upload Package to Hostinger
+        uses: appleboy/scp-action@master
+        with:
+          host: 46.202.186.144
+          username: u176367625
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          port: 65002
+          source: "deploy_package.zip"
+          target: "domains/creativeprintjp.com/public_html/cpgestao/"
+ 
+      - name: Extract and Finish Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: 46.202.186.144
+          username: u176367625
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          port: 65002
+          script: |
+            cd domains/creativeprintjp.com/public_html/cpgestao
+            
+            echo "--- VERIFICANDO INFORMAÇÕES DO SISTEMA ---"
+            php -v
+            pwd
+            ROOT_PATH=$(pwd)
+            
+            echo "--- ATUALIZANDO CÓDIGO ---"
+            unzip -o deploy_package.zip
+            cd api_backend
+            
+            # Garantir permissões básicas antes de tudo
+            chmod -R 777 storage bootstrap/cache
+            
+            echo "--- GERANDO .ENV ---"
+            cat <<EOT > .env
+            APP_NAME=CPGestao
+            APP_ENV=production
+            APP_KEY=${{ secrets.APP_KEY || 'base64:frVEFHT1ndFoOzJ0ugdv5C8xSHa6Y9ZcYJPXVbtYubI=' }}
+            APP_DEBUG=false
+            APP_URL=https://cpgestao.creativeprintjp.com
+            DB_CONNECTION=mysql
+            DB_HOST=${{ secrets.DB_HOST || 'localhost' }}
+            DB_PORT=${{ secrets.DB_PORT || '3306' }}
+            DB_DATABASE=${{ secrets.DB_DATABASE }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            MAIL_MAILER=smtp
+            MAIL_HOST=smtp.hostinger.com
+            MAIL_PORT=465
+            MAIL_USERNAME=${{ secrets.MAIL_USERNAME || 'suporte@creativeprintjp.com' }}
+            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD || 'K!=DHdv23' }}
+            MAIL_ENCRYPTION=ssl
+            MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME || 'suporte@creativeprintjp.com' }}
+            MAIL_FROM_NAME="CP Gestão"
+            SESSION_DRIVER=file
+            CACHE_DRIVER=file
+            QUEUE_CONNECTION=sync
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN || '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4' }}
+            EOT
+            
+            echo "--- LIMPANDO CACHES ---"
+            php artisan optimize:clear
+            
+            echo "--- CONFIGURANDO STORAGE ---"
+            # Remover links antigos se existirem (força remoção de pastas se necessário)
+            rm -rf public/storage || true
+            rm -rf ../storage || true
+            
+            # Garantir que a pasta de destino do link existe
+            mkdir -p storage/app/public/clientes/thumbs
+            
+            # Limpar migrações órfãs que estão travando o sistema
+            rm database/migrations/2026_03_18_232448_add_performance_indexes_to_tables.php || true
+            
+            # Criar link na raiz do site (para o frontend e telegram)
+
+            # Usamos caminho absoluto para evitar erros de resolução no apache
+            # Usamos -sf para forçar a criação mesmo que já exista
+            ln -sf $ROOT_PATH/api_backend/storage/app/public $ROOT_PATH/storage || true
+            
+            # Garantir permissões
+            chmod -R 777 storage/app/public || true
+            
+            echo "--- EXECUTANDO MIGRAÇÕES (MODO DE EMERGÊNCIA) ---"
+            php artisan migrate --force || echo "⚠️ Alerta: Erro nas migrações."
+            
+            echo "--- FINALIZANDO CONFIGURAÇÃO ---"
+            php artisan optimize:clear
+            touch app/Http/Controllers/PublicTerminalController.php
+            chmod -R 777 storage bootstrap/cache
+
+            cd ..
+            rm deploy_package.zip
+            echo "--- DEPLOY FINALIZADO ---"
+
+
+
