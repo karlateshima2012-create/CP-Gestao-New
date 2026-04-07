@@ -104,6 +104,7 @@ jobs:
           source: "deploy/*"
           target: "public_html/cpgestaoefidelidade"
           strip_components: 1
+          overwrite: true
 
       - name: Finalize Backend (Migrations & Symlinks)
         uses: appleboy/ssh-action@v1.0.3
