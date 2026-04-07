@@ -27,7 +27,7 @@ class SetTelegramWebhook extends Command
     public function handle()
     {
         $botToken = config('services.telegram.bot_token');
-        $baseUrl = config('app.url', 'https://cpgestaoefidelidade.creativeprintjp.com');
+        $baseUrl = config('app.url', 'https://cpgestaonew.creativeprintjp.com');
         $webhookUrl = "{$baseUrl}/api/webhooks/telegram";
 
         $this->info("Setting webhook for bot token: " . substr($botToken, 0, 5) . "...");
