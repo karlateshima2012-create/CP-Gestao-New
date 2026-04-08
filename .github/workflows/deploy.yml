@@ -104,7 +104,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
-          source: "deploy/*"
+          source: "deploy"
           target: "public_html/cpgestaonew"
           strip_components: 1
           overwrite: true
@@ -117,19 +117,20 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            echo "--- Root Directories ---"
-            ls -la
-            echo "--- public_html Directories ---"
-            ls -la public_html
+            # Limpeza de arquivos que "vazaram" para a raiz por erro em deploys anteriores
+            cd public_html
+            rm -f index.html .htaccess debug.php || true
+            rm -rf api api_backend || true
             
-            cd public_html/cpgestaonew
-            # Remove arquivos padrão da Hostinger na raiz se existirem
+            # Entra na pasta correta do subdomínio
+            cd cpgestaonew
             rm -f default.php index.php || true
             
             cd api_backend
             # Remove arquivos padrão se existirem na pasta da API
             rm -f default.php index.php || true
             
+            # Comandos Laravel (Otimizados)
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
