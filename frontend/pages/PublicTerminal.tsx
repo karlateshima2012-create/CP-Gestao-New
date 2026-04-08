@@ -770,6 +770,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
               </div>
             </div>
+
+            <div className="w-full px-4 -mt-2 mb-2">
+              <Button
+                onClick={reset}
+                className="w-full h-14 text-lg font-black uppercase tracking-[0.1em] bg-[#64748B] hover:bg-[#475569] text-white rounded-lg shadow-lg transition-all active:scale-[0.98] border-none"
+              >
+                FECHAR E SAIR
+              </Button>
+            </div>
           </div>
         )}
 
