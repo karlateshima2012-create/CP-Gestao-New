@@ -115,10 +115,11 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            # Garante que a pasta do subdomínio exista e esteja vazia
-            mkdir -p public_html/cpgestaonew
-            cd public_html/cpgestaonew
-            # Remove arquivos antigos para evitar conflitos (EXCETO a própria pasta)
+            # Caminho absoluto definitivo conforme mapeamento SSH
+            TARGET="domains/creativeprintjp.com/public_html/cpgestaonew"
+            mkdir -p "$TARGET"
+            cd "$TARGET"
+            # Limpeza total da pasta para receber o novo deploy
             rm -rf * .htaccess .env || true
 
       - name: Deploy to Hostinger via SCP (Password Auth)
@@ -129,7 +130,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           source: "deploy/**"
-          target: "public_html/cpgestaonew"
+          target: "domains/creativeprintjp.com/public_html/cpgestaonew"
           strip_components: 1
           overwrite: true
 
@@ -141,21 +142,23 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            echo "--- MAPEAMENTO COMPLETO DE DIRETÓRIOS ---"
-            # Lista todas as pastas até 3 níveis de profundidade
-            find ~ -maxdepth 4 -type d -not -path '*/.*'
+            # Entra na pasta absoluta alvo
+            cd domains/creativeprintjp.com/public_html/cpgestaonew
             
-            echo "--- BUSCANDO ARQUIVOS padrão DA HOSTINGER ---"
-            # Localiza todos os default.php para sabermos onde a Hostinger criou raízes
-            find ~ -name "default.php"
-            
-            # Caso encontremos o caminho, faremos o deploy final nele
-            # Por enquanto, vamos manter o deploy na cpgestaonew padrão para não perder o progresso
-            cd ~/public_html/cpgestaonew
+            # Permissões e limpeza final
             chmod -R 755 . || true
+            rm -f default.php index.php || true
             echo "<?php include 'index.html'; ?>" > index.php
             
+            # Backend Laravel
             cd api_backend
             php artisan migrate --force
             php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
             php artisan storage:link || true
+            
+            # LIMPEZA DE SEGURANÇA: Remove pastas antigas fora do caminho de domínios
+            rm -rf ~/public_html/cpgestaonew ~/cpgestaonew || true
+            rm -f ~/public_html/index.html ~/public_html/.htaccess ~/public_html/debug.php || true
+            rm -rf ~/public_html/api ~/public_html/api_backend || true
