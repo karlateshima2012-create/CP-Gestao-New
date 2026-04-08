@@ -107,6 +107,20 @@ jobs:
           CORS_ALLOWED_ORIGINS=https://cpgestaonew.creativeprintjp.com
           EOT
 
+      - name: Pre-Deploy SSH (Cleanup and Dir Creation)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || 65002 }}
+          script: |
+            # Garante que a pasta do subdomínio exista e esteja vazia
+            mkdir -p public_html/cpgestaonew
+            cd public_html/cpgestaonew
+            # Remove arquivos antigos para evitar conflitos (EXCETO a própria pasta)
+            rm -rf * .htaccess .env || true
+
       - name: Deploy to Hostinger via SCP (Password Auth)
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -127,36 +141,27 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            echo "--- Buscando a Raiz Real do Subdomínio ---"
-            # Procura pelo arquivo padrão da Hostinger que está aparecendo no browser
-            REAL_PATH=$(find public_html -name "default.php" | head -n 1 | xargs dirname)
-            echo "A Raiz Real detectada é: $REAL_PATH"
+            # Entra na pasta final
+            cd public_html/cpgestaonew
             
-            # Se encontrar um caminho diferente, movemos os arquivos para lá
-            if [ ! -z "$REAL_PATH" ] && [ "$REAL_PATH" != "public_html/cpgestaonew" ]; then
-              echo "Movendo arquivos para a raiz real: $REAL_PATH"
-              cp -r public_html/cpgestaonew/* "$REAL_PATH/"
-            fi
-
-            # Limpeza de arquivos que "vazaram" para a raiz
-            cd public_html
-            rm -f index.html .htaccess debug.php WHERE_AM_I_2.txt || true
-            rm -rf api api_backend || true
-            
-            # Entra na pasta final (seja ela qual for)
-            TARGET_DIR=${REAL_PATH:-public_html/cpgestaonew}
-            cd ..
-            cd "$TARGET_DIR"
-            
+            # Garante permissões 755
             chmod -R 755 . || true
+            
+            # Limpeza de arquivos padrão da Hostinger que podem sobrar
             rm -f default.php index.php || true
             
-            # Ponte index.php (garantia extra)
+            # Ponte index.php (garantia extra para LiteSpeed)
             echo "<?php include 'index.html'; ?>" > index.php
             
+            # Backend Laravel
             cd api_backend
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan storage:link || true
+            
+            # Limpeza de arquivos residuais na raiz (Vazamentos anteriores)
+            cd ../..
+            rm -f index.html .htaccess debug.php WHERE_AM_I_2.txt || true
+            rm -rf api api_backend || true
