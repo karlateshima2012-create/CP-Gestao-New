@@ -18,19 +18,16 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('🚀 Preparando ambiente de testes CPgestão-v2...');
+        $this->command->info('🚀 Preparando ambiente de testes CPgestão-new...');
         
         // Seed Plans first
         $this->call(PlanSeeder::class);
+        $this->call(SpecificTestUsersSeeder::class);
 
-        // Limpar dados para evitar erros de duplicidade
-        DB::statement('PRAGMA foreign_keys = OFF;');
-        DB::table('point_requests')->delete();
-        DB::table('point_movements')->delete();
-        DB::table('customers')->delete();
-        DB::table('users')->where('role', '!=', 'admin')->delete();
-        DB::table('tenants')->delete();
-        DB::statement('PRAGMA foreign_keys = ON;');
+        // Limpeza opcional (apenas se necessário, mas as seeds acima usam updateOrCreate)
+        // DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+        // ... (comentado por segurança para não apagar dados reais sem necessidade)
+        // DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
 
         // 1. ADMIN MASTER
         $adminEmail = 'suporte@creativeprintjp.com';
