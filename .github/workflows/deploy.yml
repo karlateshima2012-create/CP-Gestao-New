@@ -141,35 +141,21 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            echo "--- DEPLOY TRIPLO DE IDENTIFICAÇÃO ---"
+            echo "--- MAPEAMENTO COMPLETO DE DIRETÓRIOS ---"
+            # Lista todas as pastas até 3 níveis de profundidade
+            find ~ -maxdepth 4 -type d -not -path '*/.*'
             
-            # Opções de pastas raiz comuns na Hostinger
-            DIRS=("public_html/cpgestaonew" "public_html/cpgestaonew.creativeprintjp.com" "cpgestaonew")
+            echo "--- BUSCANDO ARQUIVOS padrão DA HOSTINGER ---"
+            # Localiza todos os default.php para sabermos onde a Hostinger criou raízes
+            find ~ -name "default.php"
             
-            for DIR in "${DIRS[@]}"; do
-              echo "Preparando diretório: $DIR"
-              mkdir -p "$DIR"
-              # Copia os arquivos do deploy original para cada variante
-              cp -r public_html/cpgestaonew/* "$DIR/" || true
-              # Cria um identificador para sabermos qual pasta responde ao subdomínio
-              echo "Esta pasta é: $DIR" > "$DIR/ESTOU_AQUI.txt"
-              
-              cd "$DIR"
-              chmod -R 755 . || true
-              rm -f default.php index.php || true
-              echo "<?php include 'index.html'; ?>" > index.php
-              
-              # Tenta rodar o backend se houver a pasta
-              if [ -d "api_backend" ]; then
-                cd api_backend
-                php artisan migrate --force
-                php artisan config:cache
-                php artisan storage:link || true
-                cd ..
-              fi
-              cd ~
-            done
-
-            # Limpeza de segurança (Remove o que foi para a pasta midias por erro no deploy anterior)
-            rm -f public_html/midias/ESTOU_AQUI.txt public_html/midias/index.php || true
-            # NÃO removemos a pasta midias inteira para não quebrar outros arquivos do site principal
+            # Caso encontremos o caminho, faremos o deploy final nele
+            # Por enquanto, vamos manter o deploy na cpgestaonew padrão para não perder o progresso
+            cd ~/public_html/cpgestaonew
+            chmod -R 755 . || true
+            echo "<?php include 'index.html'; ?>" > index.php
+            
+            cd api_backend
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan storage:link || true
