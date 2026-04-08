@@ -286,12 +286,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     try {
       const res = await terminalService.lookup(targetSlug, targetUid, targetPhone, targetToken, targetSession);
       if (res.data && res.data.customer_exists === false) {
-        const isAdmin = !!localStorage.getItem('auth_token');
-        if (isAdmin) {
-          setMode('LOJISTA_QUICK_REGISTER');
-        } else {
-          setMode('VISIT_NOT_FOUND');
-        }
+        setMode('VISIT_NOT_FOUND');
       } else {
         setFoundCustomer(res.data);
         const isAdmin = !!localStorage.getItem('auth_token');
@@ -663,7 +658,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="space-y-4 max-w-md">
               <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">PRIMEIRA VEZ AQUI? 🌟</h2>
               <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                Não encontramos este número. Faça seu cadastro rápido para começar a ganhar pontos!
+                Não encontramos este número.<br/>Cadastre-se em segundos para começar a ganhar pontos!
               </p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-sm">
