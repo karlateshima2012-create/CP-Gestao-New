@@ -292,10 +292,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setFoundCustomer(res.data);
         const isAdmin = !!localStorage.getItem('auth_token');
 
-        if (isAdmin && deviceUid) {
-          setMode('LOJISTA_ACTIONS');
-        } else if (targetToken) {
-          handleEarn();
+        if (isTerminalMode) {
+          handleEarn(undefined, targetPhone);
         } else if (res.data.show_level_up) {
           setMode('LEVEL_UP');
         } else {
@@ -339,9 +337,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
 
-  const handleEarn = async (e?: React.FormEvent) => {
+  const handleEarn = async (e?: React.FormEvent, overridePhone?: string) => {
     if (e) e.preventDefault();
-    if (!phone || phone.length < 8) return;
+    const targetPhone = overridePhone || phone;
+    if (!targetPhone || targetPhone.length < 8) return;
 
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(30);
@@ -349,10 +348,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
     setLoading(true);
     try {
-      const lookupRes = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken, sessionToken);
+      const lookupRes = await terminalService.lookup(tenantSlug, deviceUid, targetPhone, qrToken, sessionToken);
 
       if (lookupRes.data.customer_exists) {
-        const earnRes = await terminalService.earn(tenantSlug, deviceUid, phone, undefined, qrToken, sessionToken);
+        const earnRes = await terminalService.earn(tenantSlug, deviceUid, targetPhone, undefined, qrToken, sessionToken);
         
         if (earnRes.data.is_reward_ready) {
              setModal({
@@ -383,6 +382,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         });
 
         if (isAuto) {
+          setApprovedData({
+            points_balance: earnRes.data.new_balance,
+            points_goal: earnRes.data.points_goal,
+            auto_approved: true
+          });
           setFoundCustomer(prev => ({
             ...prev,
             ...earnRes.data,
@@ -390,6 +394,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             points_goal: earnRes.data.points_goal,
             remaining: Math.max(0, (earnRes.data.points_goal || (prev?.points_goal ?? 10)) - earnRes.data.new_balance)
           }));
+        } else {
+          setApprovedData({
+            points_balance: earnRes.data.new_balance,
+            points_goal: earnRes.data.points_goal,
+            auto_approved: false
+          });
         }
 
         setMode(isAuto ? 'AUTO_SUCCESS' : 'WAITING_APPROVAL');
@@ -883,10 +893,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <Smartphone className="w-10 h-10 text-slate-500 animate-bounce" />
             </div>
             <div className="space-y-4">
-              <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Ponto solicitado! ✅</h2>
-              <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">Sua solicitação foi enviada. Seu saldo será atualizado em instantes.</p>
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Ponto registrado com sucesso!</h2>
+              <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">Assim que aprovado, ele entrará no seu saldo.</p>
             </div>
-            <Button onClick={reset} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">Entendi</Button>
+            <Button onClick={() => setMode('RESULT_CLIENT')} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">Ver meu saldo</Button>
           </div>
         )}
 
@@ -894,8 +904,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {(mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') && approvedData && (
           <div className="p-6 md:p-8 text-center py-10 animate-fade-in w-full bg-white dark:bg-gray-950">
             <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-50 border-4 border-green-100"><CheckCircle2 className="w-12 h-12 text-green-500" /></div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Obrigado pela visita!<br/>Ponto Adicionado!</h2>
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-8 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Ponto registrado com sucesso!</h2>
+            <p className="text-sm text-slate-500 font-medium mb-4">Você pode consultar seu saldo clicando no botão abaixo:</p>
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-2 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
               <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
               <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
             </div>

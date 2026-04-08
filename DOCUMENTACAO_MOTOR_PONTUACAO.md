@@ -62,7 +62,7 @@ No plano Elite, toda visita possui **Auto-Aprovação**.
 - Status da visita é gerado imediatamente como `aprovado`.
 - `PointMovement` (extrato de pontos) da entrada é gerado de forma síncrona.
 - Os saldos do cliente (`points_balance` e `attendance_count`) são atualizados de imediato.
-- **Notificação:** "✅ PONTO REGISTRADO" informando saldo e horário, sem necessidade de aceitar cliques adicionais.
+- **Notificação:** "Ponto registrado com sucesso! Você pode consultar seu saldo clicando no botão abaixo:" informando saldo e horário.
 
 ### Plano PRO (e Demais) 🚀
 As visitas dependem da moderação (via App, Totem ou Telegram) do lojista.
@@ -105,8 +105,21 @@ Caso o número digitado seja válido mas não exista no banco de dados:
 - **Campos Obrigatórios:** Nome Completo, Cidade e Província.
 - **Botão:** **CADASTRAR E GANHAR PONTO**.
 - **Resultado:** O cliente é cadastrado, recebe o bônus de boas-vidas (se configurado no Bronze) e vê a tela de sucesso:
-  - **Mensagem:** *"Obrigado pela visita! Ponto Adicionado!"*
-  - **Botão:** **VER MEU SALDO** (direciona para a Tela de Saldo).
+  - **Mensagem:** *"Ponto registrado com sucesso! Você pode consultar seu saldo clicando no botão abaixo:"*
+  - **Botão:** **VER MEU SALDO** (direciona para a Tela de Saldo)(RESULT_CLIENT)
+
+### E. Fluxo: Totem de Solicitação (Modo Terminal)
+Diferente do portal `/p/`, o totem acessado via `/public/terminal/` foca na agilidade:
+- **Visual Inicial:** Apresenta o título **SOLICITAR PONTO**.
+- **Ação:** O cliente digita o telefone e clica em **SOLICITAR PONTO**.
+- **Comportamento Direto:** O sistema pula a tela de consulta intermediária. Se o cliente for encontrado, o ponto é processado imediatamente.
+- **Telas de Feedback Pós-Solicitação:**
+  - **PLANO PRO (Aprovação Manual):**
+    - **Mensagem:** "Ponto registrado com sucesso! Assim que aprovado, ele entrará no seu saldo."
+    - **Ação:** Botão **VER MEU SALDO**.
+  - **PLANO ELITE (Auto-Aprovação):**
+    - **Mensagem:** "Ponto registrado com sucesso! Você pode consultar seu saldo clicando no botão abaixo:"
+    - **Ação:** Botão **VER MEU SALDO** (Exibe o saldo atualizado em tempo real).
 
 ---
 
