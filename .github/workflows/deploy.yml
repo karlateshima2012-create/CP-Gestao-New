@@ -104,7 +104,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
-          source: "deploy"
+          source: "deploy/**"
           target: "public_html/cpgestaonew"
           strip_components: 1
           overwrite: true
@@ -119,15 +119,22 @@ jobs:
           script: |
             # Limpeza de arquivos que "vazaram" para a raiz por erro em deploys anteriores
             cd public_html
-            rm -f index.html .htaccess debug.php || true
+            rm -f index.html .htaccess debug.php WHERE_AM_I_2.txt || true
             rm -rf api api_backend || true
             
-            # Entra na pasta correta do subdomínio
+            # Entra na pasta correta do subdomínio e garante permissões
+            chmod 755 cpgestaonew || true
             cd cpgestaonew
+            chmod -R 755 . || true
+            
+            # Debug: Listar o que realmente foi entregue
+            echo "--- Conteúdo do Subdomínio cpgestaonew ---"
+            ls -la
+            
             rm -f default.php index.php || true
             
+            # Backend
             cd api_backend
-            # Remove arquivos padrão se existirem na pasta da API
             rm -f default.php index.php || true
             
             # Comandos Laravel (Otimizados)
