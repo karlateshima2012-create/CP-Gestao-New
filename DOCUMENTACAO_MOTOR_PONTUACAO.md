@@ -94,19 +94,19 @@ Se o número for identificado, o cliente entra imediatamente na visualização d
   - **Prêmio:** Exibe o nome do prêmio configurado para o nível atual.
 
 ### C. Fluxo: Cliente Não Cadastrado (PRIMEIRA VEZ AQUI?)
-Caso o número digitado seja válido mas não exista no banco de dados:
+Caso o número digitado seja válido mas não exista no banco de dados (tanto em `/p/` quanto no `/terminal/`):
 - **Título:** PRIMEIRA VEZ AQUI?
 - **Mensagem:** "Cadastre-se em segundos para começar a ganhar pontos!"
 - **Ações:**
   1. **CADASTRAR AGORA:** Abre a tela de cadastro com o telefone já preenchido e bloqueado para edição (garante integridade).
   2. **Tentar outro número:** Limpa o campo e volta para a tela inicial.
 
-### D. Tela de Cadastro Público
+### D. Tela de Cadastro Público (Consolidada)
 - **Campos Obrigatórios:** Nome Completo, Cidade e Província.
 - **Botão:** **CADASTRAR E GANHAR PONTO**.
 - **Resultado:** O cliente é cadastrado, recebe o bônus de boas-vidas (se configurado no Bronze) e vê a tela de sucesso:
-  - **Mensagem:** *"Ponto registrado com sucesso! Você pode consultar seu saldo clicando no botão abaixo:"*
-  - **Botão:** **VER MEU SALDO** (direciona para a Tela de Saldo)(RESULT_CLIENT)
+  - **Mensagem:** *"Cadastro realizado com sucesso, Você recebeu 1 ponto de bônus!  consulte seu saldo clicando no botão abaixo:"*
+  - **Botão:** **VER MEU SALDO** (direciona para a Tela de Saldo - RESULT_CLIENT).
 
 ### E. Fluxo: Totem de Solicitação (Modo Terminal)
 Diferente do portal `/p/`, o totem acessado via `/public/terminal/` foca na agilidade:

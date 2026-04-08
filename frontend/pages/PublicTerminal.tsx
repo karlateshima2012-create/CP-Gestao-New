@@ -302,7 +302,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       }
     } catch (error: any) {
       if (error.response?.status === 404) {
-        setMode('REGISTER');
+        setMode('VISIT_NOT_FOUND');
       } else {
         setModal({
           isOpen: true,
@@ -531,22 +531,17 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       });
       const isAdmin = !!localStorage.getItem('auth_token');
 
-      if (isAdmin && deviceUid && res.data.points_balance !== undefined) {
-        setFoundCustomer(res.data);
-        setMode('LOJISTA_ACTIONS');
-        setModal({ isOpen: true, title: 'Cadastro Realizado!', message: 'O cliente foi cadastrado e pontuado.', type: 'success' });
-      } else {
-        setFoundCustomer(res.data);
-        setApprovedData({
-          customer_name: res.data.name,
-          points_balance: res.data.points_balance,
-          points_goal: res.data.points_goal,
-          tenant_name: storeInfo?.name,
-          is_registration: true
-        });
-        setQrToken(null);
-        setMode('AUTO_SUCCESS');
-      }
+      setFoundCustomer(res.data);
+      setApprovedData({
+        customer_name: res.data.name,
+        points_balance: res.data.points_balance,
+        points_goal: res.data.points_goal,
+        tenant_name: storeInfo?.name,
+        is_registration: true,
+        auto_approved: true
+      });
+      setQrToken(null);
+      setMode('AUTO_SUCCESS');
     } catch (error: any) {
       setModal({ isOpen: true, title: 'Erro no Cadastro', message: error.response?.data?.message || 'Erro ao cadastrar.', type: 'error' });
     } finally {
@@ -694,7 +689,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <Button onClick={() => setMode('REGISTER')} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl text-sm">
                 CADASTRAR AGORA
               </Button>
-              <button onClick={() => setMode('START')} className="text-gray-400 font-bold uppercase text-[10px] tracking-widest py-2">
+              <button onClick={() => setMode('START')} className="text-gray-400 hover:text-gray-600 font-bold uppercase text-[10px] tracking-widest py-2 transition-colors">
                 Tentar outro número
               </button>
             </div>
@@ -905,8 +900,17 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {(mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') && approvedData && (
           <div className="p-6 md:p-8 text-center py-10 animate-fade-in w-full bg-white dark:bg-gray-950">
             <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-50 border-4 border-green-100"><CheckCircle2 className="w-12 h-12 text-green-500" /></div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Ponto registrado com sucesso!</h2>
-            <p className="text-sm text-slate-500 font-medium mb-4">Você pode consultar seu saldo clicando no botão abaixo:</p>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
+              {approvedData.is_registration ? "Cadastro realizado com sucesso!" : "Ponto registrado com sucesso!"}
+            </h2>
+            <p className="text-sm text-slate-500 font-medium mb-4">
+              {approvedData.is_registration 
+                ? "Você recebeu 1 ponto de bônus! consulte seu saldo clicando no botão abaixo:" 
+                : (approvedData.auto_approved 
+                   ? "Você pode consultar seu saldo clicando no botão abaixo:" 
+                   : "Assim que aprovado, ele entrará no seu saldo.")
+              }
+            </p>
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-2 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
               <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
               <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
