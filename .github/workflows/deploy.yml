@@ -45,11 +45,14 @@ jobs:
           cp -r backend/* deploy/api_backend/
           echo "<?php echo 'DIR: ' . __DIR__; ?>" > deploy/debug.php
           
-           # Root .htaccess (Isolamento total do WordPress pai)
+           # Root .htaccess (Isolamento total e prioridade de index)
           cat <<EOT > deploy/.htaccess
           <IfModule mod_rewrite.c>
               RewriteEngine On
               RewriteBase /
+              
+              # Prioridade para o index.html gerado pelo React
+              DirectoryIndex index.html index.php
               
               # Impede que o .htaccess da pasta pai (WordPress) interfira aqui
               RewriteOptions None
@@ -67,6 +70,9 @@ jobs:
               Deny from all
           </Files>
           EOT
+          
+          # Ponte index.php para garantir que o servidor LiteSpeed abra o diretório
+          echo "<?php include 'index.html'; ?>" > deploy/index.php
           
           # API inner .htaccess
           cat <<EOT > deploy/api/.htaccess
