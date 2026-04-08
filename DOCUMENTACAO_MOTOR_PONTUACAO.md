@@ -83,7 +83,7 @@ Este fluxo descreve a jornada do cliente ao acessar a URL de fidelidade (`/p/{sl
 - **Botão:** **ENTRAR**.
   - *Comportamento:* Se o telefone não for válido, exibe modal de erro solicitando verificação.
 
-### B. Fluxo: Cliente Já Cadastrado (TELA DE SALDO DO CLIENTE)
+### B. Fluxo: Cliente Já Cadastrado (PORTAL DO CLIENTE)
 Se o número for identificado, o cliente entra imediatamente na visualização de sua ficha:
 - **Elementos da Tela:**
   - Imagem de perfil circular (editável, permite upload de foto pelo cliente).

@@ -760,7 +760,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
 
             <div className="text-center space-y-2">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Área do Cliente</h3>
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Portal do cliente</h3>
               <p className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">{foundCustomer?.name || 'Cliente'}</p>
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border-2 bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-300">
                 <span className="text-[12px] font-black uppercase tracking-widest">{foundCustomer.loyalty_level_name || 'Bronze'}</span>
