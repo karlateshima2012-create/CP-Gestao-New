@@ -141,46 +141,35 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            echo "--- RASTREAMENTO DE CAMINHO REAL ---"
-            # Tenta localizar o arquivo default.php em toda a conta do usuário
-            # Isso nos dirá exatamente onde a Hostinger criou o subdomínio
-            DISCOVERED_ROOT=$(find ~ -name "default.php" 2>/dev/null | head -n 1 | xargs dirname)
+            echo "--- DEPLOY TRIPLO DE IDENTIFICAÇÃO ---"
             
-            echo "Caminho Absoluto descoberto: $DISCOVERED_ROOT"
+            # Opções de pastas raiz comuns na Hostinger
+            DIRS=("public_html/cpgestaonew" "public_html/cpgestaonew.creativeprintjp.com" "cpgestaonew")
             
-            if [ -z "$DISCOVERED_ROOT" ]; then
-              echo "Aviso: default.php não encontrado. Usando caminho padrão."
-              TARGET_DIR="public_html/cpgestaonew"
-            else
-              TARGET_DIR="$DISCOVERED_ROOT"
-              echo "Ajustando alvo para: $TARGET_DIR"
-            fi
+            for DIR in "${DIRS[@]}"; do
+              echo "Preparando diretório: $DIR"
+              mkdir -p "$DIR"
+              # Copia os arquivos do deploy original para cada variante
+              cp -r public_html/cpgestaonew/* "$DIR/" || true
+              # Cria um identificador para sabermos qual pasta responde ao subdomínio
+              echo "Esta pasta é: $DIR" > "$DIR/ESTOU_AQUI.txt"
+              
+              cd "$DIR"
+              chmod -R 755 . || true
+              rm -f default.php index.php || true
+              echo "<?php include 'index.html'; ?>" > index.php
+              
+              # Tenta rodar o backend se houver a pasta
+              if [ -d "api_backend" ]; then
+                cd api_backend
+                php artisan migrate --force
+                php artisan config:cache
+                php artisan storage:link || true
+                cd ..
+              fi
+              cd ~
+            done
 
-            # Garante que a pasta existe
-            mkdir -p "$TARGET_DIR"
-            
-            # Se os arquivos foram parar em public_html/cpgestaonew mas a raiz era outra, movemos
-            if [ "$TARGET_DIR" != "public_html/cpgestaonew" ] && [ -d "public_html/cpgestaonew" ]; then
-              echo "Movendo arquivos do cpgestaonew para a raiz real..."
-              cp -r public_html/cpgestaonew/* "$TARGET_DIR/"
-            fi
-
-            # Entra na pasta alvo e limpa
-            cd "$TARGET_DIR"
-            chmod -R 755 . || true
-            rm -f default.php index.php || true
-            
-            # Ponte index.php
-            echo "<?php include 'index.html'; ?>" > index.php
-            
-            # Backend Laravel
-            cd api_backend
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan storage:link || true
-            
-            # Limpeza final de vazamentos na public_html (WordPress raiz)
-            rm -f ~/public_html/index.html ~/public_html/.htaccess ~/public_html/debug.php || true
-            rm -rf ~/public_html/api ~/public_html/api_backend || true
+            # Limpeza de segurança (Remove o que foi para a pasta midias por erro no deploy anterior)
+            rm -f public_html/midias/ESTOU_AQUI.txt public_html/midias/index.php || true
+            # NÃO removemos a pasta midias inteira para não quebrar outros arquivos do site principal
