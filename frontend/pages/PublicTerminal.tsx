@@ -726,21 +726,36 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <button onClick={reset} className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 rounded-full z-20 border border-slate-200/50 shadow-sm"><X className="w-5 h-5" /></button>
             
             <div className="relative w-32 h-32 md:w-40 md:h-40 group mt-4">
-              <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
-                {foundCustomer.foto_perfil_url ? (
-                  <img src={foundCustomer.foto_perfil_url} alt={foundCustomer.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white font-black text-4xl">{foundCustomer.name[0].toUpperCase()}</div>
-                )}
-                {uploading && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
-              </div>
-              <label className="absolute bottom-1 right-1 w-10 h-10 md:w-12 md:h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white dark:border-slate-800 z-10">
-                <Camera className="w-5 h-5 md:w-6 md:h-6" />
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+              <label className="cursor-pointer block w-full h-full">
+                <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
+                  {foundCustomer.foto_perfil_url ? (
+                    <img 
+                      src={foundCustomer.foto_perfil_url} 
+                      alt={foundCustomer.name} 
+                      className="w-full h-full object-cover"
+                      key={foundCustomer.foto_perfil_url}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white font-black text-4xl">
+                      {foundCustomer.name ? foundCustomer.name.charAt(0).toUpperCase() : 'C'}
+                    </div>
+                  )}
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-10">
+                      <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute bottom-0 right-0 w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-slate-50 dark:border-slate-800 z-20">
+                  <Camera className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/jpeg,image/png,image/webp,image/heic" 
+                  className="hidden" 
+                  onChange={handlePhotoUpload} 
+                  disabled={uploading} 
+                />
               </label>
             </div>
 

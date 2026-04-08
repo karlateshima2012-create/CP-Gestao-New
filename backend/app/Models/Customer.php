@@ -103,16 +103,14 @@ class Customer extends Model
 
     private function generateStorageUrl($path)
     {
-        $appUrl = config('app.url');
+        if (!$path) return null;
         
-        // Se o APP_URL estiver como localhost ou vazio, tentamos detectar o host real
-        if (($appUrl === 'http://localhost' || empty($appUrl)) && isset($_SERVER['HTTP_HOST'])) {
-            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-            $appUrl = "{$protocol}://{$_SERVER['HTTP_HOST']}";
+        // Ensure path starts with storage/ if it doesn't
+        if (!str_starts_with($path, 'storage/')) {
+            $path = 'storage/' . $path;
         }
-        
-        // Garantimos que o caminho comece com /storage/
-        return rtrim($appUrl, '/') . '/storage/' . $path;
+
+        return asset($path);
     }
 
     public function getLoyaltyLevelNameAttribute()
