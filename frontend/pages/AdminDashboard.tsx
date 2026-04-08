@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../components/ui';
-import { Users, AlertTriangle, Plus, Search, Edit2, Lock, Trash2, X, CheckCircle, CheckCircle2, Check, Copy, Calendar, RefreshCw, Save, ArrowUpCircle, Tag as TagIcon, Shield, Download, Crown, Smartphone, Monitor, HelpCircle, ExternalLink } from 'lucide-react';
+import { Users, AlertTriangle, Plus, Search, Edit2, Lock, Trash2, X, CheckCircle, CheckCircle2, Check, Copy, Calendar, RefreshCw, Save, ArrowUpCircle, Tag as TagIcon, Shield, Download, Crown, Smartphone, Monitor, HelpCircle, ExternalLink, Activity, Settings } from 'lucide-react';
 import { Tenant, PlanType } from '../types';
 import { tenantsService } from '../services/api';
 import { copyToClipboard } from '../utils/clipboard';
@@ -429,226 +429,261 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <>
-      <div className="space-y-8 animate-fade-in relative">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="space-y-10 animate-fade-in relative pb-20">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-slate-100 dark:border-slate-800">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Visão Geral Admin</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Gestão de lojas e métricas globais da plataforma.</p>
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Visão Geral Admin</h1>
+            <p className="text-lg text-slate-500 dark:text-slate-400 mt-1 font-medium">Gestão de lojas e métricas globais da plataforma.</p>
           </div>
-          <Button size="lg" className="shadow-md bg-gray-700 text-white" onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="w-5 h-5 mr-2 text-white" /> Criar Novo CRM
+          <Button size="lg" className="shadow-xl bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white rounded-2xl font-black uppercase tracking-widest text-xs h-14" onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="w-5 h-5 mr-2" /> Criar Novo CRM
           </Button>
         </div>
 
-        {/* Global Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="p-6 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-[15px] group-hover:scale-110 transition-transform">
-                <Users className="w-6 h-6" />
-              </div>
-              <Badge color="blue">Ativos</Badge>
+        {/* Global Metrics Sections */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-slate-900 bg-opacity-10 dark:bg-opacity-20 shadow-sm ring-1 ring-inset ring-slate-900/20">
+              <Activity className="w-5 h-5 text-slate-600" />
             </div>
-            <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{globalMetrics?.total_tenants ?? '...'}</h3>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Total de Empresas</p>
-            <div className="absolute -bottom-1 left-0 w-full h-1 bg-blue-500 rounded-b-full"></div>
-          </Card>
-
-          <Card className="p-6 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-orange-50 text-orange-600 rounded-[15px] group-hover:scale-110 transition-transform">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <Badge color="orange">Atenção</Badge>
+            <div>
+              <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white capitalize">Saúde da Rede</h2>
             </div>
-            <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{globalMetrics?.expiring_soon ?? '...'}</h3>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Vencimentos (10 dias)</p>
-            <div className="absolute -bottom-1 left-0 w-full h-1 bg-orange-500 rounded-b-full"></div>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[
-            {
-              label: 'Próximas do Limite',
-              value: tenants.filter(t => {
-                const limit = t.total_contact_limit || PLAN_LIMITS[t.plan] || 2000;
-                return (t.customers_count || 0) / limit > 0.8;
-              }).length.toString(),
-              icon: AlertTriangle,
-              sub: 'Uso > 80%',
-              type: 'near_limit' as const,
-              color: 'orange'
-            },
-            {
-              label: 'Planos Expirados',
-              value: tenants.filter(t => t.plan_expires_at && new Date(t.plan_expires_at) < new Date()).length.toString(),
-              icon: Shield,
-              sub: 'Ação requerida',
-              type: 'expired' as const,
-              color: 'red'
-            },
-          ].map((stat, i) => (
-            <Card
-              key={i}
-              className={`p-6 cursor-pointer transition-all hover:shadow-md ${filterType === stat.type
-                ? stat.color === 'orange'
-                  ? 'ring-2 ring-orange-500 ring-offset-2 shadow-lg'
-                  : 'ring-2 ring-red-500 ring-offset-2 shadow-lg'
-                : 'hover:border-gray-300'
-                }`}
-              onClick={() => setFilterType(filterType === stat.type ? 'all' : stat.type)}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-[15px] ${stat.type === 'expired' ? 'bg-red-50' : 'bg-orange-50'}`}>
-                  <stat.icon className={`w-6 h-6 ${stat.type === 'expired' ? 'text-red-600' : 'text-orange-600'}`} />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-8 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group rounded-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:scale-110 transition-transform shadow-md shadow-blue-500/10">
+                  <Users className="w-8 h-8" />
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${stat.type === 'expired' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                    {stat.sub}
-                  </span>
-                  {filterType === stat.type && (
-                    <span className="text-[10px] text-gray-400 font-bold mt-1 uppercase flex items-center gap-1">
-                      <Check className="w-3 h-3" /> Filtro Ativo
-                    </span>
-                  )}
-                </div>
+                <Badge color="blue" className="px-3 py-1">Contratos Ativos</Badge>
               </div>
-              <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{stat.value}</h3>
-              <p className="text-sm font-bold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-widest">{stat.label}</p>
+              <div className="space-y-1">
+                <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{globalMetrics?.total_tenants ?? '...'}</h3>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-1">Total de Empresas</p>
+              </div>
+              <div className="absolute left-0 bottom-0 w-full h-1.5 bg-[#38B6FF] rounded-b-2xl"></div>
             </Card>
-          ))}
-        </div>
 
-        <Card className="overflow-hidden">
-          <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4">
-              <h3 className="text-lg font-semibold">Clientes e CRM</h3>
-              {filterType !== 'all' && (
-                <Badge color="orange" className="cursor-pointer hover:bg-orange-200 py-1" onClick={() => setFilterType('all')}>
-                  {filterType === 'near_limit' ? 'Filtro: Próximas do Limite' : 'Filtro: Expirados'} <X className="w-3 h-3 ml-1" />
-                </Badge>
-              )}
+            <Card className="p-8 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group rounded-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl group-hover:scale-110 transition-transform shadow-md shadow-rose-500/10">
+                  <AlertTriangle className="w-8 h-8" />
+                </div>
+                <Badge color="red" className="px-3 py-1">Ação Requerida</Badge>
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{globalMetrics?.expiring_soon ?? '...'}</h3>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-1">Vencimentos Próximos (10 dias)</p>
+              </div>
+              <div className="absolute left-0 bottom-0 w-full h-1.5 bg-rose-500 rounded-b-2xl"></div>
+            </Card>
+          </div>
+        </section>
+
+        <section className="space-y-6 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-slate-900 bg-opacity-10 dark:bg-opacity-20 shadow-sm ring-1 ring-inset ring-slate-900/20">
+              <AlertTriangle className="w-5 h-5 text-slate-600" />
             </div>
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-3.5 w-4 h-4 text-gray-700" />
-              <Input placeholder="Buscar lojas..." className="pl-10 h-11" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <div>
+              <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white capitalize">Alertas de Manutenção</h2>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-gray-800/50">
-                <tr>
-                  <th className="px-6 py-4">Negócio</th>
-                  <th className="px-6 py-4">Contato</th>
-                  <th className="px-6 py-4">USO DO PLANO</th>
-                  <th className="px-6 py-4">Vencimento</th>
-                  <th className="px-6 py-4">Terminais</th>
-                  <th className="px-6 py-4 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {filteredTenants.map((tenant) => {
-                  const limit = tenant.total_contact_limit || PLAN_LIMITS[tenant.plan] || 2000;
-                  const usage = (tenant.customers_count || 0) / limit;
-                  const isExpired = tenant.plan_expires_at && new Date(tenant.plan_expires_at) < new Date();
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              {
+                label: 'Próximas do Limite',
+                value: tenants.filter(t => {
+                  const limit = t.total_contact_limit || PLAN_LIMITS[t.plan] || 2000;
+                  return (t.customers_count || 0) / limit > 0.8;
+                }).length.toString(),
+                icon: Crown,
+                sub: 'Uso de Banco > 80%',
+                type: 'near_limit' as const,
+                accentColor: 'bg-orange-500',
+                bgColor: 'bg-orange-50',
+                textColor: 'text-orange-600'
+              },
+              {
+                label: 'Planos Expirados',
+                value: tenants.filter(t => t.plan_expires_at && new Date(t.plan_expires_at) < new Date()).length.toString(),
+                icon: Shield,
+                sub: 'Requer Renovação',
+                type: 'expired' as const,
+                accentColor: 'bg-rose-500',
+                bgColor: 'bg-rose-50',
+                textColor: 'text-rose-600'
+              },
+            ].map((stat, i) => (
+              <Card
+                key={i}
+                className={`p-8 border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 group relative rounded-2xl cursor-pointer ${
+                  filterType === stat.type ? `ring-2 ring-offset-2 ${stat.type === 'near_limit' ? 'ring-orange-500 shadow-xl' : 'ring-rose-500 shadow-xl'}` : 'hover:shadow-md'
+                }`}
+                onClick={() => setFilterType(filterType === stat.type ? 'all' : stat.type)}
+              >
+                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${stat.accentColor}`} />
+                <div className="flex justify-between items-start mb-6">
+                  <div className={`p-3 rounded-xl ${stat.bgColor} border border-slate-50 relative group-hover:scale-110 transition-transform`}>
+                    <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
+                  </div>
+                  <Badge color={stat.type === 'near_limit' ? 'orange' : 'red'} className="px-3 py-1 font-black">{stat.sub}</Badge>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{stat.value}</h3>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                </div>
+                {filterType === stat.type && (
+                  <div className="absolute bottom-4 right-4 animate-bounce">
+                    <div className={`text-[9px] font-black uppercase px-2 py-1 rounded-full text-white ${stat.accentColor}`}>Filtro Ativo</div>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        </section>
 
-                  return (
-                    <tr key={tenant.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full ${isExpired ? 'bg-red-500 animate-pulse' : usage > 0.9 ? 'bg-amber-500' : 'bg-green-500'}`} />
-                          <div className="font-bold text-gray-900">{tenant.name}</div>
-                        </div>
-                      </td>
+        <section className="space-y-6 pt-4">
+          <div className="flex items-center gap-3">
+             <div className="p-2 rounded-lg bg-slate-900 bg-opacity-10 dark:bg-opacity-20 shadow-sm ring-1 ring-inset ring-slate-900/20">
+                <Shield className="w-5 h-5 text-slate-600" />
+             </div>
+             <div>
+                <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white capitalize">Gerenciamento de Parceiros</h2>
+             </div>
+          </div>
 
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-gray-900 font-medium text-xs">{tenant.email}</span>
-                          {tenant.phone && (
-                            <a
-                              href={getWhatsAppLink(tenant.phone)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-green-600 hover:text-green-700 text-[10px] font-black uppercase tracking-tight flex items-center gap-1 mt-1"
-                            >
-                              WhatsApp <ExternalLink className="w-2.5 h-2.5" />
-                            </a>
+          <Card className="overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm rounded-2xl">
+            <div className="p-8 border-b border-slate-50 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-6 bg-white dark:bg-slate-900">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Clientes e CRM</h3>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Base instalada e monitoramento</p>
+                {filterType !== 'all' && (
+                  <Badge color="orange" className="cursor-pointer hover:bg-orange-200 py-1.5 mt-2 self-start" onClick={() => setFilterType('all')}>
+                    {filterType === 'near_limit' ? 'Filtro: Próximas do Limite' : 'Filtro: Expirados'} <X className="w-3 h-3 ml-1" />
+                  </Badge>
+                )}
+              </div>
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-primary-500" />
+                <Input placeholder="Buscar lojas por nome ou e-mail..." className="pl-12 h-14 bg-slate-50/50 border-slate-100 rounded-2xl text-sm font-bold" value={search} onChange={(e) => setSearch(e.target.value)} />
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 bg-slate-50/50 dark:bg-gray-800/50">
+                  <tr>
+                    <th className="px-8 py-5">Negócio</th>
+                    <th className="px-8 py-5">Gestor / Contato</th>
+                    <th className="px-8 py-5 text-center">Uso do Plano</th>
+                    <th className="px-8 py-5">Vencimento</th>
+                    <th className="px-8 py-5 text-right">Ações de Gestão</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-gray-800">
+                  {filteredTenants.map((tenant) => {
+                    const limit = tenant.total_contact_limit || PLAN_LIMITS[tenant.plan] || 2000;
+                    const usage = (tenant.customers_count || 0) / limit;
+                    const isExpired = tenant.plan_expires_at && new Date(tenant.plan_expires_at) < new Date();
+
+                    return (
+                      <tr key={tenant.id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-3 h-3 rounded-full shadow-sm ring-4 ring-offset-2 ring-offset-white ring-transparent ${isExpired ? 'bg-red-500 animate-pulse ring-red-100' : usage > 0.9 ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                            <div className="flex flex-col">
+                              <div className="font-extrabold text-slate-900 dark:text-white text-base tracking-tight">{tenant.name}</div>
+                              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate max-w-[150px]">{tenant.slug}</div>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-8 py-6">
+                          <div className="flex flex-col space-y-1">
+                            <span className="text-slate-900 dark:text-slate-200 font-bold text-xs">{tenant.email}</span>
+                            {tenant.phone && (
+                              <a
+                                href={getWhatsAppLink(tenant.phone)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-600 hover:text-emerald-700 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all"
+                              >
+                                WhatsApp <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="px-8 py-6">
+                          <div className="flex flex-col items-center min-w-[140px] space-y-2">
+                            <div className="flex justify-between w-full text-[10px] font-black uppercase tracking-widest">
+                              <span className="text-slate-400">
+                                {tenant.plan === PlanType.UNLIMITED ? 'ELITE' : 'PRO'}
+                                {tenant.extra_contacts_quota ? <Badge color="orange" className="ml-2 text-[8px] px-1 py-0 shadow-sm">+{(tenant.extra_contacts_quota / 1000).toFixed(0)}K</Badge> : null}
+                              </span>
+                              <span className={tenant.extra_contacts_quota ? 'text-[#38B6FF] font-black' : usage > 0.9 ? 'text-rose-500' : 'text-slate-900'}>
+                                {usage > 1 ? 'TRANSBORDADO' : `${Math.round(usage * 100)}%`}
+                              </span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-100 dark:bg-gray-800 rounded-full overflow-hidden border border-slate-200/50 shadow-inner">
+                              <div
+                                className={`h-full transition-all duration-700 ${usage > 0.9 ? 'bg-rose-500' : usage > 0.8 ? 'bg-orange-500' : 'bg-[#38B6FF]'}`}
+                                style={{ width: `${Math.min(100, usage * 100)}%` }}
+                              />
+                            </div>
+                            <p className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">{(tenant.customers_count || 0).toLocaleString()} / {(tenant.total_contact_limit || limit).toLocaleString()}</p>
+                          </div>
+                        </td>
+
+                        <td className="px-8 py-6 whitespace-nowrap">
+                          {tenant.plan_expires_at ? (
+                            <div className="flex flex-col">
+                               <div className="flex items-center gap-2">
+                                  <Calendar className={`w-3.5 h-3.5 ${isExpired ? 'text-rose-500' : 'text-slate-400'}`} />
+                                  <span className={`text-[11px] font-black uppercase tracking-tight ${isExpired ? 'text-rose-600' : 'text-slate-600'}`}>
+                                    {formatDateDisplay(tenant.plan_expires_at)}
+                                  </span>
+                               </div>
+                               {isExpired && <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest mt-1">Plano Expirado</span>}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-300 font-bold uppercase tracking-widest">Vitalício</span>
                           )}
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                            <span className="flex items-center gap-1">
-                              {tenant.plan === PlanType.UNLIMITED ? 'ELITE' : 'PRO'}
-                              {tenant.extra_contacts_quota ? <Badge color="orange" className="text-[8px] px-1 py-0">+{(tenant.extra_contacts_quota / 1000).toFixed(0)}K</Badge> : null}
-                            </span>
-                            <span className={tenant.extra_contacts_quota ? 'text-primary-600 font-black' : usage > 0.9 ? 'text-amber-500' : ''}>
-                              {(tenant.customers_count || 0).toLocaleString()} / {(tenant.total_contact_limit || limit).toLocaleString()}
-                            </span>
+                        <td className="px-8 py-6 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-100 dark:border-slate-700">
+                               <button onClick={() => handleCopyPublicLink(tenant.slug)} className="p-2 text-slate-400 hover:text-[#38B6FF] hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="Link Público"><Copy className="w-4 h-4" /></button>
+                               <button onClick={() => handleOpenEditModal(tenant)} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="Gerenciar Lojista"><Settings className="w-4 h-4" /></button>
+                               <button
+                                 onClick={() => handleToggleBlock(tenant)}
+                                 className={`p-2 rounded-lg transition-all ${tenant.status === 'blocked' ? 'text-rose-500 bg-rose-50' : 'text-slate-400 hover:text-rose-500 hover:bg-white'}`}
+                                 title={tenant.status === 'blocked' ? 'Desbloquear' : 'Suspender'}
+                               >
+                                 <Lock className="w-4 h-4" />
+                               </button>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteTenant(tenant)}
+                              className="p-2.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all ml-1"
+                              title="Excluir Definitivamente"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
-                          <div className="w-32 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden border border-gray-200/50">
-                            <div
-                              className={`h-full transition-all ${usage > 0.9 ? 'bg-red-500' : usage > 0.8 ? 'bg-orange-500' : 'bg-blue-500'}`}
-                              style={{ width: `${Math.min(100, usage * 100)}%` }}
-                            />
-                          </div>
-                          {isExpired && <p className="text-[10px] text-red-500 font-black tracking-widest uppercase">Plano Expirado</p>}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {tenant.plan_expires_at ? (
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                            <span className={`text-xs font-bold ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
-                              {formatDateDisplay(tenant.plan_expires_at)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400">--</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-2">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-[10px] font-black uppercase tracking-widest py-1 h-auto"
-                            onClick={() => handleOpenEditModal(tenant)}
-                          >
-                            Configurar
-                          </Button>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => handleCopyPublicLink(tenant.slug)} className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg" title="Copiar Link Público"><Copy className="w-4 h-4 text-primary-500" /></button>
-                          <button onClick={() => handleOpenEditModal(tenant)} className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg" title="Editar Loja"><Edit2 className="w-4 h-4 text-gray-700" /></button>
-                          <button
-                            onClick={() => handleToggleBlock(tenant)}
-                            className={`p-2 rounded-lg transition-colors ${tenant.status === 'blocked' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'text-gray-700 hover:bg-gray-100'}`}
-                            title={tenant.status === 'blocked' ? 'Desbloquear Loja' : 'Bloquear Loja'}
-                          >
-                            <Lock className={`w-4 h-4 ${tenant.status === 'blocked' ? 'text-red-600' : 'text-gray-400'}`} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteTenant(tenant)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Excluir Loja"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </section>
 
         {/* Modal Edit */}
         {editingTenant && (
