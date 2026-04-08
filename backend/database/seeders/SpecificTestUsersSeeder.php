@@ -33,6 +33,14 @@ class SpecificTestUsersSeeder extends Seeder
             ]
         );
 
+        // Configurações padrão de níveis
+        $defaultLevels = [
+            ['name' => 'Bronze', 'goal' => 10, 'reward' => 'Prêmio Bronze', 'points_per_visit' => 1, 'points_per_signup' => 1, 'days_to_downgrade' => 0, 'active' => true],
+            ['name' => 'Prata', 'goal' => 24, 'reward' => 'Prêmio Prata', 'points_per_visit' => 2, 'points_per_signup' => 1, 'days_to_downgrade' => 30, 'active' => true],
+            ['name' => 'Ouro', 'goal' => 45, 'reward' => 'Prêmio Ouro', 'points_per_visit' => 3, 'points_per_signup' => 1, 'days_to_downgrade' => 30, 'active' => true],
+            ['name' => 'Diamante', 'goal' => 80, 'reward' => 'Prêmio Diamante', 'points_per_visit' => 5, 'points_per_signup' => 1, 'days_to_downgrade' => 30, 'active' => true]
+        ];
+
         // 2. USUÁRIO ELITE (Auto-Aprovação)
         $tenantElite = Tenant::updateOrCreate(
             ['slug' => 'loja-elite-teste'],
@@ -49,7 +57,14 @@ class SpecificTestUsersSeeder extends Seeder
             ]
         );
         TenantSetting::updateOrCreate(['tenant_id' => $tenantElite->id], []);
-        LoyaltySetting::updateOrCreate(['tenant_id' => $tenantElite->id], ['points_goal' => 10, 'signup_bonus_points' => 1]);
+        LoyaltySetting::updateOrCreate(
+            ['tenant_id' => $tenantElite->id], 
+            [
+                'points_goal' => 10, 
+                'signup_bonus_points' => 1,
+                'levels_config' => $defaultLevels
+            ]
+        );
 
         User::updateOrCreate(
             ['email' => 'elite@cpgestaonew.com'],
@@ -80,7 +95,13 @@ class SpecificTestUsersSeeder extends Seeder
             ]
         );
         TenantSetting::updateOrCreate(['tenant_id' => $tenantPro->id], []);
-        LoyaltySetting::updateOrCreate(['tenant_id' => $tenantPro->id], ['points_goal' => 10]);
+        LoyaltySetting::updateOrCreate(
+            ['tenant_id' => $tenantPro->id], 
+            [
+                'points_goal' => 10,
+                'levels_config' => $defaultLevels
+            ]
+        );
 
         User::updateOrCreate(
             ['email' => 'pro@cpgestaonew.com'],
