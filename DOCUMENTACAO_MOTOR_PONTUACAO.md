@@ -93,10 +93,10 @@ Se o número for identificado, o cliente entra imediatamente na visualização d
   - **Status da Meta:** Texto dinâmico indicando quantos pontos faltam ou se a meta foi atingida.
   - **Prêmio:** Exibe o nome do prêmio configurado para o nível atual.
 
-### C. Fluxo: Cliente Não Cadastrado (PRIMEIRA VEZ AQUI? 🌟)
+### C. Fluxo: Cliente Não Cadastrado (PRIMEIRA VEZ AQUI?)
 Caso o número digitado seja válido mas não exista no banco de dados:
-- **Título:** PRIMEIRA VEZ AQUI? 🌟
-- **Mensagem:** "Não encontramos este número. Cadastre-se em segundos para começar a ganhar pontos!"
+- **Título:** PRIMEIRA VEZ AQUI?
+- **Mensagem:** "Cadastre-se em segundos para começar a ganhar pontos!"
 - **Ações:**
   1. **CADASTRAR AGORA:** Abre a tela de cadastro com o telefone já preenchido e bloqueado para edição (garante integridade).
   2. **Tentar outro número:** Limpa o campo e volta para a tela inicial.

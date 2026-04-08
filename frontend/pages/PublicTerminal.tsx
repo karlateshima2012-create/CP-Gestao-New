@@ -674,9 +674,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <UserPlus className="w-12 h-12" />
             </div>
             <div className="space-y-4 max-w-md">
-              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">PRIMEIRA VEZ AQUI? 🌟</h2>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">PRIMEIRA VEZ AQUI?</h2>
               <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                Não encontramos este número.<br/>Cadastre-se em segundos para começar a ganhar pontos!
+                Cadastre-se em segundos para começar a ganhar pontos!
               </p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-sm">
