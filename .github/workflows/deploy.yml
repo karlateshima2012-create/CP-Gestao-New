@@ -45,11 +45,15 @@ jobs:
           cp -r backend/* deploy/api_backend/
           echo "<?php echo 'DIR: ' . __DIR__; ?>" > deploy/debug.php
           
-           # Root .htaccess (Dedicated Subdomain Folder)
+           # Root .htaccess (Isolamento total do WordPress pai)
           cat <<EOT > deploy/.htaccess
           <IfModule mod_rewrite.c>
               RewriteEngine On
               RewriteBase /
+              
+              # Impede que o .htaccess da pasta pai (WordPress) interfira aqui
+              RewriteOptions None
+              
               RewriteRule ^api(/.*)?$ - [L]
               RewriteRule ^index\.html$ - [L]
               RewriteCond %{REQUEST_FILENAME} !-f
