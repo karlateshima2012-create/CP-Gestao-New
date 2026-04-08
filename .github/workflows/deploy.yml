@@ -94,9 +94,9 @@ jobs:
           DB_CONNECTION=mysql
           DB_HOST=127.0.0.1
           DB_PORT=3306
-          DB_DATABASE=${{ secrets.DB_DATABASE }}
-          DB_USERNAME=${{ secrets.DB_USERNAME }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_DATABASE=u176367625_cpgestaonew
+          DB_USERNAME=u176367625_cpgestaonew
+          DB_PASSWORD=G7mQ9zP4kL2nX8vR
 
           CACHE_DRIVER=file
           FILESYSTEM_DISK=local
@@ -150,9 +150,10 @@ jobs:
             rm -f default.php index.php || true
             echo "<?php include 'index.html'; ?>" > index.php
             
-            # Backend Laravel
+            # Backend Laravel (Migrations, Seed & Cache)
             cd api_backend
             php artisan migrate --force
+            php artisan db:seed --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
