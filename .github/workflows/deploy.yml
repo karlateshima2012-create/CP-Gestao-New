@@ -141,16 +141,36 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            # Entra na pasta final
-            cd public_html/cpgestaonew
+            echo "--- RASTREAMENTO DE CAMINHO REAL ---"
+            # Tenta localizar o arquivo default.php em toda a conta do usuário
+            # Isso nos dirá exatamente onde a Hostinger criou o subdomínio
+            DISCOVERED_ROOT=$(find ~ -name "default.php" 2>/dev/null | head -n 1 | xargs dirname)
             
-            # Garante permissões 755
+            echo "Caminho Absoluto descoberto: $DISCOVERED_ROOT"
+            
+            if [ -z "$DISCOVERED_ROOT" ]; then
+              echo "Aviso: default.php não encontrado. Usando caminho padrão."
+              TARGET_DIR="public_html/cpgestaonew"
+            else
+              TARGET_DIR="$DISCOVERED_ROOT"
+              echo "Ajustando alvo para: $TARGET_DIR"
+            fi
+
+            # Garante que a pasta existe
+            mkdir -p "$TARGET_DIR"
+            
+            # Se os arquivos foram parar em public_html/cpgestaonew mas a raiz era outra, movemos
+            if [ "$TARGET_DIR" != "public_html/cpgestaonew" ] && [ -d "public_html/cpgestaonew" ]; then
+              echo "Movendo arquivos do cpgestaonew para a raiz real..."
+              cp -r public_html/cpgestaonew/* "$TARGET_DIR/"
+            fi
+
+            # Entra na pasta alvo e limpa
+            cd "$TARGET_DIR"
             chmod -R 755 . || true
-            
-            # Limpeza de arquivos padrão da Hostinger que podem sobrar
             rm -f default.php index.php || true
             
-            # Ponte index.php (garantia extra para LiteSpeed)
+            # Ponte index.php
             echo "<?php include 'index.html'; ?>" > index.php
             
             # Backend Laravel
@@ -161,7 +181,6 @@ jobs:
             php artisan view:cache
             php artisan storage:link || true
             
-            # Limpeza de arquivos residuais na raiz (Vazamentos anteriores)
-            cd ../..
-            rm -f index.html .htaccess debug.php WHERE_AM_I_2.txt || true
-            rm -rf api api_backend || true
+            # Limpeza final de vazamentos na public_html (WordPress raiz)
+            rm -f ~/public_html/index.html ~/public_html/.htaccess ~/public_html/debug.php || true
+            rm -rf ~/public_html/api ~/public_html/api_backend || true
