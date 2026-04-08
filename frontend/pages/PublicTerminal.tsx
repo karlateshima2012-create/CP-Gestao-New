@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../components/ui';
+import { validatePhone } from '../utils/phoneValidation';
 
 const animationStyles = `
 @keyframes starBurst {
@@ -319,16 +320,22 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
   const handleConsult = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!phone) {
+    
+    const validation = validatePhone(phone);
+    if (!validation.isValid) {
       setModal({
         isOpen: true,
-        title: 'Atenção',
-        message: 'Por favor, informe seu número de telefone.',
-        type: 'info'
+        title: 'Número Inválido',
+        message: validation.message || 'Por favor, verifique o número informado.',
+        type: 'warning'
       });
       return;
     }
-    handleLookup();
+    
+    // Use the cleaned number for lookup
+    const cleanedPhone = validation.cleaned;
+    setPhone(formatJapanesePhone(cleanedPhone)); // Keep visual format but use cleaned digits
+    handleLookup(cleanedPhone);
   };
 
 

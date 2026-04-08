@@ -83,6 +83,10 @@ class ClientController extends Controller
         ]);
 
         $phone = PhoneHelper::normalize($request->phone);
+        if (!PhoneHelper::validateJapaneseFormat($phone)) {
+            return ApiResponse::error('O telefone deve ter exatamente 11 dígitos e começar com 070, 080 ou 090.', 'INVALID_PHONE_FORMAT', 422);
+        }
+
         if (Customer::where('phone', $phone)->exists()) {
             return ApiResponse::error('Este número de telefone já está cadastrado nesta loja.', 'DUPLICATE_PHONE', 409);
         }
@@ -201,6 +205,9 @@ class ClientController extends Controller
 
         if ($request->has('phone')) {
             $phone = PhoneHelper::normalize($request->phone);
+            if (!PhoneHelper::validateJapaneseFormat($phone)) {
+                return ApiResponse::error('O telefone deve ter exatamente 11 dígitos e começar com 070, 080 ou 090.', 'INVALID_PHONE_FORMAT', 422);
+            }
             if (Customer::where('phone', $phone)->where('id', '!=', $id)->exists()) {
                 return ApiResponse::error('Telefone já cadastrado', 'DUPLICATE_PHONE', 409);
             }

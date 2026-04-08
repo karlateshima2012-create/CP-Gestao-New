@@ -644,6 +644,10 @@ class PublicTerminalController extends Controller
 
         try {
             \Illuminate\Support\Facades\Validator::make($data, $rules)->validate();
+            
+            if (!PhoneHelper::validateJapaneseFormat($data['phone'])) {
+                return ApiResponse::error('O número de telefone deve ter 11 dígitos e começar com 070, 080 ou 090.', 'INVALID_PHONE_FORMAT', 422);
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Illuminate\Support\Facades\Log::error("Registration Validation Failed for {$slug}: " . json_encode($e->errors()));
             return ApiResponse::error('Dados inválidos para cadastro.', 'VALIDATION_ERROR', 422, $e->errors());
