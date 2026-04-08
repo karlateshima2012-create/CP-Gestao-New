@@ -351,6 +351,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       const lookupRes = await terminalService.lookup(tenantSlug, deviceUid, targetPhone, qrToken, sessionToken);
 
       if (lookupRes.data.customer_exists) {
+        setFoundCustomer(lookupRes.data);
         const earnRes = await terminalService.earn(tenantSlug, deviceUid, targetPhone, undefined, qrToken, sessionToken);
         
         if (earnRes.data.is_reward_ready) {

@@ -116,10 +116,10 @@ Diferente do portal `/p/`, o totem acessado via `/public/terminal/` foca na agil
 - **Telas de Feedback Pós-Solicitação:**
   - **PLANO PRO (Aprovação Manual):**
     - **Mensagem:** "Ponto registrado com sucesso! Assim que aprovado, ele entrará no seu saldo."
-    - **Ação:** Botão **VER MEU SALDO**.
+    - **Ação:** Botão **VER MEU SALDO** (Direciona para o Portal do Cliente - RESULT_CLIENT).
   - **PLANO ELITE (Auto-Aprovação):**
     - **Mensagem:** "Ponto registrado com sucesso! Você pode consultar seu saldo clicando no botão abaixo:"
-    - **Ação:** Botão **VER MEU SALDO** (Exibe o saldo atualizado em tempo real).
+    - **Ação:** Botão **VER MEU SALDO** (Direciona para o Portal do Cliente - RESULT_CLIENT).
 
 ---
 
