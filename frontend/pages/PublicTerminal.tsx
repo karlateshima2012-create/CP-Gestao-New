@@ -375,6 +375,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           goal: earnRes.data.points_goal
         });
 
+        if (isAuto) {
+          setFoundCustomer(prev => ({
+            ...prev,
+            ...earnRes.data,
+            points_balance: earnRes.data.new_balance,
+            points_goal: earnRes.data.points_goal,
+            remaining: Math.max(0, (earnRes.data.points_goal || (prev?.points_goal ?? 10)) - earnRes.data.new_balance)
+          }));
+        }
+
         setMode(isAuto ? 'AUTO_SUCCESS' : 'WAITING_APPROVAL');
         setShowStars(true);
         setTimeout(() => setShowStars(false), 1500);
@@ -508,6 +518,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setMode('LOJISTA_ACTIONS');
         setModal({ isOpen: true, title: 'Cadastro Realizado!', message: 'O cliente foi cadastrado e pontuado.', type: 'success' });
       } else {
+        setFoundCustomer(res.data);
         setApprovedData({
           customer_name: res.data.name,
           points_balance: res.data.points_balance,
