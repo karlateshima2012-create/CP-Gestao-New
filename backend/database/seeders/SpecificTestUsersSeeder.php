@@ -48,7 +48,7 @@ class SpecificTestUsersSeeder extends Seeder
                 'status' => 'active',
             ]
         );
-        TenantSetting::updateOrCreate(['tenant_id' => $tenantElite->id], ['pin_hash' => Hash::make('1234')]);
+        TenantSetting::updateOrCreate(['tenant_id' => $tenantElite->id], []);
         LoyaltySetting::updateOrCreate(['tenant_id' => $tenantElite->id], ['points_goal' => 10, 'signup_bonus_points' => 1]);
 
         User::updateOrCreate(
@@ -79,7 +79,7 @@ class SpecificTestUsersSeeder extends Seeder
                 'status' => 'active',
             ]
         );
-        TenantSetting::updateOrCreate(['tenant_id' => $tenantPro->id], ['pin_hash' => Hash::make('1234')]);
+        TenantSetting::updateOrCreate(['tenant_id' => $tenantPro->id], []);
         LoyaltySetting::updateOrCreate(['tenant_id' => $tenantPro->id], ['points_goal' => 10]);
 
         User::updateOrCreate(
