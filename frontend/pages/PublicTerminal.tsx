@@ -763,7 +763,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <div className="pt-2 border-t border-slate-50 dark:border-slate-700/50">
                   <p className="text-sm font-bold text-slate-600 dark:text-slate-400 italic text-center">
-                    {foundCustomer.remaining <= 0 ? "Meta Atingida! 🎁" : `Faltam ${foundCustomer.remaining} pontos para o prêmio!`}
+                    {foundCustomer.remaining <= 0 
+                      ? "Meta Atingida! 🎁" 
+                      : `Faltam ${foundCustomer.remaining} pontos para: ${foundCustomer.reward_name || 'o prêmio'}`}
                   </p>
                 </div>
               </div>

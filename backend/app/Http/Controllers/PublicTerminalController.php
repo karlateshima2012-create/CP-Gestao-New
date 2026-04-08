@@ -770,13 +770,21 @@ class PublicTerminalController extends Controller
                     $goal = (int)($levels[0]['goal'] ?? $goal);
                 }
 
+                $rewardName = "o prêmio";
+                if (is_array($levels) && count($levels) > 0) {
+                    $rewardName = $levels[0]['reward'] ?? $rewardName;
+                }
+
                 $refreshed = $customer->fresh();
+                $curPoints = $refreshed->points_balance;
                 return ApiResponse::ok([
                     'customer_exists' => true,
-                    'points_balance' => $refreshed->points_balance,
+                    'points_balance' => $curPoints,
                     'loyalty_level' => $refreshed->loyalty_level,
                     'loyalty_level_name' => $refreshed->loyalty_level_name,
                     'points_goal' => $goal,
+                    'reward_name' => $rewardName,
+                    'remaining' => max(0, $goal - $curPoints),
                     'id' => $customer->id,
                     'name' => $customer->name,
                     'foto_perfil_url' => $refreshed->photo_url_full,
