@@ -52,35 +52,35 @@ jobs:
           
           # Root .htaccess (SPA Routing + API bypass)
           cat <<EOT > deploy/.htaccess
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /
-    DirectoryIndex index.html index.php
-    
-    # Bypass API requests
-    RewriteRule ^api(/.*)?$ - [L]
-    
-    # SPA Routing
-    RewriteRule ^index\.html$ - [L]
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule . /index.html [L]
-</IfModule>
-
-# Securing .env files
-<Files .env>
-    Order allow,deny
-    Deny from all
-</Files>
-EOT
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteBase /
+              DirectoryIndex index.html index.php
+              
+              # Bypass API requests
+              RewriteRule ^api(/.*)?$ - [L]
+              
+              # SPA Routing
+              RewriteRule ^index\.html$ - [L]
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteRule . /index.html [L]
+          </IfModule>
+          
+          # Securing .env files
+          <Files .env>
+              Order allow,deny
+              Deny from all
+          </Files>
+          EOT
           
           # API inner .htaccess (Bridge to api_backend/public)
           cat <<EOT > deploy/api/.htaccess
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteRule ^(.*)$ ../api_backend/public/\$1 [L]
-</IfModule>
-EOT
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteRule ^(.*)$ ../api_backend/public/\$1 [L]
+          </IfModule>
+          EOT
           
           # Security Bridge index.php
           echo "<?php include 'index.html'; ?>" > deploy/index.php
@@ -88,27 +88,27 @@ EOT
       - name: Create Production .env
         run: |
           cat <<EOT > deploy/api_backend/.env
-APP_NAME="CP Gestão"
-APP_ENV=production
-APP_KEY=${{ secrets.APP_KEY || 'base64:XG8pY6XpD/v77y5S6L7U5P4R3G6B1N7=' }}
-APP_DEBUG=false
-APP_URL=https://cpgestaonew.creativeprintjp.com
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=u176367625_cpgestaonew
-DB_USERNAME=u176367625_cpgestaonew
-DB_PASSWORD=G7mQ9zP4kL2nX8vR
-
-CACHE_DRIVER=file
-FILESYSTEM_DISK=local
-QUEUE_CONNECTION=sync
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-
-CORS_ALLOWED_ORIGINS=https://cpgestaonew.creativeprintjp.com
-EOT
+          APP_NAME="CP Gestão"
+          APP_ENV=production
+          APP_KEY=${{ secrets.APP_KEY || 'base64:XG8pY6XpD/v77y5S6L7U5P4R3G6B1N7=' }}
+          APP_DEBUG=false
+          APP_URL=https://cpgestaonew.creativeprintjp.com
+          
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=u176367625_cpgestaonew
+          DB_USERNAME=u176367625_cpgestaonew
+          DB_PASSWORD=G7mQ9zP4kL2nX8vR
+          
+          CACHE_DRIVER=file
+          FILESYSTEM_DISK=local
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=file
+          SESSION_LIFETIME=120
+          
+          CORS_ALLOWED_ORIGINS=https://cpgestaonew.creativeprintjp.com
+          EOT
 
       - name: Pre-Deploy Cleanup (SSH)
         uses: appleboy/ssh-action@v1.0.3
