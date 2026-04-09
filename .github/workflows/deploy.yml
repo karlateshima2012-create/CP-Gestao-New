@@ -117,12 +117,14 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
+          debug: true
           script: |
             TARGET="domains/creativeprintjp.com/public_html/cpgestaonew"
             mkdir -p "$TARGET"
-            cd "$TARGET"
-            # Remove arquivos antigos exceto a pasta de logs se existir
-            find . -maxdepth 1 ! -name 'storage' ! -name '.' -exec rm -rf {} + || true
+            cd "$TARGET" || exit 1
+            echo "Directório atual: $(pwd)"
+            # Limpeza segura: remove arquivos preservando a estrutura básica se necessário
+            find . -maxdepth 1 ! -name 'storage' ! -name '.htaccess' ! -name '.' -exec rm -rf {} + || true
 
       - name: Deploy to Hostinger (SCP)
         uses: appleboy/scp-action@v0.1.7
@@ -143,6 +145,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
+          debug: true
           script: |
             CD_PATH="domains/creativeprintjp.com/public_html/cpgestaonew/api_backend"
             cd "$CD_PATH"
