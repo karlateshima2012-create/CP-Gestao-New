@@ -117,14 +117,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
-          debug: true
           script: |
-            TARGET="domains/creativeprintjp.com/public_html/cpgestaonew"
-            mkdir -p "$TARGET"
-            cd "$TARGET" || exit 1
-            echo "Directório atual: $(pwd)"
-            # Limpeza segura: remove arquivos preservando a estrutura básica se necessário
-            find . -maxdepth 1 ! -name 'storage' ! -name '.htaccess' ! -name '.' -exec rm -rf {} + || true
+            mkdir -p domains/creativeprintjp.com/public_html/cpgestaonew
+            cd domains/creativeprintjp.com/public_html/cpgestaonew
+            find . -maxdepth 1 ! -name 'storage' ! -name '.' -exec rm -rf {} + || true
 
       - name: Deploy to Hostinger (SCP)
         uses: appleboy/scp-action@v0.1.7
@@ -145,20 +141,13 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
-          debug: true
           script: |
-            CD_PATH="domains/creativeprintjp.com/public_html/cpgestaonew/api_backend"
-            cd "$CD_PATH"
-            
-            # Permissões
+            cd domains/creativeprintjp.com/public_html/cpgestaonew/api_backend
             chmod -R 755 .
             chmod -R 775 storage bootstrap/cache
-            
-            # Laravel optimization
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan storage:link || true
-            
-            echo "Deploy concluído com sucesso em $CD_PATH"
+            echo "Deploy finalizado"
