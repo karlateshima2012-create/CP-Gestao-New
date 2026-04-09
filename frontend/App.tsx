@@ -512,56 +512,49 @@ const App: React.FC = () => {
     <div className="flex h-screen bg-white dark:bg-slate-950 overflow-hidden font-sans">
 
 
-      <aside className={`
-        hidden md:flex flex-col z-40 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300
-        ${sidebarCollapsed ? 'w-20' : 'w-72'}
-        ${authRole === 'admin' ? 'hidden' : ''}
-      `}>
-        <div className="h-24 flex items-center px-6 mb-2">
-          <div className="flex items-center justify-between w-full">
-            {!sidebarCollapsed ? (
-              <CPLogo light={darkMode} />
-            ) : (
-              <div className="mx-auto"><CPLogo hideText={true} /></div>
-            )}
-            <button className="md:hidden p-2 text-gray-500" onClick={() => setIsMobileMenuOpen(false)}>
-              <X className="w-5 h-5" />
+      {authRole !== 'admin' && (
+        <aside className={`
+          hidden md:flex flex-col z-40 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300
+          ${sidebarCollapsed ? 'w-20' : 'w-72'}
+        `}>
+          <div className="h-24 flex items-center px-6 mb-2">
+            <div className="flex items-center justify-between w-full">
+              {!sidebarCollapsed ? (
+                <CPLogo light={darkMode} />
+              ) : (
+                <div className="mx-auto"><CPLogo hideText={true} /></div>
+              )}
+              <button className="md:hidden p-2 text-gray-500" onClick={() => setIsMobileMenuOpen(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 px-4 py-2 overflow-y-auto no-scrollbar">
+            <SidebarItem id="side-tab-dashboard" icon={LayoutDashboard} label="DASHBOARD" onboardingActive={showOnboarding && clientTab === 'dashboard'} active={clientTab === 'dashboard'} onClick={() => { setClientTab('dashboard'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+
+            <div className="relative">
+              <SidebarItem id="side-tab-visits" icon={Calendar} label="SOLICITAÇÕES DE PONTOS" active={clientTab === 'visits'} onClick={() => { setClientTab('visits'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+              {pendingRequestsCount > 0 && (
+                <div className={`absolute ${sidebarCollapsed ? 'top-1 right-3' : 'top-3 right-4'} bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-lg flex items-center justify-center border-2 border-white dark:border-gray-900 pointer-events-none`}>
+                  {pendingRequestsCount}
+                </div>
+              )}
+            </div>
+
+            <SidebarItem id="side-tab-loyalty" icon={Star} label="PROGRAMA DE FIDELIDADE" onboardingActive={showOnboarding && clientTab === 'loyalty'} active={clientTab === 'loyalty'} onClick={() => { setSelectedContact(null); setClientTab('loyalty'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+            <SidebarItem id="side-tab-new" icon={UserPlus} label="NOVO CADASTRO" onboardingActive={showOnboarding && clientTab === 'new'} active={clientTab === 'new'} onClick={() => { setSelectedContact(null); setClientTab('new'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+            <SidebarItem id="side-tab-clients" icon={Users} label="MEUS CLIENTES" onboardingActive={showOnboarding && clientTab === 'clients'} active={clientTab === 'clients'} onClick={() => { setSelectedContact(null); setClientTab('clients'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+            <SidebarItem id="side-tab-export" icon={Download} label="EXPORTAR DADOS" onboardingActive={showOnboarding && clientTab === 'export'} active={clientTab === 'export'} onClick={() => { setSelectedContact(null); setClientTab('export'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+            <SidebarItem id="side-tab-account" icon={Settings} label="CONFIGURAÇÕES" onboardingActive={showOnboarding && clientTab === 'account'} active={clientTab === 'account'} onClick={() => { setSelectedContact(null); setClientTab('account'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+          </div>
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 space-y-1">
+            <button onClick={handleLogout} className={`w-full flex items-center px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-lg transition-colors uppercase tracking-widest ${sidebarCollapsed ? 'justify-center' : ''}`}>
+              <LogOut className={`w-4 h-4 ${sidebarCollapsed ? '' : 'mr-3'} text-slate-400 group-hover:text-rose-500 shrink-0`} />
+              {!sidebarCollapsed && "SAIR"}
             </button>
           </div>
-        </div>
-        <div className="flex-1 px-4 py-2 overflow-y-auto no-scrollbar">
-          {authRole === 'admin' ? (
-            <>
-              <SidebarItem icon={LayoutDashboard} label="VISÃO GERAL" active={clientTab === 'dashboard'} onClick={() => { setClientTab('dashboard'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-            </>
-          ) : (
-            <>
-              <SidebarItem id="side-tab-dashboard" icon={LayoutDashboard} label="DASHBOARD" onboardingActive={showOnboarding && clientTab === 'dashboard'} active={clientTab === 'dashboard'} onClick={() => { setClientTab('dashboard'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-
-              <div className="relative">
-                <SidebarItem id="side-tab-visits" icon={Calendar} label="SOLICITAÇÕES DE PONTOS" active={clientTab === 'visits'} onClick={() => { setClientTab('visits'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-                {pendingRequestsCount > 0 && (
-                  <div className={`absolute ${sidebarCollapsed ? 'top-1 right-3' : 'top-3 right-4'} bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-lg flex items-center justify-center border-2 border-white dark:border-gray-900 pointer-events-none`}>
-                    {pendingRequestsCount}
-                  </div>
-                )}
-              </div>
-
-              <SidebarItem id="side-tab-loyalty" icon={Star} label="PROGRAMA DE FIDELIDADE" onboardingActive={showOnboarding && clientTab === 'loyalty'} active={clientTab === 'loyalty'} onClick={() => { setSelectedContact(null); setClientTab('loyalty'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-              <SidebarItem id="side-tab-new" icon={UserPlus} label="NOVO CADASTRO" onboardingActive={showOnboarding && clientTab === 'new'} active={clientTab === 'new'} onClick={() => { setSelectedContact(null); setClientTab('new'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-              <SidebarItem id="side-tab-clients" icon={Users} label="MEUS CLIENTES" onboardingActive={showOnboarding && clientTab === 'clients'} active={clientTab === 'clients'} onClick={() => { setSelectedContact(null); setClientTab('clients'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-              <SidebarItem id="side-tab-export" icon={Download} label="EXPORTAR DADOS" onboardingActive={showOnboarding && clientTab === 'export'} active={clientTab === 'export'} onClick={() => { setSelectedContact(null); setClientTab('export'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-              <SidebarItem id="side-tab-account" icon={Settings} label="CONFIGURAÇÕES" onboardingActive={showOnboarding && clientTab === 'account'} active={clientTab === 'account'} onClick={() => { setSelectedContact(null); setClientTab('account'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-            </>
-          )}
-        </div>
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 space-y-1">
-          <button onClick={handleLogout} className={`w-full flex items-center px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-lg transition-colors uppercase tracking-widest ${sidebarCollapsed ? 'justify-center' : ''}`}>
-            <LogOut className={`w-4 h-4 ${sidebarCollapsed ? '' : 'mr-3'} text-slate-400 group-hover:text-rose-500 shrink-0`} />
-            {!sidebarCollapsed && "SAIR"}
-          </button>
-        </div>
-      </aside>
+        </aside>
+      )}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc] dark:bg-gray-950">
         <header className="flex-shrink-0 h-20 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-6 z-10 transition-colors">
           <div className="flex items-center gap-4">
