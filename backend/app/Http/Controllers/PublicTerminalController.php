@@ -644,6 +644,10 @@ class PublicTerminalController extends Controller
 
         try {
             \Illuminate\Support\Facades\Validator::make($data, $rules)->validate();
+            
+            if (!PhoneHelper::validateJapaneseFormat($data['phone'])) {
+                return ApiResponse::error('O número de telefone deve ter 11 dígitos e começar com 070, 080 ou 090.', 'INVALID_PHONE_FORMAT', 422);
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Illuminate\Support\Facades\Log::error("Registration Validation Failed for {$slug}: " . json_encode($e->errors()));
             return ApiResponse::error('Dados inválidos para cadastro.', 'VALIDATION_ERROR', 422, $e->errors());
@@ -766,13 +770,21 @@ class PublicTerminalController extends Controller
                     $goal = (int)($levels[0]['goal'] ?? $goal);
                 }
 
+                $rewardName = "o prêmio";
+                if (is_array($levels) && count($levels) > 0) {
+                    $rewardName = $levels[0]['reward'] ?? $rewardName;
+                }
+
                 $refreshed = $customer->fresh();
+                $curPoints = $refreshed->points_balance;
                 return ApiResponse::ok([
                     'customer_exists' => true,
-                    'points_balance' => $refreshed->points_balance,
+                    'points_balance' => $curPoints,
                     'loyalty_level' => $refreshed->loyalty_level,
                     'loyalty_level_name' => $refreshed->loyalty_level_name,
                     'points_goal' => $goal,
+                    'reward_name' => $rewardName,
+                    'remaining' => max(0, $goal - $curPoints),
                     'id' => $customer->id,
                     'name' => $customer->name,
                     'foto_perfil_url' => $refreshed->photo_url_full,

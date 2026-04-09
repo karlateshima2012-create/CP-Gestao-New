@@ -11,6 +11,7 @@ import { LoyaltyTab } from './client/LoyaltyTab';
 import { VisitRecordsTab } from './client/VisitRecordsTab';
 import { StatusModal } from '../components/ui';
 import { copyToClipboard } from '../utils/clipboard';
+import { validatePhone } from '../utils/phoneValidation';
 
 type ClientTab = 'dashboard' | 'clients' | 'loyalty' | 'devices' | 'visits' | 'new' | 'export' | 'account';
 
@@ -70,12 +71,23 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
   };
 
   const handleSave = async (data: Partial<Contact>) => {
-    if (!data.name || !data.phone) {
+    if (!data.name) {
       setModal({
         isOpen: true,
-        title: 'Campos Obrigatórios',
-        message: 'Nome e Telefone são obrigatórios para o cadastro.',
+        title: 'Campo Obrigatório',
+        message: 'O nome é obrigatório para o cadastro.',
         type: 'info'
+      });
+      return;
+    }
+
+    const phoneValidation = validatePhone(data.phone || '');
+    if (!phoneValidation.isValid) {
+      setModal({
+        isOpen: true,
+        title: 'Telefone Inválido',
+        message: phoneValidation.message || 'Verifique o número informado.',
+        type: 'warning'
       });
       return;
     }
@@ -83,6 +95,7 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
     try {
       const payload = {
         ...data,
+        phone: phoneValidation.cleaned,
         is_premium: false,
         points_balance: data.pointsBalance,
         last_contacted: data.lastContacted,
@@ -96,45 +109,47 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
       };
       if (selectedContact) {
         const res = await api.patch(`/client/contacts/${selectedContact.id}`, payload);
+        const data_res = res.data?.data || res.data;
         const mapped = {
-          ...res.data,
-          pointsBalance: res.data.points_balance ?? res.data.pointsBalance ?? 0,
+          ...data_res,
+          pointsBalance: data_res.points_balance ?? data_res.pointsBalance ?? 0,
           isPremium: false,
-          loyaltyLevel: res.data.loyalty_level ?? 1,
-          loyalty_level_name: res.data.loyalty_level_name,
-          postalCode: res.data.postal_code,
-          address: res.data.address,
-          linkedCard: res.data.devices && res.data.devices.length > 0 ? (res.data.devices[0].uid_formatted || res.data.devices[0].uid) : null,
-          totalSpent: res.data.total_spent ?? res.data.totalSpent ?? 0,
-          averageTicket: res.data.average_ticket ?? res.data.averageTicket ?? 0,
-          attendanceCount: res.data.attendance_count ?? res.data.attendanceCount ?? 0,
-          visitas: res.data.attendance_count ?? res.data.attendanceCount ?? 0,
-          reminderTime: res.data.reminder_time,
-          company_name: res.data.company_name,
-          photo_url: res.data.photo_url,
-          photo_url_full: res.data.photo_url_full
+          loyaltyLevel: data_res.loyalty_level ?? 1,
+          loyalty_level_name: data_res.loyalty_level_name,
+          postalCode: data_res.postal_code,
+          address: data_res.address,
+          linkedCard: data_res.devices && data_res.devices.length > 0 ? (data_res.devices[0].uid_formatted || data_res.devices[0].uid) : null,
+          totalSpent: data_res.total_spent ?? data_res.totalSpent ?? 0,
+          averageTicket: data_res.average_ticket ?? data_res.averageTicket ?? 0,
+          attendanceCount: data_res.attendance_count ?? data_res.attendanceCount ?? 0,
+          visitas: data_res.attendance_count ?? data_res.attendanceCount ?? 0,
+          reminderTime: data_res.reminder_time,
+          company_name: data_res.company_name,
+          photo_url: data_res.photo_url,
+          photo_url_full: data_res.photo_url_full
         };
         setContacts(contacts.map(c => c.id === selectedContact.id ? mapped : c));
         onRefresh();
       } else {
         const res = await api.post('/client/contacts', payload);
+        const data_res = res.data?.data || res.data;
         const mapped = {
-          ...res.data,
-          pointsBalance: res.data.points_balance ?? res.data.pointsBalance ?? 0,
+          ...data_res,
+          pointsBalance: data_res.points_balance ?? data_res.pointsBalance ?? 0,
           isPremium: false,
-          loyaltyLevel: res.data.loyalty_level ?? 1,
-          loyalty_level_name: res.data.loyalty_level_name,
-          postalCode: res.data.postal_code,
-          address: res.data.address,
-          linkedCard: res.data.devices && res.data.devices.length > 0 ? (res.data.devices[0].uid_formatted || res.data.devices[0].uid) : null,
-          totalSpent: res.data.total_spent ?? res.data.totalSpent ?? 0,
-          averageTicket: res.data.average_ticket ?? res.data.averageTicket ?? 0,
-          attendanceCount: res.data.attendance_count ?? res.data.attendanceCount ?? 0,
-          visitas: res.data.attendance_count ?? res.data.attendanceCount ?? 0,
-          reminderTime: res.data.reminder_time,
-          company_name: res.data.company_name,
-          photo_url: res.data.photo_url,
-          photo_url_full: res.data.photo_url_full
+          loyaltyLevel: data_res.loyalty_level ?? 1,
+          loyalty_level_name: data_res.loyalty_level_name,
+          postalCode: data_res.postal_code,
+          address: data_res.address,
+          linkedCard: data_res.devices && data_res.devices.length > 0 ? (data_res.devices[0].uid_formatted || data_res.devices[0].uid) : null,
+          totalSpent: data_res.total_spent ?? data_res.totalSpent ?? 0,
+          averageTicket: data_res.average_ticket ?? data_res.averageTicket ?? 0,
+          attendanceCount: data_res.attendance_count ?? data_res.attendanceCount ?? 0,
+          visitas: data_res.attendance_count ?? data_res.attendanceCount ?? 0,
+          reminderTime: data_res.reminder_time,
+          company_name: data_res.company_name,
+          photo_url: data_res.photo_url,
+          photo_url_full: data_res.photo_url_full
         };
         setContacts([mapped, ...contacts]);
         onRefresh();

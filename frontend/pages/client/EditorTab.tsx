@@ -654,7 +654,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
                     <Button
                       onClick={addReminder}
                       disabled={reminders.length >= 3}
-                      className="h-11 px-6 bg-gray-900 text-white font-black uppercase text-[10px] rounded-[15px] disabled:bg-gray-300"
+                      className="h-11 px-6 bg-[#38B6FF] text-white font-black uppercase text-[10px] rounded-[15px] disabled:bg-gray-300"
                     >
                       OK
                     </Button>

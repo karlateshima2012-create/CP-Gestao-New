@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../components/ui';
+import { validatePhone } from '../utils/phoneValidation';
 
 const animationStyles = `
 @keyframes starBurst {
@@ -291,10 +292,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setFoundCustomer(res.data);
         const isAdmin = !!localStorage.getItem('auth_token');
 
-        if (isAdmin && deviceUid) {
-          setMode('LOJISTA_ACTIONS');
-        } else if (targetToken) {
-          handleEarn();
+        if (isTerminalMode) {
+          handleEarn(undefined, targetPhone);
         } else if (res.data.show_level_up) {
           setMode('LEVEL_UP');
         } else {
@@ -303,7 +302,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       }
     } catch (error: any) {
       if (error.response?.status === 404) {
-        setMode('REGISTER');
+        setMode('VISIT_NOT_FOUND');
       } else {
         setModal({
           isOpen: true,
@@ -319,22 +318,29 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
   const handleConsult = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!phone) {
+    
+    const validation = validatePhone(phone);
+    if (!validation.isValid) {
       setModal({
         isOpen: true,
-        title: 'Atenção',
-        message: 'Por favor, informe seu número de telefone.',
-        type: 'info'
+        title: 'Número Inválido',
+        message: validation.message || 'Por favor, verifique o número informado.',
+        type: 'warning'
       });
       return;
     }
-    handleLookup();
+    
+    // Use the cleaned number for lookup
+    const cleanedPhone = validation.cleaned;
+    setPhone(formatJapanesePhone(cleanedPhone)); // Keep visual format but use cleaned digits
+    handleLookup(cleanedPhone);
   };
 
 
-  const handleEarn = async (e?: React.FormEvent) => {
+  const handleEarn = async (e?: React.FormEvent, overridePhone?: string) => {
     if (e) e.preventDefault();
-    if (!phone || phone.length < 8) return;
+    const targetPhone = overridePhone || phone;
+    if (!targetPhone || targetPhone.length < 8) return;
 
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(30);
@@ -342,10 +348,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
     setLoading(true);
     try {
-      const lookupRes = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken, sessionToken);
+      const lookupRes = await terminalService.lookup(tenantSlug, deviceUid, targetPhone, qrToken, sessionToken);
 
       if (lookupRes.data.customer_exists) {
-        const earnRes = await terminalService.earn(tenantSlug, deviceUid, phone, undefined, qrToken, sessionToken);
+        setFoundCustomer(lookupRes.data);
+        const earnRes = await terminalService.earn(tenantSlug, deviceUid, targetPhone, undefined, qrToken, sessionToken);
         
         if (earnRes.data.is_reward_ready) {
              setModal({
@@ -376,6 +383,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         });
 
         if (isAuto) {
+          setApprovedData({
+            points_balance: earnRes.data.new_balance,
+            points_goal: earnRes.data.points_goal,
+            auto_approved: true
+          });
           setFoundCustomer(prev => ({
             ...prev,
             ...earnRes.data,
@@ -383,6 +395,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             points_goal: earnRes.data.points_goal,
             remaining: Math.max(0, (earnRes.data.points_goal || (prev?.points_goal ?? 10)) - earnRes.data.new_balance)
           }));
+        } else {
+          setApprovedData({
+            points_balance: earnRes.data.new_balance,
+            points_goal: earnRes.data.points_goal,
+            auto_approved: false
+          });
         }
 
         setMode(isAuto ? 'AUTO_SUCCESS' : 'WAITING_APPROVAL');
@@ -513,22 +531,17 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       });
       const isAdmin = !!localStorage.getItem('auth_token');
 
-      if (isAdmin && deviceUid && res.data.points_balance !== undefined) {
-        setFoundCustomer(res.data);
-        setMode('LOJISTA_ACTIONS');
-        setModal({ isOpen: true, title: 'Cadastro Realizado!', message: 'O cliente foi cadastrado e pontuado.', type: 'success' });
-      } else {
-        setFoundCustomer(res.data);
-        setApprovedData({
-          customer_name: res.data.name,
-          points_balance: res.data.points_balance,
-          points_goal: res.data.points_goal,
-          tenant_name: storeInfo?.name,
-          is_registration: true
-        });
-        setQrToken(null);
-        setMode('AUTO_SUCCESS');
-      }
+      setFoundCustomer(res.data);
+      setApprovedData({
+        customer_name: res.data.name,
+        points_balance: res.data.points_balance,
+        points_goal: res.data.points_goal,
+        tenant_name: storeInfo?.name,
+        is_registration: true,
+        auto_approved: true
+      });
+      setQrToken(null);
+      setMode('AUTO_SUCCESS');
     } catch (error: any) {
       setModal({ isOpen: true, title: 'Erro no Cadastro', message: error.response?.data?.message || 'Erro ao cadastrar.', type: 'error' });
     } finally {
@@ -667,16 +680,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <UserPlus className="w-12 h-12" />
             </div>
             <div className="space-y-4 max-w-md">
-              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">PRIMEIRA VEZ AQUI? 🌟</h2>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">PRIMEIRA VEZ AQUI?</h2>
               <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                Não encontramos este número.<br/>Cadastre-se em segundos para começar a ganhar pontos!
+                Cadastre-se em segundos para começar a ganhar pontos!
               </p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-sm">
               <Button onClick={() => setMode('REGISTER')} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl text-sm">
                 CADASTRAR AGORA
               </Button>
-              <button onClick={() => setMode('START')} className="text-gray-400 font-bold uppercase text-[10px] tracking-widest py-2">
+              <button onClick={() => setMode('START')} className="text-gray-400 hover:text-gray-600 font-bold uppercase text-[10px] tracking-widest py-2 transition-colors">
                 Tentar outro número
               </button>
             </div>
@@ -719,26 +732,41 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <button onClick={reset} className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 rounded-full z-20 border border-slate-200/50 shadow-sm"><X className="w-5 h-5" /></button>
             
             <div className="relative w-32 h-32 md:w-40 md:h-40 group mt-4">
-              <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
-                {foundCustomer.foto_perfil_url ? (
-                  <img src={foundCustomer.foto_perfil_url} alt={foundCustomer.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white font-black text-4xl">{foundCustomer.name[0].toUpperCase()}</div>
-                )}
-                {uploading && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
-              </div>
-              <label className="absolute bottom-1 right-1 w-10 h-10 md:w-12 md:h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white dark:border-slate-800 z-10">
-                <Camera className="w-5 h-5 md:w-6 md:h-6" />
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+              <label className="cursor-pointer block w-full h-full">
+                <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
+                  {foundCustomer.foto_perfil_url ? (
+                    <img 
+                      src={foundCustomer.foto_perfil_url} 
+                      alt={foundCustomer.name} 
+                      className="w-full h-full object-cover"
+                      key={foundCustomer.foto_perfil_url}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white font-black text-4xl">
+                      {foundCustomer.name ? foundCustomer.name.charAt(0).toUpperCase() : 'C'}
+                    </div>
+                  )}
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-10">
+                      <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute bottom-0 right-0 w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-slate-50 dark:border-slate-800 z-20">
+                  <Camera className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/jpeg,image/png,image/webp,image/heic" 
+                  className="hidden" 
+                  onChange={handlePhotoUpload} 
+                  disabled={uploading} 
+                />
               </label>
             </div>
 
             <div className="text-center space-y-2">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Área do Cliente</h3>
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Portal do cliente</h3>
               <p className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">{foundCustomer?.name || 'Cliente'}</p>
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border-2 bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-300">
                 <span className="text-[12px] font-black uppercase tracking-widest">{foundCustomer.loyalty_level_name || 'Bronze'}</span>
@@ -756,10 +784,21 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <div className="pt-2 border-t border-slate-50 dark:border-slate-700/50">
                   <p className="text-sm font-bold text-slate-600 dark:text-slate-400 italic text-center">
-                    {foundCustomer.remaining <= 0 ? "Meta Atingida! 🎁" : `Faltam ${foundCustomer.remaining} pontos para o prêmio!`}
+                    {foundCustomer.remaining <= 0 
+                      ? "Meta Atingida! 🎁" 
+                      : `Faltam ${foundCustomer.remaining} pontos para: ${foundCustomer.reward_name || 'o prêmio'}`}
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="w-full px-4 -mt-2 mb-2">
+              <Button
+                onClick={reset}
+                className="w-full h-14 text-lg font-black uppercase tracking-[0.1em] bg-[#64748B] hover:bg-[#475569] text-white rounded-lg shadow-lg transition-all active:scale-[0.98] border-none"
+              >
+                FECHAR E SAIR
+              </Button>
             </div>
           </div>
         )}
@@ -850,10 +889,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <Smartphone className="w-10 h-10 text-slate-500 animate-bounce" />
             </div>
             <div className="space-y-4">
-              <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Ponto solicitado! ✅</h2>
-              <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">Sua solicitação foi enviada. Seu saldo será atualizado em instantes.</p>
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Ponto registrado com sucesso!</h2>
+              <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">Assim que aprovado, ele entrará no seu saldo.</p>
             </div>
-            <Button onClick={reset} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">Entendi</Button>
+            <Button onClick={() => setMode('RESULT_CLIENT')} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">Ver meu saldo</Button>
           </div>
         )}
 
@@ -861,8 +900,18 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {(mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') && approvedData && (
           <div className="p-6 md:p-8 text-center py-10 animate-fade-in w-full bg-white dark:bg-gray-950">
             <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-50 border-4 border-green-100"><CheckCircle2 className="w-12 h-12 text-green-500" /></div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Obrigado pela visita!<br/>Ponto Adicionado!</h2>
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-8 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
+              {approvedData.is_registration ? "Cadastro realizado com sucesso!" : "Ponto registrado com sucesso!"}
+            </h2>
+            <p className="text-sm text-slate-500 font-medium mb-4">
+              {approvedData.is_registration 
+                ? "Você recebeu 1 ponto de bônus! consulte seu saldo clicando no botão abaixo:" 
+                : (approvedData.auto_approved 
+                   ? "Você pode consultar seu saldo clicando no botão abaixo:" 
+                   : "Assim que aprovado, ele entrará no seu saldo.")
+              }
+            </p>
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-2 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
               <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
               <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
             </div>

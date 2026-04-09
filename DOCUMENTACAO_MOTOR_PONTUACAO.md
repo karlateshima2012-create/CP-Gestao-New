@@ -41,8 +41,15 @@ Para evitar que clientes mal-intencionados abusem do sistema (como ler o mesmo Q
    - Se o estabelecimento bateu no limite total de contatos do seu plano ativo (ex: limitação do plano Pro ou Elite), o sistema aborta a criação de novos clientes e notifica via Telegram.
    - *Mensagem do Telegram:* "🚫 **Limite Atingido!** O cadastro de novos clientes foi pausado."
 
-7. **Token de Segurança Anti-Fraude (QR Code / NFC):**
+4. **Token de Segurança Anti-Fraude (QR Code / NFC):**
    - Se um token único é transferido, a API o queima (consumo imediato via `QrTokenService`) impossibilitando que aquele mesmo token seja lido uma segunda vez ou por terceiros fora da loja.
+
+8. **Validação Rigorosa de Telefone (Novo):**
+   - O sistema agora exige que todos os números de telefone sigam o formato padrão:
+     - **Limpeza (Sanitização):** Todos os espaços, parênteses e hífens são removidos antes da validação.
+     - **Regra de 11 Dígitos:** O número resultante deve conter exatamente **11 dígitos numéricos**.
+     - **Prefixos Obrigatórios:** Os três primeiros dígitos devem ser obrigatoriamente **070, 080 ou 090**.
+   - Se o número for inválido, o sistema impede o prosseguimento e exibe o alerta: *"Número Inválido: Por favor, verifique se o número está correto."*
 
 ---
 
@@ -55,7 +62,7 @@ No plano Elite, toda visita possui **Auto-Aprovação**.
 - Status da visita é gerado imediatamente como `aprovado`.
 - `PointMovement` (extrato de pontos) da entrada é gerado de forma síncrona.
 - Os saldos do cliente (`points_balance` e `attendance_count`) são atualizados de imediato.
-- **Notificação:** "✅ PONTO REGISTRADO" informando saldo e horário, sem necessidade de aceitar cliques adicionais.
+- **Notificação:** "Ponto registrado com sucesso! Você pode consultar seu saldo clicando no botão abaixo:" informando saldo e horário.
 
 ### Plano PRO (e Demais) 🚀
 As visitas dependem da moderação (via App, Totem ou Telegram) do lojista.
@@ -65,7 +72,58 @@ As visitas dependem da moderação (via App, Totem ou Telegram) do lojista.
 
 ---
 
-## 💬 3. Fluxo de Notificações, Interações e Webhooks (Telegram)
+## 📱 3. Fluxo de TELAS (Interface Pública /p/)
+
+Este fluxo descreve a jornada do cliente ao acessar a URL de fidelidade (`/p/{slug}`), que permite consulta de saldo e novos cadastros.
+
+### A. Tela de Entrada: PORTAL DO CLIENTE
+- **Visual:** Interface limpa com logo e imagem de capa da loja.
+- **Campo:** "Digite seu telefone" (Máscara automática: 090-0000-0000).
+- **Validação:** Aplica a regra de 11 dígitos e prefixos (070/080/090) ao clicar em entrar.
+- **Botão:** **ENTRAR**.
+  - *Comportamento:* Se o telefone não for válido, exibe modal de erro solicitando verificação.
+
+### B. Fluxo: Cliente Já Cadastrado (PORTAL DO CLIENTE)
+Se o número for identificado, o cliente entra imediatamente na visualização de sua ficha:
+- **Elementos da Tela:**
+  - Imagem de perfil circular (editável, permite upload de foto pelo cliente).
+  - Nome completo do cliente.
+  - Nível atual no programa (Badge: Bronze, Prata, Ouro, Diamante).
+  - **Saldo Disponível:** Mostrado em destaque (Ex: 8 / 10).
+  - **Status da Meta:** Texto dinâmico indicando quantos pontos faltam ou se a meta foi atingida.
+  - **Prêmio:** Exibe o nome do prêmio configurado para o nível atual.
+
+### C. Fluxo: Cliente Não Cadastrado (PRIMEIRA VEZ AQUI?)
+Caso o número digitado seja válido mas não exista no banco de dados (tanto em `/p/` quanto no `/terminal/`):
+- **Título:** PRIMEIRA VEZ AQUI?
+- **Mensagem:** "Cadastre-se em segundos para começar a ganhar pontos!"
+- **Ações:**
+  1. **CADASTRAR AGORA:** Abre a tela de cadastro com o telefone já preenchido e bloqueado para edição (garante integridade).
+  2. **Tentar outro número:** Limpa o campo e volta para a tela inicial.
+
+### D. Tela de Cadastro Público (Consolidada)
+- **Campos Obrigatórios:** Nome Completo, Cidade e Província.
+- **Botão:** **CADASTRAR E GANHAR PONTO**.
+- **Resultado:** O cliente é cadastrado, recebe o bônus de boas-vidas (se configurado no Bronze) e vê a tela de sucesso:
+  - **Mensagem:** *"Cadastro realizado com sucesso, Você recebeu 1 ponto de bônus!  consulte seu saldo clicando no botão abaixo:"*
+  - **Botão:** **VER MEU SALDO** (direciona para a Tela de Saldo - RESULT_CLIENT).
+
+### E. Fluxo: Totem de Solicitação (Modo Terminal)
+Diferente do portal `/p/`, o totem acessado via `/public/terminal/` foca na agilidade:
+- **Visual Inicial:** Apresenta o título **SOLICITAR PONTO**.
+- **Ação:** O cliente digita o telefone e clica em **SOLICITAR PONTO**.
+- **Comportamento Direto:** O sistema pula a tela de consulta intermediária. Se o cliente for encontrado, o ponto é processado imediatamente.
+- **Telas de Feedback Pós-Solicitação:**
+  - **PLANO PRO (Aprovação Manual):**
+    - **Mensagem:** "Ponto registrado com sucesso! Assim que aprovado, ele entrará no seu saldo."
+    - **Ação:** Botão **VER MEU SALDO** (Direciona para o Portal do Cliente - RESULT_CLIENT).
+  - **PLANO ELITE (Auto-Aprovação):**
+    - **Mensagem:** "Ponto registrado com sucesso! Você pode consultar seu saldo clicando no botão abaixo:"
+    - **Ação:** Botão **VER MEU SALDO** (Direciona para o Portal do Cliente - RESULT_CLIENT).
+
+---
+
+## 💬 4. Fluxo de Notificações, Interações e Webhooks (Telegram)
 
 O componente `TelegramWebhookController` atua em forte união com a refatoração do Motor de Pontos garantindo mensagens curtas, não-duplicadas (as atualizações editam as mensagens originais passadas para limpeza de histórico) e sem botões prematuros de resgate.
 
@@ -104,10 +162,10 @@ Quando acionado (via botão do dashboard no `ClientController` ou Telegram Webho
 
 ---
 
-## 🛠️ 4. Benefícios Arquiteturais Atuais (Conclusões)
+## 🛠️ 5. Benefícios Arquiteturais Atuais (Conclusões)
 - **Eliminação Total de Estados Confusos:** Removeu a ambiguidade de ter botões "Aprovar" mesclados e concorrendo com botões de "Resgate" simultaneamente.
 - **Cooldown Educativo:** O cliente recebe feedback positivo mesmo quando está na trava de 12h, desde que tenha batido a meta.
 - **Configuração Estática:** Metas e níveis do programa devem ser configurados preferencialmente antes do início do programa para garantir a integridade da jornada do cliente.
 
 ---
-*Documentação atualizada em 07/04/2026 - CPgestao-v2*
+*Documentação atualizada em 08/04/2026 - CPgestao-v2.7.5*

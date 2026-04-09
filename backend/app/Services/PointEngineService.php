@@ -200,6 +200,11 @@ class PointEngineService
 
             \App\Jobs\SendTelegramNotificationJob::dispatch($tenant->id, $msg, 'visit', $markup);
 
+            $rewardName = "o prêmio";
+            if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+                $rewardName = $levelsConfig[$lvlIdx]['reward'] ?? $rewardName;
+            }
+
             return ApiResponse::ok([
                 'request_id' => null,
                 'customer_name' => $customer->name,
@@ -208,6 +213,7 @@ class PointEngineService
                 'loyalty_level' => $customer->loyalty_level,
                 'loyalty_level_name' => $customer->loyalty_level_name,
                 'points_goal' => $goal,
+                'reward_name' => $rewardName,
                 'message' => "🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar e subir para o próximo nível.",
                 'auto_approved' => false,
                 'is_reward_ready' => true
@@ -273,10 +279,10 @@ class PointEngineService
         $newBalance = $customer->points_balance;
         $newLevel = (int)($customer->loyalty_level ?? 1);
         
-        $goal = $tenant->points_goal;
-        $lvlIdx = max(0, $newLevel - 1);
-        if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx]) && isset($levelsConfig[$lvlIdx]['goal'])) {
-            $goal = (int)($levelsConfig[$lvlIdx]['goal']);
+        $rewardName = "o prêmio";
+        if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+            $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+            $rewardName = $levelsConfig[$lvlIdx]['reward'] ?? $rewardName;
         }
 
         $canAutoApprove = ($status === 'aprovado' || $status === 'auto_approved');
@@ -304,6 +310,7 @@ class PointEngineService
             'loyalty_level' => $customer->loyalty_level,
             'loyalty_level_name' => $customer->loyalty_level_name,
             'points_goal' => $goal,
+            'reward_name' => $rewardName,
             'remaining' => max(0, $remaining),
             'message' => $msg,
             'auto_approved' => $canAutoApprove,
