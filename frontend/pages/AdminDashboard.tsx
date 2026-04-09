@@ -679,7 +679,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Modal Edit - Dados da Empresa */}
         {editingTenant && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-            <Card className="w-full max-w-4xl p-0 shadow-2xl overflow-hidden max-h-[95vh] flex flex-col rounded-[2.5rem] border-none">
+            <Card className="w-full max-w-4xl p-0 shadow-2xl overflow-hidden max-h-[95vh] flex flex-col rounded-2xl border-none">
               <div className="p-8 border-b dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 flex-none px-10">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
@@ -698,135 +698,132 @@ export const AdminDashboard: React.FC = () => {
               <div className="p-10 space-y-10 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-950/20 custom-scrollbar">
                 
                 {/* CARD 1: PLANO E ASSINATURA */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
-                        <Crown className="w-32 h-32 text-blue-500" />
-                      </div>
-                      <h4 className="text-xs font-black text-[#38B6FF] uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <Crown className="w-4 h-4" /> Plano e Assinatura
-                      </h4>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                        <div className="space-y-6">
-                          <div>
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Tipo de Plano</label>
-                            <select
-                              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none shadow-inner"
-                              value={editingTenant.plan}
-                              onChange={(e) => setEditingTenant({ ...editingTenant, plan: e.target.value as PlanType })}
-                            >
-                              <option value={PlanType.PRO}>🔵 Plano Pro (4k Contatos)</option>
-                              <option value={PlanType.UNLIMITED}>🟣 Plano Elite (6k Contatos)</option>
-                            </select>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Data de Início</label>
-                              <div className="relative">
-                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#38B6FF]" />
-                                <input
-                                  type="date"
-                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none"
-                                  value={editingTenant.plan_started_at ? editingTenant.plan_started_at.split(/[T ]/)[0] : ''}
-                                  onChange={(e) => setEditingTenant({ ...editingTenant, plan_started_at: e.target.value })}
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Data de Vencimento</label>
-                              <div className="relative">
-                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-500" />
-                                <input
-                                  type="date"
-                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none"
-                                  value={editingTenant.plan_expires_at ? editingTenant.plan_expires_at.split(/[T ]/)[0] : ''}
-                                  onChange={(e) => setEditingTenant({ ...editingTenant, plan_expires_at: e.target.value })}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                {/* CARD 1: INFORMAÇÕES GERAIS (NOVO POSICIONAMENTO) */}
+                <Card className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[#38B6FF]" /> Informações Gerais
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Input label="Nome da Empresa" value={editingTenant.name} onChange={(e) => setEditingTenant({ ...editingTenant, name: e.target.value })} />
+                    <Input label="E-mail Administrativo" value={editingTenant.email} onChange={(e) => setEditingTenant({ ...editingTenant, email: e.target.value })} />
+                    <Input label="Responsável" value={editingTenant.owner_name || ''} onChange={(e) => setEditingTenant({ ...editingTenant, owner_name: e.target.value })} />
+                    <Input label="Telefone de Suporte" placeholder="090-0000-0000" value={editingTenant.phone || ''} onChange={(e) => setEditingTenant({ ...editingTenant, phone: formatJapanesePhone(e.target.value) })} />
+                  </div>
+                </Card>
 
-                        <div className="space-y-6">
-                           <div>
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Limite Total do Banco</label>
-                            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-inner">
-                              <span className="text-2xl font-black text-slate-900 dark:text-white">
-                                {editingTenant.extra_contacts_quota === -1 ? '∞' : (PLAN_LIMITS[editingTenant.plan] + (editingTenant.extra_contacts_quota || 0)).toLocaleString()}
-                              </span>
-                              <Badge color="blue" className="px-3 py-1 uppercase text-[9px] font-black">Capacity</Badge>
-                            </div>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                             <button
-                                onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 6) })}
-                                className="flex-1 py-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 rounded-xl text-[10px] font-black text-[#38B6FF] transition-all uppercase tracking-widest border border-blue-100 dark:border-blue-900/50"
-                              >
-                                +6 Meses
-                              </button>
-                              <button
-                                onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 12) })}
-                                className="flex-1 py-3 bg-[#38B6FF] hover:bg-blue-600 rounded-xl text-[10px] font-black text-white transition-all uppercase tracking-widest shadow-md"
-                              >
-                                +1 Ano
-                              </button>
-                          </div>
-                        </div>
-                      </div>
+                {/* CARD 2: PLANO E ASSINATURA */}
+                <div className="space-y-8">
+                  <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
+                      <Crown className="w-32 h-32 text-blue-500" />
                     </div>
-
-                    {/* COTAS DE EXPANSÃO */}
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm grow">
-                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <ArrowUpCircle className="w-4 h-4 text-orange-500" /> Cotas de Expansão (Upgrade)
-                      </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                        {[
-                          { label: 'Nenhum', value: 0 },
-                          { label: 'Bronze', sub: '+1k', value: 1000 },
-                          { label: 'Prata', sub: '+2k', value: 2000 },
-                          { label: 'Ouro', sub: '+4k', value: 4000 },
-                          { label: 'Infinity', sub: '∞', value: -1 },
-                        ].map((pack) => (
-                          <button
-                            key={pack.label}
-                            onClick={() => setEditingTenant({ ...editingTenant, extra_contacts_quota: pack.value })}
-                            className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-tight transition-all flex flex-col items-center gap-1
-                              ${editingTenant.extra_contacts_quota === pack.value
-                                ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
-                                : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700 hover:bg-slate-100'
-                              }`}
+                    <h4 className="text-xs font-black text-[#38B6FF] uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                      <Crown className="w-4 h-4" /> Plano e Assinatura
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                      <div className="space-y-6">
+                        <div>
+                          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Tipo de Plano</label>
+                          <select
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none shadow-inner"
+                            value={editingTenant.plan}
+                            onChange={(e) => setEditingTenant({ ...editingTenant, plan: e.target.value as PlanType })}
                           >
-                            <span>{pack.label}</span>
-                            {pack.sub && <span className={`text-[8px] opacity-70 ${editingTenant.extra_contacts_quota === pack.value ? 'text-white' : 'text-orange-500'}`}>{pack.sub}</span>}
-                          </button>
-                        ))}
+                            <option value={PlanType.PRO}>🔵 Plano Pro (4k Contatos)</option>
+                            <option value={PlanType.UNLIMITED}>🟣 Plano Elite (6k Contatos)</option>
+                          </select>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Data de Início</label>
+                            <div className="relative">
+                              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#38B6FF]" />
+                              <input
+                                type="date"
+                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none"
+                                value={editingTenant.plan_started_at ? editingTenant.plan_started_at.split(/[T ]/)[0] : ''}
+                                onChange={(e) => setEditingTenant({ ...editingTenant, plan_started_at: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Data de Vencimento</label>
+                            <div className="relative">
+                              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-500" />
+                              <input
+                                type="date"
+                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none"
+                                value={editingTenant.plan_expires_at ? editingTenant.plan_expires_at.split(/[T ]/)[0] : ''}
+                                onChange={(e) => setEditingTenant({ ...editingTenant, plan_expires_at: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                         <div>
+                          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Limite Total do Banco</label>
+                          <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-inner">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">
+                              {editingTenant.extra_contacts_quota === -1 ? '∞' : (PLAN_LIMITS[editingTenant.plan] + (editingTenant.extra_contacts_quota || 0)).toLocaleString()}
+                            </span>
+                            <Badge color="blue" className="px-3 py-1 uppercase text-[9px] font-black">Capacity</Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                           <button
+                              onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 6) })}
+                              className="flex-1 py-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 rounded-xl text-[10px] font-black text-[#38B6FF] transition-all uppercase tracking-widest border border-blue-100 dark:border-blue-900/50"
+                            >
+                              +6 Meses
+                            </button>
+                            <button
+                              onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 12) })}
+                              className="flex-1 py-3 bg-[#38B6FF] hover:bg-blue-600 rounded-xl text-[10px] font-black text-white transition-all uppercase tracking-widest shadow-md"
+                            >
+                              +1 Ano
+                            </button>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* CARD 2: DADOS DA EMPRESA */}
-                  <div className="lg:col-span-1 space-y-8">
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm h-full">
-                       <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <Users className="w-4 h-4 text-blue-500" /> Informações Gerais
-                      </h4>
-                      <div className="space-y-5">
-                        <Input label="Nome da Empresa" value={editingTenant.name} onChange={(e) => setEditingTenant({ ...editingTenant, name: e.target.value })} />
-                        <Input label="E-mail Administrativo" value={editingTenant.email} onChange={(e) => setEditingTenant({ ...editingTenant, email: e.target.value })} />
-                        <Input label="Responsável" value={editingTenant.owner_name || ''} onChange={(e) => setEditingTenant({ ...editingTenant, owner_name: e.target.value })} />
-                        <Input label="Telefone de Suporte" placeholder="090-0000-0000" value={editingTenant.phone || ''} onChange={(e) => setEditingTenant({ ...editingTenant, phone: formatJapanesePhone(e.target.value) })} />
-                      </div>
+                  {/* COTAS DE EXPANSÃO */}
+                  <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm grow">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                      <ArrowUpCircle className="w-4 h-4 text-orange-500" /> Cotas de Expansão (Upgrade)
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                      {[
+                        { label: 'Nenhum', value: 0 },
+                        { label: 'Bronze', sub: '+1k', value: 1000 },
+                        { label: 'Prata', sub: '+2k', value: 2000 },
+                        { label: 'Ouro', sub: '+4k', value: 4000 },
+                        { label: 'Infinity', sub: '∞', value: -1 },
+                      ].map((pack) => (
+                        <button
+                          key={pack.label}
+                          onClick={() => setEditingTenant({ ...editingTenant, extra_contacts_quota: pack.value })}
+                          className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-tight transition-all flex flex-col items-center gap-1
+                            ${editingTenant.extra_contacts_quota === pack.value
+                              ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
+                              : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700 hover:bg-slate-100'
+                            }`}
+                        >
+                          <span>{pack.label}</span>
+                          {pack.sub && <span className={`text-[8px] opacity-70 ${editingTenant.extra_contacts_quota === pack.value ? 'text-white' : 'text-orange-500'}`}>{pack.sub}</span>}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
 
                 {/* CARD 3: GERENCIAR TOTENS */}
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     <div>
                       <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
@@ -910,9 +907,9 @@ export const AdminDashboard: React.FC = () => {
                                       setCopiedId(device.id);
                                       setTimeout(() => setCopiedId(null), 2000);
                                     }}
-                                    className="absolute right-12 top-1/2 -translate-y-1/2 p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-[#38B6FF] transition-all"
+                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-[#38B6FF] hover:text-white text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
                                   >
-                                    <Copy className="w-4 h-4" />
+                                    COPIAR URL
                                   </button>
                                   <button
                                     onClick={() => handleDeleteDevice(device.id)}
@@ -930,42 +927,33 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* CARD 4: LINK DE DIVULGAÇÃO (NOVO) */}
-                <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
-                  <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform">
-                    <ExternalLink className="w-64 h-64 text-white" />
+                {/* CARD 4: LINK DE DIVULGAÇÃO (PADRONIZADO) */}
+                <Card className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                  <div className="absolute -bottom-10 -right-10 opacity-[0.03] group-hover:scale-110 transition-transform">
+                    <ExternalLink className="w-64 h-64 text-blue-500" />
                   </div>
-                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8 text-white">
+                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex-1">
-                      <h4 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-                        <Link className="w-6 h-6" /> Divulgação e Link Público
+                      <h4 className="text-xs font-black text-[#38B6FF] uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                        <Link className="w-4 h-4" /> Divulgação e Link Público
                       </h4>
-                      <p className="text-blue-100 text-sm font-medium mt-2 max-w-md">Use este link para enviar aos clientes via WhatsApp ou publicar em suas redes sociais para o registro do fidelidade.</p>
+                      <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest max-w-md">Use este link para enviar aos clientes via WhatsApp ou publicar em suas redes sociais para o registro do fidelidade.</p>
                       
-                      <div className="mt-8 flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-                        <code className="text-sm font-bold truncate flex-1">{window.location.origin}/p/{editingTenant.slug}</code>
+                      <div className="mt-8 flex items-center gap-4 bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                        <code className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate flex-1">{window.location.origin}/p/{editingTenant.slug}</code>
                         <button
                           onClick={() => {
                             const link = `${window.location.origin}/p/${editingTenant.slug}`;
                             copyToClipboard(link);
-                            // Visual feedback handled by text
                           }}
-                          className="px-6 py-3 bg-white text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg active:scale-95"
+                          className="px-6 py-3 bg-[#38B6FF] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
                         >
                           Copiar Link da Loja
                         </button>
                       </div>
                     </div>
-                    <div className="hidden md:block">
-                       <div className="bg-white p-4 rounded-3xl shadow-2xl">
-                          {/* Placeholder for QR Code if needed, otherwise just icon */}
-                          <div className="w-24 h-24 bg-slate-50 rounded-2xl flex items-center justify-center border-4 border-slate-50">
-                             <Monitor className="w-12 h-12 text-blue-600" />
-                          </div>
-                       </div>
-                    </div>
                   </div>
-                </div>
+                </Card>
 
               </div>
               
