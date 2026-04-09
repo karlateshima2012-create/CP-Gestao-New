@@ -372,12 +372,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         setRewardModal({
           isOpen: true,
-          title: reachedGoal ? 'Meta Atingida! 🎉' : (isAuto ? 'Ponto Adicionado! 🎉' : 'Ponto solicitado! ✅'),
+          title: reachedGoal ? 'Meta Atingida! 🎉' : 'Ponto registrado com sucesso!',
           message: backendMsg || (reachedGoal
             ? 'Parabéns! Você acaba de atingir sua meta.\nResgate seu prêmio na próxima visita.'
             : (isAuto
-              ? 'Seu ponto foi creditado com sucesso!\nVocê será redirecionado para acompanhar seu saldo.'
-              : `${storeInfo?.name || 'A loja'} vai confirmar em instantes.\nVocê será redirecionado para acompanhar seu saldo.`)),
+              ? 'Você pode consultar seu saldo clicando no botão abaixo:'
+              : 'Assim que aprovado, ele entrará no seu saldo.')),
           points: earnRes.data.new_balance,
           goal: earnRes.data.points_goal
         });
@@ -905,7 +905,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </h2>
             <p className="text-sm text-slate-500 font-medium mb-4">
               {approvedData.is_registration 
-                ? "Você recebeu 1 ponto de bônus! consulte seu saldo clicando no botão abaixo:" 
+                ? "Cadastro realizado com sucesso, Você recebeu 1 ponto de bônus!  consulte seu saldo clicando no botão abaixo:" 
                 : (approvedData.auto_approved 
                    ? "Você pode consultar seu saldo clicando no botão abaixo:" 
                    : "Assim que aprovado, ele entrará no seu saldo.")
