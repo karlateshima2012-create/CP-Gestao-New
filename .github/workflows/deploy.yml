@@ -31,7 +31,20 @@ jobs:
           php-version: '8.2'
           extensions: mbstring, xml, ctype, iconv, mysql, zip
 
-      - name: Install Backend Dependencies
+      - name: Install Backend Dependencies (Full for Analysis)
+        run: |
+          cd backend
+          composer install --optimize-autoloader
+          cd ..
+
+      - name: Run Static Analysis (PHPStan Firewall)
+        run: |
+          cd backend
+          # Se o código quebrar aqui, o Action morre e evita derrubar a produção
+          ./vendor/bin/phpstan analyse --error-format=github
+          cd ..
+
+      - name: Cleanup Dev Dependencies before Deploy
         run: |
           cd backend
           composer install --no-dev --optimize-autoloader
