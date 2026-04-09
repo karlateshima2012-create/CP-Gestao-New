@@ -869,9 +869,9 @@ export const AdminDashboard: React.FC = () => {
                         Nenhum terminal ativado para esta empresa.
                       </div>
                     ) : (
-                      <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {storeDevices.map((device) => (
-                           <div key={device.id} className="p-6 bg-white dark:bg-slate-900 flex flex-col md:flex-row justify-between items-center gap-6 group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+                      <div className="space-y-4">
+                         {storeDevices.map((device) => (
+                           <div key={device.id} className="p-6 bg-white dark:bg-slate-900 flex flex-col md:flex-row justify-between items-center gap-6 group hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all rounded-2xl border border-amber-100 dark:border-amber-900/30 shadow-sm">
                              <div className="flex items-center gap-4 w-full md:w-auto">
                                <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-[#38B6FF]">
                                  <Monitor className="w-5 h-5" />
@@ -907,9 +907,9 @@ export const AdminDashboard: React.FC = () => {
                                       setCopiedId(device.id);
                                       setTimeout(() => setCopiedId(null), 2000);
                                     }}
-                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-[#38B6FF] hover:text-white text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
+                                    className="px-6 py-3 bg-[#38B6FF] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95 whitespace-nowrap"
                                   >
-                                    COPIAR URL
+                                    COPIAR LINK DO TOTEM
                                   </button>
                                   <button
                                     onClick={() => handleDeleteDevice(device.id)}
