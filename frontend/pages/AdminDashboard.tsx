@@ -823,11 +823,11 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* CARD 3: GERENCIAR TOTENS */}
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border-2 border-amber-400/50 dark:border-amber-500/30 shadow-lg shadow-amber-500/5 overflow-hidden">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     <div>
                       <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                        <Smartphone className="w-5 h-5 text-[#38B6FF]" /> Gerenciar Terminais (Totens)
+                        <Smartphone className="w-5 h-5 text-amber-500" /> Gerenciar Terminais (Totens)
                       </h4>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 ml-7">Controle de acesso físico e vinculação de dispositivos</p>
                     </div>
@@ -871,7 +871,7 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <div className="space-y-4">
                          {storeDevices.map((device) => (
-                           <div key={device.id} className="p-6 bg-white dark:bg-slate-900 flex flex-col md:flex-row justify-between items-center gap-6 group hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all rounded-2xl border border-amber-100 dark:border-amber-900/30 shadow-sm">
+                           <div key={device.id} className="p-6 bg-slate-50/30 dark:bg-slate-800/20 flex flex-col items-stretch gap-6 group hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                              <div className="flex items-center gap-4 w-full md:w-auto">
                                <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-[#38B6FF]">
                                  <Monitor className="w-5 h-5" />
@@ -895,11 +895,11 @@ export const AdminDashboard: React.FC = () => {
                                </div>
                              </div>
 
-                             <div className="flex-1 w-full relative">
-                               <div className="flex items-center gap-2 w-full">
-                                  <div className="flex-1 bg-slate-50 dark:bg-slate-800 pl-4 pr-12 py-3 rounded-xl border border-slate-100 dark:border-slate-700 text-[11px] font-mono text-slate-500 truncate">
+                             <div className="w-full relative">
+                               <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-2 pl-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                                  <code className="flex-1 text-[11px] font-mono font-bold text-slate-500 truncate">
                                     {window.location.origin}/terminal/{editingTenant.slug}/{device.nfc_uid}
-                                  </div>
+                                  </code>
                                   <button
                                     onClick={() => {
                                       const text = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
@@ -907,18 +907,18 @@ export const AdminDashboard: React.FC = () => {
                                       setCopiedId(device.id);
                                       setTimeout(() => setCopiedId(null), 2000);
                                     }}
-                                    className="px-6 py-3 bg-[#38B6FF] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95 whitespace-nowrap"
+                                    className="px-4 py-2.5 bg-[#38B6FF] text-white rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-md active:scale-95 whitespace-nowrap"
                                   >
-                                    COPIAR LINK DO TOTEM
+                                    COPIAR LINK
                                   </button>
                                   <button
                                     onClick={() => handleDeleteDevice(device.id)}
-                                    className="p-3 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                    className="p-2.5 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </button>
                                </div>
-                               {copiedId === device.id && <p className="absolute -top-6 right-16 text-[8px] font-black text-emerald-500 uppercase animate-bounce">Copiado!</p>}
+                               {copiedId === device.id && <p className="absolute -top-6 right-24 text-[8px] font-black text-emerald-500 uppercase animate-bounce">Copiado!</p>}
                              </div>
                            </div>
                         ))}
