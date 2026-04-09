@@ -29,85 +29,88 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, mysql, zip
 
       - name: Install Backend Dependencies
         run: |
           cd backend
-          composer config platform.php 8.2.30
           composer install --no-dev --optimize-autoloader
           cd ..
 
       - name: Prepare Deployment Structure
         run: |
+          # Limpeza e criação da estrutura
+          rm -rf deploy
           mkdir -p deploy/api
           mkdir -p deploy/api_backend
+          
+          # Copiar Frontend (Raiz)
           cp -r frontend/dist/* deploy/
+          
+          # Copiar Backend
           cp -r backend/* deploy/api_backend/
-          echo "<?php echo 'DIR: ' . __DIR__; ?>" > deploy/debug.php
           
-           # Root .htaccess (Isolamento total e prioridade de index)
+          # Root .htaccess (SPA Routing + API bypass)
           cat <<EOT > deploy/.htaccess
-          <IfModule mod_rewrite.c>
-              RewriteEngine On
-              RewriteBase /
-              
-              # Prioridade para o index.html gerado pelo React
-              DirectoryIndex index.html index.php
-              
-              # Impede que o .htaccess da pasta pai (WordPress) interfira aqui
-              RewriteOptions None
-              
-              RewriteRule ^api(/.*)?$ - [L]
-              RewriteRule ^index\.html$ - [L]
-              RewriteCond %{REQUEST_FILENAME} !-f
-              RewriteCond %{REQUEST_FILENAME} !-d
-              RewriteRule . /index.html [L]
-          </IfModule>
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    DirectoryIndex index.html index.php
+    
+    # Bypass API requests
+    RewriteRule ^api(/.*)?$ - [L]
+    
+    # SPA Routing
+    RewriteRule ^index\.html$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
+</IfModule>
 
-          # Security for .env
-          <Files .env>
-              Order allow,deny
-              Deny from all
-          </Files>
-          EOT
+# Securing .env files
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+EOT
           
-          # Ponte index.php para garantir que o servidor LiteSpeed abra o diretório
-          echo "<?php include 'index.html'; ?>" > deploy/index.php
-          
-          # API inner .htaccess
+          # API inner .htaccess (Bridge to api_backend/public)
           cat <<EOT > deploy/api/.htaccess
-          <IfModule mod_rewrite.c>
-              RewriteEngine On
-              RewriteRule ^(.*)$ ../api_backend/public/\$1 [L]
-          </IfModule>
-          EOT
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ ../api_backend/public/\$1 [L]
+</IfModule>
+EOT
+          
+          # Security Bridge index.php
+          echo "<?php include 'index.html'; ?>" > deploy/index.php
 
       - name: Create Production .env
         run: |
           cat <<EOT > deploy/api_backend/.env
-          APP_NAME=CPGestao
-          APP_ENV=production
-          APP_KEY=${{ secrets.APP_KEY || 'base64:XG8pY6XpD/v77y5S6L7U5P4R3G6B1N7=' }}
-          APP_DEBUG=false
-          APP_URL=https://cpgestaonew.creativeprintjp.com
+APP_NAME="CP Gestão"
+APP_ENV=production
+APP_KEY=${{ secrets.APP_KEY || 'base64:XG8pY6XpD/v77y5S6L7U5P4R3G6B1N7=' }}
+APP_DEBUG=false
+APP_URL=https://cpgestaonew.creativeprintjp.com
 
-          DB_CONNECTION=mysql
-          DB_HOST=127.0.0.1
-          DB_PORT=3306
-          DB_DATABASE=u176367625_cpgestaonew
-          DB_USERNAME=u176367625_cpgestaonew
-          DB_PASSWORD=G7mQ9zP4kL2nX8vR
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=u176367625_cpgestaonew
+DB_USERNAME=u176367625_cpgestaonew
+DB_PASSWORD=G7mQ9zP4kL2nX8vR
 
-          CACHE_DRIVER=file
-          FILESYSTEM_DISK=local
-          QUEUE_CONNECTION=sync
-          SESSION_DRIVER=file
-          SESSION_LIFETIME=120
-          
-          CORS_ALLOWED_ORIGINS=https://cpgestaonew.creativeprintjp.com
-          EOT
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
 
-      - name: Pre-Deploy SSH (Cleanup and Dir Creation)
+CORS_ALLOWED_ORIGINS=https://cpgestaonew.creativeprintjp.com
+EOT
+
+      - name: Pre-Deploy Cleanup (SSH)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -115,14 +118,13 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            # Caminho absoluto definitivo conforme mapeamento SSH
             TARGET="domains/creativeprintjp.com/public_html/cpgestaonew"
             mkdir -p "$TARGET"
             cd "$TARGET"
-            # Limpeza total da pasta para receber o novo deploy
-            rm -rf * .htaccess .env || true
+            # Remove arquivos antigos exceto a pasta de logs se existir
+            find . -maxdepth 1 ! -name 'storage' ! -name '.' -exec rm -rf {} + || true
 
-      - name: Deploy to Hostinger via SCP (Password Auth)
+      - name: Deploy to Hostinger (SCP)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -134,7 +136,7 @@ jobs:
           strip_components: 1
           overwrite: true
 
-      - name: Finalize Backend (Migrations & Symlinks)
+      - name: Post-Deploy Finalization (SSH)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -142,24 +144,18 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            # Entra na pasta absoluta alvo
-            cd domains/creativeprintjp.com/public_html/cpgestaonew
+            CD_PATH="domains/creativeprintjp.com/public_html/cpgestaonew/api_backend"
+            cd "$CD_PATH"
             
-            # Permissões e limpeza final
-            chmod -R 755 . || true
-            rm -f default.php index.php || true
-            echo "<?php include 'index.html'; ?>" > index.php
+            # Permissões
+            chmod -R 755 .
+            chmod -R 775 storage bootstrap/cache
             
-            # Backend Laravel (Migrations, Seed & Cache)
-            cd api_backend
+            # Laravel optimization
             php artisan migrate --force
-            php artisan db:seed --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan storage:link || true
             
-            # LIMPEZA DE SEGURANÇA: Remove pastas antigas fora do caminho de domínios
-            rm -rf ~/public_html/cpgestaonew ~/cpgestaonew || true
-            rm -f ~/public_html/index.html ~/public_html/.htaccess ~/public_html/debug.php || true
-            rm -rf ~/public_html/api ~/public_html/api_backend || true
+            echo "Deploy concluído com sucesso em $CD_PATH"
