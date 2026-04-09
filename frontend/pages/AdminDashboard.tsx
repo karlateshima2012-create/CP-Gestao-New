@@ -577,7 +577,7 @@ export const AdminDashboard: React.FC = () => {
                     const isExpired = tenant.plan_expires_at && new Date(tenant.plan_expires_at) < new Date();
 
                     return (
-                      <tr key={tenant.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <tr key={tenant.id} className="odd:bg-white even:bg-slate-50/50 dark:odd:bg-slate-900 dark:even:bg-slate-800/20 hover:bg-[#38B6FF]/5 transition-colors group">
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
                             <div className={`w-3 h-3 rounded-full shadow-sm ring-4 ring-offset-2 ring-offset-white ring-transparent ${isExpired ? 'bg-red-500 animate-pulse ring-red-100' : usage > 0.9 ? 'bg-amber-500' : 'bg-emerald-500'}`} />
@@ -645,6 +645,29 @@ export const AdminDashboard: React.FC = () => {
                           <div className="flex items-center justify-end gap-1">
                             <div className="flex items-center bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-100 dark:border-slate-700 gap-1">
                                <button 
+                                 onClick={() => {
+                                   const link = `${window.location.protocol}//${window.location.host}/p/${tenant.slug}`;
+                                   copyToClipboard(link);
+                                   setStatusModal({ isOpen: true, title: 'Copiado', message: 'Link Público copiado.', type: 'success' });
+                                 }}
+                                 className="p-2 text-slate-400 hover:text-[#38B6FF] hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
+                                 title="Copiar Link Público"
+                               >
+                                 <Smartphone className="w-4 h-4" />
+                               </button>
+                               <button 
+                                 onClick={() => {
+                                   const link = `${window.location.protocol}//${window.location.host}/terminal/${tenant.slug}`;
+                                   copyToClipboard(link);
+                                   setStatusModal({ isOpen: true, title: 'Copiado', message: 'Link do Totem copiado.', type: 'success' });
+                                 }}
+                                 className="p-2 text-slate-400 hover:text-[#38B6FF] hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
+                                 title="Copiar Link do Totem"
+                               >
+                                 <Globe className="w-4 h-4" />
+                               </button>
+                               <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+                               <button 
                                  onClick={() => handleOpenEditModal(tenant)} 
                                  className="px-4 py-2 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all shadow-sm"
                                >
@@ -652,18 +675,18 @@ export const AdminDashboard: React.FC = () => {
                                </button>
                                <button
                                  onClick={() => handleToggleBlock(tenant)}
-                                 className={`p-2 rounded-lg transition-all ${tenant.status === 'blocked' ? 'text-rose-500 bg-rose-50' : 'text-slate-400 hover:text-rose-500 hover:bg-white'}`}
+                                 className={`p-2 rounded-lg transition-all ${tenant.status === 'blocked' ? 'text-rose-500 bg-rose-50' : 'text-slate-400 hover:text-rose-500 hover:bg-white dark:hover:bg-slate-700'}`}
                                  title={tenant.status === 'blocked' ? 'Desbloquear' : 'Suspender'}
                                >
                                  <Lock className="w-4 h-4" />
                                </button>
                             </div>
                             <button
-                              onClick={() => handleDeleteTenant(tenant)}
-                              className="p-2.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all ml-1"
-                              title="Excluir Definitivamente"
+                               onClick={() => handleDeleteTenant(tenant)}
+                               className="p-2.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all ml-1"
+                               title="Excluir Definitivamente"
                             >
-                              <Trash2 className="w-4 h-4" />
+                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
