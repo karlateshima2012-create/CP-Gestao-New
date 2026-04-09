@@ -59,6 +59,7 @@ class TenantController extends Controller
             'email' => 'required|email|max:100|unique:users,email',
             'plan' => 'required|string',
             'plan_expires_at' => 'nullable|date',
+            'plan_started_at' => 'nullable|date',
             'custom_contact_limit' => 'nullable|integer',
             'extra_contacts_quota' => 'nullable|integer',
             'totems_count' => 'nullable|integer|min:0|max:10',
@@ -86,6 +87,7 @@ class TenantController extends Controller
                     'email' => $request->email,
                     'plan' => $request->plan,
                     'plan_expires_at' => $request->plan_expires_at ?: now()->addDays(30),
+                    'plan_started_at' => $request->plan_started_at ?: now(),
                     'custom_contact_limit' => $request->custom_contact_limit,
                     'extra_contacts_quota' => $request->extra_contacts_quota ?? 0,
                     'slug' => $slug,
@@ -157,6 +159,7 @@ class TenantController extends Controller
                 'status' => 'sometimes|string|in:active,warning,expired,blocked',
                 'plan' => 'sometimes|string',
                 'plan_expires_at' => 'sometimes|date|nullable',
+                'plan_started_at' => 'sometimes|date|nullable',
                 'custom_contact_limit' => 'sometimes|integer|nullable',
                 'extra_contacts_quota' => 'sometimes|integer|nullable',
                 'loyalty_active' => 'sometimes|boolean',
@@ -178,6 +181,9 @@ class TenantController extends Controller
         // Normalize date format if present to avoid precision issues in database
         if (!empty($validated['plan_expires_at'])) {
             $validated['plan_expires_at'] = \Illuminate\Support\Carbon::parse($validated['plan_expires_at'])->format('Y-m-d');
+        }
+        if (!empty($validated['plan_started_at'])) {
+            $validated['plan_started_at'] = \Illuminate\Support\Carbon::parse($validated['plan_started_at'])->format('Y-m-d');
         }
 
         try {

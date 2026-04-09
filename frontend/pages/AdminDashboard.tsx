@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../components/ui';
-import { Users, AlertTriangle, Plus, Search, Edit2, Lock, Trash2, X, CheckCircle, CheckCircle2, Check, Copy, Calendar, RefreshCw, Save, ArrowUpCircle, Tag as TagIcon, Shield, Download, Crown, Smartphone, Monitor, HelpCircle, ExternalLink, Activity, Settings } from 'lucide-react';
+import { Users, AlertTriangle, Plus, Search, Edit2, Lock, Trash2, X, CheckCircle, CheckCircle2, Check, Copy, Calendar, RefreshCw, Save, ArrowUpCircle, Tag as TagIcon, Shield, Download, Crown, Smartphone, Monitor, HelpCircle, ExternalLink, Activity, Settings, Building2, Link, Globe } from 'lucide-react';
 import { Tenant, PlanType } from '../types';
 import { tenantsService } from '../services/api';
 import { copyToClipboard } from '../utils/clipboard';
@@ -451,8 +451,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="p-8 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group rounded-2xl">
+              <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-[#38B6FF] rounded-l-2xl`} />
               <div className="flex items-center justify-between mb-6">
                 <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:scale-110 transition-transform shadow-md shadow-blue-500/10">
                   <Users className="w-8 h-8" />
@@ -463,10 +464,10 @@ export const AdminDashboard: React.FC = () => {
                 <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{globalMetrics?.total_tenants ?? '...'}</h3>
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-1">Total de Empresas</p>
               </div>
-              <div className="absolute left-0 bottom-0 w-full h-1.5 bg-[#38B6FF] rounded-b-2xl"></div>
             </Card>
 
             <Card className="p-8 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group rounded-2xl">
+              <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 rounded-l-2xl`} />
               <div className="flex items-center justify-between mb-6">
                 <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl group-hover:scale-110 transition-transform shadow-md shadow-rose-500/10">
                   <AlertTriangle className="w-8 h-8" />
@@ -477,22 +478,8 @@ export const AdminDashboard: React.FC = () => {
                 <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{globalMetrics?.expiring_soon ?? '...'}</h3>
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-1">Vencimentos Próximos (10 dias)</p>
               </div>
-              <div className="absolute left-0 bottom-0 w-full h-1.5 bg-rose-500 rounded-b-2xl"></div>
             </Card>
-          </div>
-        </section>
 
-        <section className="space-y-6 pt-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-slate-900 bg-opacity-10 dark:bg-opacity-20 shadow-sm ring-1 ring-inset ring-slate-900/20">
-              <AlertTriangle className="w-5 h-5 text-slate-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white capitalize">Alertas de Manutenção</h2>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               {
                 label: 'Próximas do Limite',
@@ -525,7 +512,7 @@ export const AdminDashboard: React.FC = () => {
                 }`}
                 onClick={() => setFilterType(filterType === stat.type ? 'all' : stat.type)}
               >
-                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${stat.accentColor}`} />
+                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${stat.accentColor} rounded-l-2xl`} />
                 <div className="flex justify-between items-start mb-6">
                   <div className={`p-3 rounded-xl ${stat.bgColor} border border-slate-50 relative group-hover:scale-110 transition-transform`}>
                     <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
@@ -552,15 +539,15 @@ export const AdminDashboard: React.FC = () => {
                 <Shield className="w-5 h-5 text-slate-600" />
              </div>
              <div>
-                <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white capitalize">Gerenciamento de Parceiros</h2>
+                <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white capitalize">Gerenciamento de empresas</h2>
              </div>
           </div>
 
           <Card className="overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm rounded-2xl">
             <div className="p-8 border-b border-slate-50 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-6 bg-white dark:bg-slate-900">
               <div className="flex flex-col gap-1">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Clientes e CRM</h3>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Base instalada e monitoramento</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">CRM e Fidelidade</h3>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cadastro e monitoramento</p>
                 {filterType !== 'all' && (
                   <Badge color="orange" className="cursor-pointer hover:bg-orange-200 py-1.5 mt-2 self-start" onClick={() => setFilterType('all')}>
                     {filterType === 'near_limit' ? 'Filtro: Próximas do Limite' : 'Filtro: Expirados'} <X className="w-3 h-3 ml-1" />
@@ -576,7 +563,7 @@ export const AdminDashboard: React.FC = () => {
               <table className="w-full text-sm text-left">
                 <thead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 bg-slate-50/50 dark:bg-gray-800/50">
                   <tr>
-                    <th className="px-8 py-5">Negócio</th>
+                    <th className="px-8 py-5">Empresas</th>
                     <th className="px-8 py-5">Gestor / Contato</th>
                     <th className="px-8 py-5 text-center">Uso do Plano</th>
                     <th className="px-8 py-5">Vencimento</th>
@@ -656,9 +643,13 @@ export const AdminDashboard: React.FC = () => {
 
                         <td className="px-8 py-6 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-100 dark:border-slate-700">
-                               <button onClick={() => handleCopyPublicLink(tenant.slug)} className="p-2 text-slate-400 hover:text-[#38B6FF] hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="Link Público"><Copy className="w-4 h-4" /></button>
-                               <button onClick={() => handleOpenEditModal(tenant)} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="Gerenciar Lojista"><Settings className="w-4 h-4" /></button>
+                            <div className="flex items-center bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-100 dark:border-slate-700 gap-1">
+                               <button 
+                                 onClick={() => handleOpenEditModal(tenant)} 
+                                 className="px-4 py-2 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all shadow-sm"
+                               >
+                                 EDITAR
+                               </button>
                                <button
                                  onClick={() => handleToggleBlock(tenant)}
                                  className={`p-2 rounded-lg transition-all ${tenant.status === 'blocked' ? 'text-rose-500 bg-rose-50' : 'text-slate-400 hover:text-rose-500 hover:bg-white'}`}
@@ -685,257 +676,303 @@ export const AdminDashboard: React.FC = () => {
           </Card>
         </section>
 
-        {/* Modal Edit */}
+        {/* Modal Edit - Dados da Empresa */}
         {editingTenant && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-            <Card className="w-full max-w-2xl p-0 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-              <div className="p-6 border-b flex justify-between items-center bg-gray-50 flex-none">
-                <h3 className="font-bold text-lg text-gray-700 flex items-center gap-2"><Shield className="w-5 h-5 text-gray-700" /> Configurar Loja</h3>
-                <button onClick={handleCloseEditModal}><X className="w-5 h-5 text-gray-700" /></button>
+            <Card className="w-full max-w-4xl p-0 shadow-2xl overflow-hidden max-h-[95vh] flex flex-col rounded-[2.5rem] border-none">
+              <div className="p-8 border-b dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 flex-none px-10">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
+                    <Building2 className="w-6 h-6 text-[#38B6FF]" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">Dados da Empresa</h3>
+                    <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">Painel de controle e faturamento</p>
+                  </div>
+                </div>
+                <button onClick={handleCloseEditModal} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all">
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
               </div>
-              <div className="p-6 space-y-8 overflow-y-auto flex-1">
-                {/* SESSÃO TOP: INFORMAÇÕES E PLANO (DESTAQUE) */}
-                <div className="space-y-6">
-                  <div className="bg-primary-50 dark:bg-primary-950/30 p-6 rounded-[2rem] border border-primary-100 dark:border-primary-900/50 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 opacity-5">
-                      <Shield className="w-24 h-24 text-primary-500" />
-                    </div>
-                    <h4 className="text-xs font-black text-primary-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <Crown className="w-4 h-4" /> Plano e Validade
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Plano Atual</label>
-                          <select
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl px-5 py-3.5 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 transition-all outline-none shadow-sm"
-                            value={editingTenant.plan}
-                            onChange={(e) => {
-                              const newPlan = e.target.value as PlanType;
-                              setEditingTenant({
-                                ...editingTenant,
-                                plan: newPlan
-                              });
-                            }}
-                          >
-                            <option value={PlanType.PRO}>🔵 Pro: Limite de 4.000 contatos.</option>
-                            <option value={PlanType.UNLIMITED}>🟣 Elite: Limite de 6.000 contatos.</option>
-                          </select>
-                        </div>
-                        <Input
-                          label="Limite de Contatos"
-                          type="text"
-                          value={editingTenant.extra_contacts_quota === -1 ? 'ILIMITADO' : (PLAN_LIMITS[editingTenant.plan] + (editingTenant.extra_contacts_quota || 0)).toLocaleString()}
-                          readOnly
-                          className="bg-gray-100 font-black text-gray-700"
-                        />
+
+              <div className="p-10 space-y-10 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-950/20 custom-scrollbar">
+                
+                {/* CARD 1: PLANO E ASSINATURA */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-8">
+                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
+                        <Crown className="w-32 h-32 text-blue-500" />
                       </div>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Renovação / Validade</label>
-                          <div className="flex flex-col gap-3">
-                            <div className="relative">
-                              <Calendar className="absolute left-4 top-4 w-5 h-5 text-primary-500" />
-                              <input
-                                type="date"
-                                className="w-full bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl pl-12 pr-5 py-3.5 text-lg font-black text-primary-600 focus:ring-2 focus:ring-primary-500 transition-all outline-none shadow-sm"
-                                value={editingTenant.plan_expires_at ? editingTenant.plan_expires_at.split(/[T ]/)[0] : ''}
-                                onChange={(e) => setEditingTenant({ ...editingTenant, plan_expires_at: e.target.value })}
-                              />
+                      <h4 className="text-xs font-black text-[#38B6FF] uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                        <Crown className="w-4 h-4" /> Plano e Assinatura
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                        <div className="space-y-6">
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Tipo de Plano</label>
+                            <select
+                              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none shadow-inner"
+                              value={editingTenant.plan}
+                              onChange={(e) => setEditingTenant({ ...editingTenant, plan: e.target.value as PlanType })}
+                            >
+                              <option value={PlanType.PRO}>🔵 Plano Pro (4k Contatos)</option>
+                              <option value={PlanType.UNLIMITED}>🟣 Plano Elite (6k Contatos)</option>
+                            </select>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Data de Início</label>
+                              <div className="relative">
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#38B6FF]" />
+                                <input
+                                  type="date"
+                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none"
+                                  value={editingTenant.plan_started_at ? editingTenant.plan_started_at.split(/[T ]/)[0] : ''}
+                                  onChange={(e) => setEditingTenant({ ...editingTenant, plan_started_at: e.target.value })}
+                                />
+                              </div>
                             </div>
-                            <div className="flex gap-2">
-                              <button
+                            <div>
+                              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Data de Vencimento</label>
+                              <div className="relative">
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-500" />
+                                <input
+                                  type="date"
+                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none"
+                                  value={editingTenant.plan_expires_at ? editingTenant.plan_expires_at.split(/[T ]/)[0] : ''}
+                                  onChange={(e) => setEditingTenant({ ...editingTenant, plan_expires_at: e.target.value })}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-6">
+                           <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Limite Total do Banco</label>
+                            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-inner">
+                              <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                {editingTenant.extra_contacts_quota === -1 ? '∞' : (PLAN_LIMITS[editingTenant.plan] + (editingTenant.extra_contacts_quota || 0)).toLocaleString()}
+                              </span>
+                              <Badge color="blue" className="px-3 py-1 uppercase text-[9px] font-black">Capacity</Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                             <button
                                 onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 6) })}
-                                className="flex-1 py-2.5 bg-primary-100 hover:bg-primary-200 dark:bg-primary-900/50 dark:hover:bg-primary-900 rounded-xl text-[10px] font-black text-primary-700 dark:text-primary-300 transition-all uppercase tracking-widest border border-primary-200/50"
+                                className="flex-1 py-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 rounded-xl text-[10px] font-black text-[#38B6FF] transition-all uppercase tracking-widest border border-blue-100 dark:border-blue-900/50"
                               >
-                                +6 MESES
+                                +6 Meses
                               </button>
                               <button
                                 onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 12) })}
-                                className="flex-1 py-2.5 bg-primary-500 hover:bg-primary-700 rounded-xl text-[10px] font-black text-white transition-all uppercase tracking-widest shadow-md shadow-slate-400/20"
+                                className="flex-1 py-3 bg-[#38B6FF] hover:bg-blue-600 rounded-xl text-[10px] font-black text-white transition-all uppercase tracking-widest shadow-md"
                               >
-                                +12 MESES
+                                +1 Ano
                               </button>
-                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* PACCOTES DE EXPANSÃO */}
-                  <div className="bg-white dark:bg-gray-900/50 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
-                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <ArrowUpCircle className="w-4 h-4 text-orange-500" /> Pacotes de Expansão (Pagamento Único)
-                    </h4>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      {[
-                        { label: 'Nenhum', value: 0 },
-                        { label: 'Bronze (+1k)', value: 1000 },
-                        { label: 'Prata (+2k)', value: 2000 },
-                        { label: 'Ouro (+4k)', value: 4000 },
-                        { label: 'Infinity', value: -1 },
-                      ].map((pack) => (
-                        <button
-                          key={pack.label}
-                          onClick={() => setEditingTenant({ ...editingTenant, extra_contacts_quota: pack.value })}
-                          className={`px-4 py-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all
-                            ${editingTenant.extra_contacts_quota === pack.value
-                              ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
-                              : 'bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-100 dark:border-gray-700 hover:border-orange-300'
-                            }`}
-                        >
-                          {pack.label}
-                        </button>
-                      ))}
+                    {/* COTAS DE EXPANSÃO */}
+                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm grow">
+                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                        <ArrowUpCircle className="w-4 h-4 text-orange-500" /> Cotas de Expansão (Upgrade)
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                        {[
+                          { label: 'Nenhum', value: 0 },
+                          { label: 'Bronze', sub: '+1k', value: 1000 },
+                          { label: 'Prata', sub: '+2k', value: 2000 },
+                          { label: 'Ouro', sub: '+4k', value: 4000 },
+                          { label: 'Infinity', sub: '∞', value: -1 },
+                        ].map((pack) => (
+                          <button
+                            key={pack.label}
+                            onClick={() => setEditingTenant({ ...editingTenant, extra_contacts_quota: pack.value })}
+                            className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-tight transition-all flex flex-col items-center gap-1
+                              ${editingTenant.extra_contacts_quota === pack.value
+                                ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
+                                : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700 hover:bg-slate-100'
+                              }`}
+                          >
+                            <span>{pack.label}</span>
+                            {pack.sub && <span className={`text-[8px] opacity-70 ${editingTenant.extra_contacts_quota === pack.value ? 'text-white' : 'text-orange-500'}`}>{pack.sub}</span>}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-3 text-center">
-                      Limite Total: {(editingTenant.extra_contacts_quota === -1) ? 'ILIMITADO' : (editingTenant.custom_contact_limit || PLAN_LIMITS[editingTenant.plan] || 0) + (editingTenant.extra_contacts_quota || 0)}
-                    </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input label="Nome da Loja" value={editingTenant.name} onChange={(e) => setEditingTenant({ ...editingTenant, name: e.target.value })} />
-                    <Input label="E-mail Administrativo" value={editingTenant.email} onChange={(e) => setEditingTenant({ ...editingTenant, email: e.target.value })} />
-                    <Input label="Nome do Proprietário" value={editingTenant.owner_name || ''} onChange={(e) => setEditingTenant({ ...editingTenant, owner_name: e.target.value })} />
-                    <Input label="Telefone (Japão)" placeholder="090-0000-0000" value={editingTenant.phone || ''} onChange={(e) => setEditingTenant({ ...editingTenant, phone: formatJapanesePhone(e.target.value) })} />
+                  {/* CARD 2: DADOS DA EMPRESA */}
+                  <div className="lg:col-span-1 space-y-8">
+                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm h-full">
+                       <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                        <Users className="w-4 h-4 text-blue-500" /> Informações Gerais
+                      </h4>
+                      <div className="space-y-5">
+                        <Input label="Nome da Empresa" value={editingTenant.name} onChange={(e) => setEditingTenant({ ...editingTenant, name: e.target.value })} />
+                        <Input label="E-mail Administrativo" value={editingTenant.email} onChange={(e) => setEditingTenant({ ...editingTenant, email: e.target.value })} />
+                        <Input label="Responsável" value={editingTenant.owner_name || ''} onChange={(e) => setEditingTenant({ ...editingTenant, owner_name: e.target.value })} />
+                        <Input label="Telefone de Suporte" placeholder="090-0000-0000" value={editingTenant.phone || ''} onChange={(e) => setEditingTenant({ ...editingTenant, phone: formatJapanesePhone(e.target.value) })} />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <hr className="border-gray-100 dark:border-gray-800" />
-
-
-                {/* SESSÃO: GERENCIAR TOTENS (TODOS OS PLANOS) */}
-                {editingTenant && (
-                  <div className="space-y-8">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                          <Smartphone className="w-5 h-5 text-primary-500" /> Gerenciar Totens
-                        </h4>
-                      </div>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4">
-                          <Input
-                            label="Nome do Totem (Controle Interno/Lojista)"
-                            placeholder="Ex: Totem Principal - Entrada"
-                            value={newDeviceData.name}
-                            onChange={(e) => setNewDeviceData({ ...newDeviceData, name: e.target.value })}
-                          />
-                        </div>
-                        <Button
-                          className="w-full bg-primary-500 hover:bg-primary-700 text-white py-3.5 font-black uppercase tracking-widest shadow-lg shadow-slate-400/20"
-                          onClick={() => {
-                            const data = { ...newDeviceData, mode: 'approval' };
-                            tenantsService.createDevice(tenantForDevices!.id, { ...data, responsible_name: data.name })
-                              .then(() => {
-                                fetchStoreDevices(tenantForDevices!.id);
-                                setNewDeviceData({ name: '', mode: 'approval' });
-                              })
-                              .catch((err) => {
-                                setStatusModal({
-                                  isOpen: true,
-                                  title: 'Erro',
-                                  message: err.response?.data?.message || 'Não foi possível registrar o terminal.',
-                                  type: 'error'
-                                });
-                              });
-                          }}
-                          disabled={isLoading || !newDeviceData.name}
-                        >
-                          {isLoading ? 'Registrando...' : '[+ REGISTRAR NOVO TOTEM]'}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                        <Monitor className="w-4 h-4" /> Totens Ativos
+                {/* CARD 3: GERENCIAR TOTENS */}
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                        <Smartphone className="w-5 h-5 text-[#38B6FF]" /> Gerenciar Terminais (Totens)
                       </h4>
-                      {storeDevices.length === 0 ? (
-                        <div className="text-center py-8 text-gray-400 italic bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                          Nenhum totem registrado para esta loja.
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 gap-3">
-                          {storeDevices.map((device) => {
-                            const publicUrl = `${window.location.origin}/p/${editingTenant.slug}`;
-                            return (
-                              <div key={device.id} className="bg-white dark:bg-gray-900/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-4 group">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-xl bg-primary-100 dark:bg-primary-900/30 text-primary-600">
-                                      <Monitor className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                      <input
-                                        className="font-black text-gray-900 dark:text-white uppercase tracking-tight bg-transparent border-none p-0 focus:ring-0 w-full"
-                                        value={device.name}
-                                        onChange={(e) => handleUpdateDeviceLocal(device.id, 'name', e.target.value)}
-                                        onBlur={() => handleSaveDevice(device.id)}
-                                      />
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-[10px] text-gray-400 font-mono uppercase">Lote/UID:</span>
-                                        <input
-                                          className="text-[10px] text-primary-600 font-mono uppercase bg-transparent border-none p-0 focus:ring-0 w-32"
-                                          value={device.nfc_uid}
-                                          onChange={(e) => handleUpdateDeviceLocal(device.id, 'nfc_uid', e.target.value)}
-                                          onBlur={() => handleSaveDevice(device.id)}
-                                        />
-                                      </div>
-                                    </div>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 ml-7">Controle de acesso físico e vinculação de dispositivos</p>
+                    </div>
+                    <div className="flex w-full md:w-auto gap-2">
+                      <Input
+                        className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl h-12 text-sm"
+                        placeholder="Nome do Novo Totem..."
+                        value={newDeviceData.name}
+                        onChange={(e) => setNewDeviceData({ ...newDeviceData, name: e.target.value })}
+                      />
+                      <Button
+                        className="bg-[#38B6FF] hover:bg-blue-600 text-white h-12 px-6 rounded-xl font-black uppercase text-[10px] tracking-widest whitespace-nowrap"
+                        onClick={() => {
+                          const data = { ...newDeviceData, mode: 'approval' };
+                          tenantsService.createDevice(tenantForDevices!.id, { ...data, responsible_name: data.name })
+                            .then(() => {
+                              fetchStoreDevices(tenantForDevices!.id);
+                              setNewDeviceData({ name: '', mode: 'approval' });
+                            })
+                            .catch((err) => {
+                              setStatusModal({
+                                isOpen: true,
+                                title: 'Erro',
+                                message: err.response?.data?.message || 'Não foi possível registrar o terminal.',
+                                type: 'error'
+                              });
+                            });
+                        }}
+                        disabled={isLoading || !newDeviceData.name}
+                      >
+                        [+ REGISTRAR]
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="overflow-hidden border border-slate-100 dark:border-slate-800 rounded-3xl">
+                    {storeDevices.length === 0 ? (
+                      <div className="text-center py-10 text-slate-300 italic bg-slate-50/50 dark:bg-slate-800/20 font-medium">
+                        Nenhum terminal ativado para esta empresa.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {storeDevices.map((device) => (
+                           <div key={device.id} className="p-6 bg-white dark:bg-slate-900 flex flex-col md:flex-row justify-between items-center gap-6 group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+                             <div className="flex items-center gap-4 w-full md:w-auto">
+                               <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-[#38B6FF]">
+                                 <Monitor className="w-5 h-5" />
+                               </div>
+                               <div>
+                                 <input
+                                   className="font-black text-slate-900 dark:text-white uppercase tracking-tight bg-transparent border-none p-0 focus:ring-0 text-sm"
+                                   value={device.name}
+                                   onChange={(e) => handleUpdateDeviceLocal(device.id, 'name', e.target.value)}
+                                   onBlur={() => handleSaveDevice(device.id)}
+                                 />
+                                 <div className="flex items-center gap-2 mt-1">
+                                   <span className="text-[10px] text-slate-400 font-mono uppercase">UID:</span>
+                                   <input
+                                     className="text-xs text-[#38B6FF] font-mono bg-transparent border-none p-0 focus:ring-0 w-32 font-bold"
+                                     value={device.nfc_uid}
+                                     onChange={(e) => handleUpdateDeviceLocal(device.id, 'nfc_uid', e.target.value)}
+                                     onBlur={() => handleSaveDevice(device.id)}
+                                   />
+                                 </div>
+                               </div>
+                             </div>
+
+                             <div className="flex-1 w-full relative">
+                               <div className="flex items-center gap-2 w-full">
+                                  <div className="flex-1 bg-slate-50 dark:bg-slate-800 pl-4 pr-12 py-3 rounded-xl border border-slate-100 dark:border-slate-700 text-[11px] font-mono text-slate-500 truncate">
+                                    {window.location.origin}/terminal/{editingTenant.slug}/{device.nfc_uid}
                                   </div>
                                   <button
+                                    onClick={() => {
+                                      const text = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
+                                      copyToClipboard(text);
+                                      setCopiedId(device.id);
+                                      setTimeout(() => setCopiedId(null), 2000);
+                                    }}
+                                    className="absolute right-12 top-1/2 -translate-y-1/2 p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-[#38B6FF] transition-all"
+                                  >
+                                    <Copy className="w-4 h-4" />
+                                  </button>
+                                  <button
                                     onClick={() => handleDeleteDevice(device.id)}
-                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                    title="Remover Totem"
+                                    className="p-3 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </button>
-                                </div>
+                               </div>
+                               {copiedId === device.id && <p className="absolute -top-6 right-16 text-[8px] font-black text-emerald-500 uppercase animate-bounce">Copiado!</p>}
+                             </div>
+                           </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                                <div className="space-y-2">
-                                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-primary-600">Link do Totem (Físico - Gravar no NFC)</label>
-                                  <div className="flex gap-2">
-                                    <div className="flex-1 bg-primary-50 dark:bg-primary-900/10 px-4 py-2.5 rounded-xl border border-primary-100 dark:border-primary-800 text-[11px] font-mono text-primary-700 dark:text-primary-400 truncate select-all">
-                                      {window.location.origin}/terminal/{editingTenant.slug}/{device.nfc_uid}
-                                    </div>
-                                    <button
-                                      onClick={() => {
-                                        const text = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
-                                        copyToClipboard(text);
-                                        setCopiedId(device.id);
-                                        setTimeout(() => setCopiedId(null), 2000);
-                                      }}
-                                      className={`px-4 py-2 ${copiedId === device.id ? 'bg-green-500 hover:bg-green-600' : 'bg-primary-500 hover:bg-primary-600'} text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md flex items-center gap-2`}
-                                    >
-                                      {copiedId === device.id ? (
-                                        <>
-                                          <Check className="w-3.5 h-3.5" /> Copiado
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Copy className="w-3.5 h-3.5" /> Copiar Link
-                                        </>
-                                      )}
-                                    </button>
-                                  </div>
-                                  <p className="text-[9px] text-gray-400 font-bold uppercase ml-1 italic">* Use este link exclusivamente nos totens físicos para liberar a função "Registrar Visita".</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                {/* CARD 4: LINK DE DIVULGAÇÃO (NOVO) */}
+                <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                  <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform">
+                    <ExternalLink className="w-64 h-64 text-white" />
+                  </div>
+                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8 text-white">
+                    <div className="flex-1">
+                      <h4 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+                        <Link className="w-6 h-6" /> Divulgação e Link Público
+                      </h4>
+                      <p className="text-blue-100 text-sm font-medium mt-2 max-w-md">Use este link para enviar aos clientes via WhatsApp ou publicar em suas redes sociais para o registro do fidelidade.</p>
+                      
+                      <div className="mt-8 flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+                        <code className="text-sm font-bold truncate flex-1">{window.location.origin}/p/{editingTenant.slug}</code>
+                        <button
+                          onClick={() => {
+                            const link = `${window.location.origin}/p/${editingTenant.slug}`;
+                            copyToClipboard(link);
+                            // Visual feedback handled by text
+                          }}
+                          className="px-6 py-3 bg-white text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg active:scale-95"
+                        >
+                          Copiar Link da Loja
+                        </button>
+                      </div>
+                    </div>
+                    <div className="hidden md:block">
+                       <div className="bg-white p-4 rounded-3xl shadow-2xl">
+                          {/* Placeholder for QR Code if needed, otherwise just icon */}
+                          <div className="w-24 h-24 bg-slate-50 rounded-2xl flex items-center justify-center border-4 border-slate-50">
+                             <Monitor className="w-12 h-12 text-blue-600" />
+                          </div>
+                       </div>
                     </div>
                   </div>
-                )}
+                </div>
 
               </div>
-              <div className="p-6 border-t flex justify-end gap-2 bg-gray-50 flex-none">
-                <Button variant="secondary" onClick={handleCloseEditModal}>Cancelar</Button>
-                <Button className="bg-[#25aae1] text-white" onClick={handleUpdateTenant} disabled={isLoading}>
-                  {isLoading ? 'Salvando...' : 'Salvar Alterações'}
+              
+              <div className="p-8 border-t dark:border-slate-800 flex justify-end gap-3 bg-white dark:bg-slate-900 flex-none px-10">
+                <Button variant="ghost" className="font-bold text-slate-500 px-8" onClick={handleCloseEditModal}>Descartar</Button>
+                <Button className="bg-[#38B6FF] hover:bg-blue-600 text-white px-10 rounded-2xl font-black uppercase tracking-widest text-xs h-14 shadow-lg shadow-blue-500/20" onClick={handleUpdateTenant} disabled={isLoading}>
+                  {isLoading ? 'Salvando...' : 'Atualizar Dados'}
                 </Button>
               </div>
             </Card>

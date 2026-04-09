@@ -35,6 +35,7 @@ export interface Tenant {
   total_contact_limit?: number;
   extra_contacts_quota?: number;
   plan_expires_at?: string;
+  plan_started_at?: string;
   customers_count?: number;
   status: 'active' | 'warning' | 'expired' | 'blocked';
   loyalty_active: boolean;

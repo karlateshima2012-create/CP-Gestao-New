@@ -40,10 +40,12 @@ class Tenant extends Model
         'rules_text',
         'description',
         'extra_contacts_quota',
+        'plan_started_at',
     ];
 
     protected $casts = [
         'plan_expires_at' => 'date',
+        'plan_started_at' => 'date',
         'loyalty_active' => 'boolean',
         'custom_contact_limit' => 'integer',
         'extra_contacts_quota' => 'integer',
