@@ -174,7 +174,7 @@ class TelegramWebhookController extends Controller
                 }
 
                 $newText = "<b>Ponto aprovado ✅</b>\n"
-                         . "Cliente agora possui <b>{$customerObj->points_balance}</b> pontos\n"
+                         . "Cliente agora possui <b>" . ($customerObj->points_balance ?? 0) . "</b> pontos\n"
                          . "Meta Atual: <b>" . ($customerObj->points_balance ?? 0) . " / " . $currentGoal . "</b>\n"
                          . "Total de visitas: <b>" . ($customerObj->attendance_count ?? 0) . "</b>\n\n"
                          . "--- Dados da Solicitação ---\n"
@@ -271,13 +271,13 @@ class TelegramWebhookController extends Controller
                 // Clear cache and reload customer using direct DB query to ensure fresh data and bypass Scope
                 $customerObj = DB::table('customers')->where('id', $request->customer_id)->first();
                 $tenantData = DB::table('tenants')->where('id', $request->tenant_id)->first();
-
+                
                 if (!$customerObj) {
                    throw new \Exception("Customer not found for request {$request->id} in DB lookup");
                 }
 
-                // Temporary accessor-replacement for display
-                $currentGoal = (int)($tenantData->points_goal ?? 10);
+                // Temporary accessor-replacement for display (Null-Safe)
+                $currentGoal = (int)($tenantData?->points_goal ?? 10);
                 $loyaltyData = DB::table('loyalty_settings')->where('tenant_id', $request->tenant_id)->first();
                 $levels = $loyaltyData ? json_decode($loyaltyData->levels_config ?? '[]', true) : [];
                 $lvlIdx = max(0, (int)($customerObj->loyalty_level ?? 1) - 1);
@@ -286,7 +286,7 @@ class TelegramWebhookController extends Controller
                 }
 
                 $newText = "<b>Ponto aprovado ✅</b>\n"
-                         . "Cliente agora possui <b>{$customerObj->points_balance}</b> pontos\n"
+                         . "Cliente agora possui <b>" . ($customerObj->points_balance ?? 0) . "</b> pontos\n"
                          . "Meta Atual: <b>" . ($customerObj->points_balance ?? 0) . " / " . $currentGoal . "</b>\n"
                          . "Total de visitas: <b>" . ($customerObj->attendance_count ?? 0) . "</b>\n\n"
                          . "--- Dados da Solicitação ---\n"
@@ -332,7 +332,8 @@ class TelegramWebhookController extends Controller
             return response()->json(['status' => 'success']);
         } catch (\Throwable $e) {
             Log::error("Telegram processRequest Error: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            // Return 200 even on error to satisfy webhook retry logic, but log the error
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 200);
         }
     }
 
