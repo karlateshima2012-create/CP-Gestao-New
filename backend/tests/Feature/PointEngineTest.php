@@ -57,13 +57,13 @@ class PointEngineTest extends TestCase
         // 1. Ganha o 10º ponto (atinge a meta)
         $response = $this->engine->processEarn($tenant, null, $customer, null, ['phone' => $customer->phone]);
         $this->assertEquals(10, $customer->fresh()->points_balance);
-        $this->assertEquals("🎉 META ATINGIDA! Seu prêmio estará esperando na próxima visita.", $response->getData()->message);
+        $this->assertEquals("🎉 META ATINGIDA! Seu prêmio estará esperando na próxima visita.", $response->getData()->data->message);
 
         // 2. Tenta ganhar o 11º ponto imediatamente (< 12h)
         // Deve retornar a mensagem de meta atingida sem somar pontos
         $response = $this->engine->processEarn($tenant, null, $customer, null, ['phone' => $customer->phone]);
         $this->assertEquals(10, $customer->fresh()->points_balance);
-        $this->assertEquals("🎉 META ATINGIDA! Seu prêmio estará esperando na próxima visita.", $response->getData()->message);
+        $this->assertEquals("🎉 META ATINGIDA! Seu prêmio estará esperando na próxima visita.", $response->getData()->data->message);
     }
 
     /**
@@ -126,8 +126,8 @@ class PointEngineTest extends TestCase
         Carbon::setTestNow(now()->addHours(13));
         $response = $this->engine->processEarn($tenant, null, $customer, null, ['phone' => $customer->phone]);
         
-        $this->assertTrue($response->getData()->is_reward_ready);
-        $this->assertEquals("🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar e subir para o próximo nível.", $response->getData()->message);
+        $this->assertTrue($response->getData()->data->is_reward_ready);
+        $this->assertEquals("🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar e subir para o próximo nível.", $response->getData()->data->message);
 
         // Executar o Resgate (Redeem)
         $terminalController = $this->app->make(\App\Http\Controllers\PublicTerminalController::class);

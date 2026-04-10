@@ -70,7 +70,7 @@ class Customer extends Model
         'average_ticket' => 'decimal:2',
     ];
 
-    protected $appends = ['loyalty_level_name', 'photo_url_full', 'foto_perfil_thumb_url'];
+    protected $appends = ['loyalty_level_name', 'loyalty_goal', 'photo_url_full', 'foto_perfil_thumb_url'];
 
     public function getFotoPerfilThumbUrlAttribute()
     {
@@ -111,6 +111,28 @@ class Customer extends Model
         }
 
         return asset($path);
+    }
+
+    public function getLoyaltyGoalAttribute()
+    {
+        $tenant = $this->tenant;
+        if (!$tenant) return 10;
+
+        $goal = $tenant->points_goal;
+        
+        $cacheKey = "tenant_{$this->tenant_id}_loyalty_config";
+        $loyalty = cache()->remember($cacheKey, 60 * 24, function () {
+            return \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $this->tenant_id)->first();
+        });
+
+        $levels = $loyalty ? $loyalty->levels_config : null;
+        $levelIndex = $this->loyalty_level - 1;
+
+        if (is_array($levels) && isset($levels[$levelIndex]['goal'])) {
+            return (int)$levels[$levelIndex]['goal'];
+        }
+
+        return (int)$goal;
     }
 
     public function getLoyaltyLevelNameAttribute()
