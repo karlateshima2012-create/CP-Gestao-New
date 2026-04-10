@@ -96,14 +96,15 @@ class PointRequestService
                 }
             } else {
                 // Determine the goal to ensure we never exceed it
-                // We use a direct lookup to bypass accessor issues in scoped/test environments
-                $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($request->tenant_id);
-                $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $request->tenant_id)->first();
-                $levelsConfig = $loyalty ? ($loyalty->levels_config ?? []) : [];
+                // Atomic DB lookup to bypass Scope/Cache issues in CI
+                $tenantData = DB::table('tenants')->where('id', $request->tenant_id)->first();
+                $loyaltyData = DB::table('loyalty_settings')->where('tenant_id', $request->tenant_id)->first();
+                
+                $levelsConfig = $loyaltyData ? json_decode($loyaltyData->levels_config ?? '[]', true) : [];
                 $currentLevelIdx = max(0, (int)($customer->loyalty_level ?? 1) - 1);
                 
-                $goal = (int)($tenant->points_goal ?? 10);
-                if (isset($levelsConfig[$currentLevelIdx]) && isset($levelsConfig[$currentLevelIdx]['goal'])) {
+                $goal = (int)($tenantData->points_goal ?? 10);
+                if (is_array($levelsConfig) && isset($levelsConfig[$currentLevelIdx]) && isset($levelsConfig[$currentLevelIdx]['goal'])) {
                     $goal = (int)$levelsConfig[$currentLevelIdx]['goal'];
                 }
 

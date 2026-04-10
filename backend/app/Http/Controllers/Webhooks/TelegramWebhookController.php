@@ -8,6 +8,7 @@ use App\Services\PointRequestService;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class TelegramWebhookController extends Controller
 {
@@ -257,16 +258,25 @@ class TelegramWebhookController extends Controller
                     'approved_at' => now(),
                 ]);
 
-                // Clear cache and reload customer to ensure accessor has fresh data
-                $customer = \App\Models\Customer::withoutGlobalScopes()->find($request->customer_id);
-                if (!$customer) {
-                   throw new \Exception("Customer not found for request {$request->id}");
+                // Clear cache and reload customer using direct DB query to ensure fresh data and bypass Scope
+                $customerObj = DB::table('customers')->where('id', $request->customer_id)->first();
+                if (!$customerObj) {
+                   throw new \Exception("Customer not found for request {$request->id} in DB lookup");
+                }
+
+                // Temporary accessor-replacement for display
+                $currentGoal = (int)($tenantData->points_goal ?? 10);
+                $loyaltyData = DB::table('loyalty_settings')->where('tenant_id', $request->tenant_id)->first();
+                $levels = $loyaltyData ? json_decode($loyaltyData->levels_config ?? '[]', true) : [];
+                $lvlIdx = max(0, (int)($customerObj->loyalty_level ?? 1) - 1);
+                if (is_array($levels) && isset($levels[$lvlIdx]['goal'])) {
+                    $currentGoal = (int)$levels[$lvlIdx]['goal'];
                 }
 
                 $newText = "<b>Ponto aprovado ✅</b>\n"
-                         . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
-                         . "Meta Atual: <b>" . ($customer->points_balance ?? 0) . " / " . ($customer->loyalty_goal ?? 10) . "</b>\n"
-                         . "Total de visitas: <b>" . ($customer->attendance_count ?? 0) . "</b>\n\n"
+                         . "Cliente agora possui <b>{$customerObj->points_balance}</b> pontos\n"
+                         . "Meta Atual: <b>" . ($customerObj->points_balance ?? 0) . " / " . $currentGoal . "</b>\n"
+                         . "Total de visitas: <b>" . ($customerObj->attendance_count ?? 0) . "</b>\n\n"
                          . "--- Dados da Solicitação ---\n"
                          . $originalText;
 
