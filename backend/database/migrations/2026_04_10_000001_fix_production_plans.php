@@ -1,19 +1,16 @@
 <?php
 
-namespace Database\Seeders;
-
 use App\Models\Plan;
 use App\Models\PlanFeature;
 use App\Models\Tenant;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-class MigratePlansSeeder extends Seeder
+return new class extends Migration
 {
-    public function run(): void
+    public function up(): void
     {
-        $this->command->info('🚀 Saneando planos e limites de dispositivos...');
-
         // 1. Garantir que os planos existam
         $pro = Plan::updateOrCreate(
             ['slug' => 'pro'],
@@ -27,7 +24,7 @@ class MigratePlansSeeder extends Seeder
 
         // 2. Configurar Features do Pro
         $this->setFeature($pro->id, 'contact_limit', '4000');
-        $this->setFeature($pro->id, 'device_limit', '10'); // Aumentado para 10
+        $this->setFeature($pro->id, 'device_limit', '10');
         $this->setFeature($pro->id, 'allow_online_qr', '1');
         $this->setFeature($pro->id, 'allow_auto_approve', '0');
 
@@ -40,8 +37,6 @@ class MigratePlansSeeder extends Seeder
         // 4. Vincular Tenants existentes aos planos corretos
         Tenant::where('plan', 'Pro')->orWhere('plan', 'pro')->update(['plan_id' => $pro->id, 'plan' => 'Pro']);
         Tenant::where('plan', 'Elite')->orWhere('plan', 'elite')->update(['plan_id' => $elite->id, 'plan' => 'Elite']);
-
-        $this->command->info('✅ Planos e limites atualizados com sucesso!');
     }
 
     private function setFeature($planId, $slug, $value)
@@ -51,4 +46,9 @@ class MigratePlansSeeder extends Seeder
             ['feature_value' => $value]
         );
     }
-}
+
+    public function down(): void
+    {
+        // Não reverte dados de produção por segurança
+    }
+};
