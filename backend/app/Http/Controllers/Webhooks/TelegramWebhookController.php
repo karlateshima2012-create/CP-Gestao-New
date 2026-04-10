@@ -257,15 +257,16 @@ class TelegramWebhookController extends Controller
                     'approved_at' => now(),
                 ]);
 
-                $customer = $request->customer()->withoutGlobalScopes()->first();
+                // Clear cache and reload customer to ensure accessor has fresh data
+                $customer = \App\Models\Customer::withoutGlobalScopes()->find($request->customer_id);
                 if (!$customer) {
                    throw new \Exception("Customer not found for request {$request->id}");
                 }
 
                 $newText = "<b>Ponto aprovado ✅</b>\n"
                          . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
-                         . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
-                         . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
+                         . "Meta Atual: <b>" . ($customer->points_balance ?? 0) . " / " . ($customer->loyalty_goal ?? 10) . "</b>\n"
+                         . "Total de visitas: <b>" . ($customer->attendance_count ?? 0) . "</b>\n\n"
                          . "--- Dados da Solicitação ---\n"
                          . $originalText;
 

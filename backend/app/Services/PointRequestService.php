@@ -96,11 +96,16 @@ class PointRequestService
                 }
             } else {
                 // Determine the goal to ensure we never exceed it
+                // We use a direct lookup to bypass accessor issues in scoped/test environments
+                $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($request->tenant_id);
                 $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $request->tenant_id)->first();
                 $levelsConfig = $loyalty ? ($loyalty->levels_config ?? []) : [];
                 $currentLevelIdx = max(0, (int)($customer->loyalty_level ?? 1) - 1);
                 
-                $goal = (int)$customer->loyalty_goal;
+                $goal = (int)($tenant->points_goal ?? 10);
+                if (isset($levelsConfig[$currentLevelIdx]) && isset($levelsConfig[$currentLevelIdx]['goal'])) {
+                    $goal = (int)$levelsConfig[$currentLevelIdx]['goal'];
+                }
 
                 // Simple Credit with capping at Meta
                 $newBalance = ($customer->points_balance ?? 0) + $pointsToAddRaw;

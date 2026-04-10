@@ -115,29 +115,26 @@ class Customer extends Model
 
     public function getLoyaltyGoalAttribute()
     {
-        // Try relationship first (efficiency)
-        $tenant = $this->relationLoaded('tenant') ? $this->tenant : null;
+        $tenantId = $this->tenant_id;
+        if (!$tenantId) return 10;
+
+        // Use cache to avoid heavy lookups during serialization/appends
+        $cacheKey = "tenant_{$tenantId}_loyalty_goal_lvl_" . ($this->loyalty_level ?? 1);
         
-        // Fallback to manual lookup (webhook safety)
-        if (!$tenant && $this->tenant_id) {
-            $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($this->tenant_id);
-        }
+        return cache()->remember($cacheKey, 60, function () use ($tenantId) {
+            $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($tenantId);
+            if (!$tenant) return 10;
 
-        if (!$tenant) return 10;
+            $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
+            $levels = $loyalty ? $loyalty->levels_config : null;
+            $levelIndex = (int)($this->loyalty_level ?? 1) - 1;
 
-        $cacheKey = "tenant_{$this->tenant_id}_loyalty_config";
-        $loyalty = cache()->remember($cacheKey, 60 * 24, function () {
-            return \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $this->tenant_id)->first();
+            if (is_array($levels) && isset($levels[$levelIndex]['goal'])) {
+                return (int)$levels[$levelIndex]['goal'];
+            }
+
+            return (int)($tenant->points_goal ?? 10);
         });
-
-        $levels = $loyalty ? $loyalty->levels_config : null;
-        $levelIndex = (int)($this->loyalty_level ?? 1) - 1;
-
-        if (is_array($levels) && isset($levels[$levelIndex]['goal'])) {
-            return (int)$levels[$levelIndex]['goal'];
-        }
-
-        return (int)($tenant->points_goal ?? 10);
     }
 
     public function getLoyaltyLevelNameAttribute()
