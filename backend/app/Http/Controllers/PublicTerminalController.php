@@ -232,9 +232,7 @@ class PublicTerminalController extends Controller
             if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
                 return ApiResponse::error('Sessão inválida.', 'SESSION_REQUIRED', 403);
             }
-            if (!$device) {
-                return ApiResponse::error('Esta ação exige presença física na loja.', 'DEVICE_REQUIRED', 403);
-            }
+            // Removed strict device presence block for point solicitation
             $phone = PhoneHelper::normalize($request->phone);
             $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
             return $this->pointEngineService->processEarn($tenant, $device, $customer, $request->token, $request->all());
