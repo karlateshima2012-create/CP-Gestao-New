@@ -118,10 +118,7 @@ class Customer extends Model
         $tenantId = $this->tenant_id;
         if (!$tenantId) return 10;
 
-        // Use cache to avoid heavy lookups during serialization/appends
-        $cacheKey = "tenant_{$tenantId}_loyalty_goal_lvl_" . ($this->loyalty_level ?? 1);
-        
-        return cache()->remember($cacheKey, 60, function () use ($tenantId) {
+        $fetchGoal = function () use ($tenantId) {
             $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($tenantId);
             if (!$tenant) return 10;
 
@@ -134,7 +131,15 @@ class Customer extends Model
             }
 
             return (int)($tenant->points_goal ?? 10);
-        });
+        };
+
+        if (app()->environment('testing')) {
+            return $fetchGoal();
+        }
+
+        // Use cache to avoid heavy lookups during serialization/appends
+        $cacheKey = "tenant_{$tenantId}_loyalty_goal_lvl_" . ($this->loyalty_level ?? 1);
+        return cache()->remember($cacheKey, 60, $fetchGoal);
     }
 
     public function getLoyaltyLevelNameAttribute()
