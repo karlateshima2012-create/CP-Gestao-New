@@ -34,7 +34,7 @@ class TelegramWebhookTest extends TestCase
         Event::fake();
 
         // Setup
-        $tenant = Tenant::factory()->create();
+        $tenant = Tenant::factory()->create(['points_goal' => 20]);
         $customer = Customer::factory()->create([
             'tenant_id' => $tenant->id,
             'points_balance' => 10,
