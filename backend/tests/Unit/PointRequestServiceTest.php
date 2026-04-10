@@ -63,7 +63,6 @@ class PointRequestServiceTest extends TestCase
             'tenant_id' => $tenant->id,
             'points_balance' => 20,
             'loyalty_level' => 0,
-            'is_premium' => false,
         ]);
 
         $request = PointRequest::create([
@@ -88,7 +87,6 @@ class PointRequestServiceTest extends TestCase
         $customer->refresh();
         // points_balance = (20 - 15) + 2 (requested) + 5 (vip_initial) = 12
         $this->assertEquals(12, $customer->points_balance);
-        $this->assertTrue($customer->is_premium);
         $this->assertEquals(1, $customer->loyalty_level);
 
         $this->assertDatabaseHas('point_movements', [

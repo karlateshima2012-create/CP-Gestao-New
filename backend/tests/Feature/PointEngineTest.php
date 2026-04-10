@@ -27,8 +27,8 @@ class PointEngineTest extends TestCase
         
         // Mock Telegram para não enviar mensagens reais
         $this->telegramMock = Mockery::mock(TelegramService::class);
-        $this->telegramMock->shouldReceive('sendMessage')->active();
-        $this->telegramMock->shouldReceive('sendPhoto')->active();
+        $this->telegramMock->shouldReceive('sendMessage');
+        $this->telegramMock->shouldReceive('sendPhoto');
         $this->app->instance(TelegramService::class, $this->telegramMock);
 
         $this->engine = $this->app->make(PointEngineService::class);

@@ -19,7 +19,6 @@ class CustomerFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'points_balance' => 0,
             'loyalty_level' => 0,
-            'is_premium' => false,
             'source' => 'test',
         ];
     }
