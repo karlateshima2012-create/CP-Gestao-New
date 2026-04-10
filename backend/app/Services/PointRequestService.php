@@ -100,10 +100,7 @@ class PointRequestService
                 $levelsConfig = $loyalty ? ($loyalty->levels_config ?? []) : [];
                 $currentLevelIdx = max(0, (int)($customer->loyalty_level ?? 1) - 1);
                 
-                $goal = 10; // Default fallback
-                if (isset($levelsConfig[$currentLevelIdx]) && isset($levelsConfig[$currentLevelIdx]['goal'])) {
-                    $goal = (int)$levelsConfig[$currentLevelIdx]['goal'];
-                }
+                $goal = (int)$customer->loyalty_goal;
 
                 // Simple Credit with capping at Meta
                 $newBalance = ($customer->points_balance ?? 0) + $pointsToAddRaw;

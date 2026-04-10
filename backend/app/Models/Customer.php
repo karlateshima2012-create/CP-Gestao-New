@@ -115,7 +115,7 @@ class Customer extends Model
 
     public function getLoyaltyGoalAttribute()
     {
-        $tenant = $this->tenant;
+        $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($this->tenant_id);
         if (!$tenant) return 10;
 
         $goal = $tenant->points_goal;

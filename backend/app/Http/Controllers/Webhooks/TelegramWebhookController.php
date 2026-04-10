@@ -120,7 +120,7 @@ class TelegramWebhookController extends Controller
      */
     private function processVisit($visitId, $action, $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery)
     {
-        $visit = \App\Models\Visit::find($visitId);
+        $visit = \App\Models\Visit::withoutGlobalScopes()->find($visitId);
 
         if (!$visit) {
             $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Visita não encontrada.", true);
@@ -211,7 +211,7 @@ class TelegramWebhookController extends Controller
     {
         // Answer eventually if not answered already, but better to answer after checking auth
         
-        $request = PointRequest::find($requestId);
+        $request = PointRequest::withoutGlobalScopes()->find($requestId);
 
         if (!$request) {
             $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Solicitação não encontrada.", true);
@@ -307,7 +307,7 @@ class TelegramWebhookController extends Controller
      */
     private function handleRedeemReward($customerId, $chatId, $messageId, $callbackQueryId, $callbackQuery)
     {
-        $customer = \App\Models\Customer::find($customerId);
+        $customer = \App\Models\Customer::withoutGlobalScopes()->find($customerId);
         if (!$customer) {
             $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Cliente não encontrado.", true);
             return response()->json(['status' => 'not_found']);
