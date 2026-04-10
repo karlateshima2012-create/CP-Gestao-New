@@ -53,6 +53,8 @@ EOT
 cd backend
 composer install --no-dev --optimize-autoloader
 cp -r . ../PACOTE_DEPLOY_CP_GESTAO/api_backend/
+# Garantir existência da pasta de mídia e subpastas no pacote
+mkdir -p ../PACOTE_DEPLOY_CP_GESTAO/api_backend/public/storage/clientes/thumbs
 # Limpeza de pastas desnecessárias no pacote
 rm -rf ../PACOTE_DEPLOY_CP_GESTAO/api_backend/node_modules
 rm -rf ../PACOTE_DEPLOY_CP_GESTAO/api_backend/.git

@@ -105,12 +105,23 @@ class Customer extends Model
     {
         if (!$path) return null;
         
-        // Ensure path starts with storage/ if it doesn't
-        if (!str_starts_with($path, 'storage/')) {
-            $path = 'storage/' . $path;
+        // If it's already a full URL (like ui-avatars), return as is
+        if (str_starts_with($text = (string)$path, 'http')) {
+            return $text;
         }
 
-        return asset($path);
+        // Clean path to be relative to the public/storage folder
+        // We ensure it doesn't have 'storage/' prefix here because the 'public' disk root 
+        // is now pointing directly to public/storage.
+        $cleanPath = ltrim($path, '/');
+        if (str_starts_with($cleanPath, 'storage/')) {
+            $cleanPath = substr($cleanPath, 8);
+        }
+
+        // Construction optimized for the /api/storage rewrite rule and local dev
+        // In some environments, we might want the absolute URL, in others relative.
+        // We'll use the DISK url configuration for maximum flexibility.
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($cleanPath);
     }
 
     public function getLoyaltyGoalAttribute()
