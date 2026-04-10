@@ -25,7 +25,7 @@ class PointRequestServiceTest extends TestCase
     public function test_it_applies_points_correctly_to_customer()
     {
         // Setup
-        $tenant = Tenant::factory()->create();
+        $tenant = Tenant::factory()->create(['points_goal' => 20]);
         $customer = Customer::factory()->create([
             'tenant_id' => $tenant->id,
             'points_balance' => 10,
