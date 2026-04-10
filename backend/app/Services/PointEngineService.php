@@ -198,7 +198,7 @@ class PointEngineService
                 ]
             ];
 
-            \App\Jobs\SendTelegramNotificationJob::dispatch($tenant->id, $msg, 'visit', $markup);
+            \App\Jobs\SendTelegramNotificationJob::dispatch($tenant->id, $msg, 'visit', null, $markup);
 
             $rewardName = "o prêmio";
             if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {

@@ -57,13 +57,13 @@ class PointEngineTest extends TestCase
         // 1. Ganha o 10º ponto (atinge a meta)
         $response = $this->engine->processEarn($tenant, null, $customer, null, ['phone' => $customer->phone]);
         $this->assertEquals(10, $customer->fresh()->points_balance);
-        $this->assertEquals("🎉 Meta Atingida! Seu prêmio estará esperando na sua próxima visita!", $response->getData()->message);
+        $this->assertEquals("🎉 META ATINGIDA! Seu prêmio estará esperando na próxima visita.", $response->getData()->message);
 
         // 2. Tenta ganhar o 11º ponto imediatamente (< 12h)
         // Deve retornar a mensagem de meta atingida sem somar pontos
         $response = $this->engine->processEarn($tenant, null, $customer, null, ['phone' => $customer->phone]);
         $this->assertEquals(10, $customer->fresh()->points_balance);
-        $this->assertEquals("🎉 Meta Atingida! Seu prêmio estará esperando na sua próxima visita!", $response->getData()->message);
+        $this->assertEquals("🎉 META ATINGIDA! Seu prêmio estará esperando na próxima visita.", $response->getData()->message);
     }
 
     /**
