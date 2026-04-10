@@ -89,21 +89,26 @@ class PublicTerminalController extends Controller
         // 2. Try Physical Device ID (Static QR / Totem) - Only if not already found by token
         if (!$device) {
             // Fallback or explicit UID detection: Path parameter > Request body > Request query
-            $effectiveUid = $uid ?: (request()->input('device_uid') ?: request()->input('uid'));
+            $rawUid = $uid ?: (request()->input('device_uid') ?: request()->input('uid'));
+            $effectiveUid = trim((string)$rawUid);
             
-            // Explicitly filter out string "null" or "undefined" coming from frontend
-            if ($effectiveUid && !in_array($effectiveUid, ['null', 'undefined', ''])) {
+            // Explicitly filter out strings "null", "undefined", or empty
+            if ($effectiveUid && !in_array(strtolower($effectiveUid), ['null', 'undefined', ''])) {
                 $device = Device::withoutGlobalScopes()
                     ->where('tenant_id', $tenant->id)
                     ->where(function ($q) use ($effectiveUid) {
-                        $q->where('nfc_uid', $effectiveUid)->orWhere('id', $effectiveUid);
+                        $q->where('nfc_uid', $effectiveUid)
+                          ->orWhere('id', $effectiveUid)
+                          ->orWhere('nfc_uid', strtolower($effectiveUid))
+                          ->orWhere('nfc_uid', strtoupper($effectiveUid));
                     })
                     ->first();
 
                 if ($device) {
                     \Illuminate\Support\Facades\Log::debug("TERMINAL_VALIDATION: Identified by UID ({$effectiveUid}) for Tenant {$tenant->id}");
                 } else {
-                    \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: UID provided but not found. Slug: {$slug}, UID: {$effectiveUid}");
+                    $available = Device::withoutGlobalScopes()->where('tenant_id', $tenant->id)->pluck('nfc_uid')->toArray();
+                    \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: UID not found. Input: '{$effectiveUid}', Slug: {$slug}. Available UIDs: " . implode(', ', $available));
                 }
             }
         }
@@ -239,9 +244,8 @@ class PublicTerminalController extends Controller
 
         [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
         
-        if (!$device) {
-            return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_VALIDATION_FAILED', 403);
-        }
+        // NOTE: Device is NOT strictly required for LOOKUP (balance check) to avoid blocking the public portal /p/
+        // However, it WILL be required for EARN, REDEEM and REGISTER.
 
         // MEASURE B: Digital Session Binding for Lookup
         if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
