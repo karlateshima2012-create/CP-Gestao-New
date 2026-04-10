@@ -371,4 +371,53 @@ class PublicTerminalController extends Controller
             'points_balance' => $req->customer->points_balance
         ]);
     }
+
+    private function createPointRequest(array $data)
+    {
+        $request = PointRequest::create([
+            'tenant_id' => $data['tenant_id'],
+            'customer_id' => $data['customer_id'] ?? null,
+            'phone' => $data['phone'],
+            'device_id' => $data['device_id'] ?? null,
+            'source' => $data['source'] ?? 'approval',
+            'status' => $data['status'] ?? 'pending',
+            'requested_points' => $data['requested_points'] ?? 1,
+            'meta' => $data['meta'] ?? null,
+        ]);
+
+        event(new \App\Events\PointRequestCreated($request));
+        return $request;
+    }
+
+    private function findCustomer($tenantId, $phoneInput)
+    {
+        $normalized = $this->normalizePhone($phoneInput);
+        $dbCustomer = DB::table('customers')
+            ->where('tenant_id', $tenantId)
+            ->where('phone', $normalized)
+            ->first();
+
+        $customer = null;
+        if ($dbCustomer) {
+            $customer = Customer::withoutGlobalScopes()->find($dbCustomer->id);
+        }
+        
+        return [
+            'customer' => $customer,
+            'variations' => [$normalized]
+        ];
+    }
+
+    private function normalizePhone($phone)
+    {
+        $normalized = preg_replace('/\D/', '', (string)$phone);
+        if (str_starts_with($normalized, '81') && strlen($normalized) >= 11) {
+             $normalized = substr($normalized, 2);
+        }
+        $normalized = ltrim($normalized, '0');
+        if (!empty($normalized)) {
+            $normalized = '0' . $normalized;
+        }
+        return $normalized;
+    }
 }
