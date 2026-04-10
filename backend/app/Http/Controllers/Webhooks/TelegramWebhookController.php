@@ -148,8 +148,8 @@ class TelegramWebhookController extends Controller
         try {
             if ($action === 'approved') {
                 \Illuminate\Support\Facades\DB::transaction(function() use ($visit) {
-                    $customer = $visit->customer()->withoutGlobalScopes()->first();
-                    if (!$customer) {
+                    $customerData = DB::table('customers')->where('id', $visit->customer_id)->first();
+                    if (!$customerData) {
                         throw new \Exception("Customer not found for visit {$visit->id}");
                     }
                     
@@ -162,11 +162,21 @@ class TelegramWebhookController extends Controller
                     ]);
                 });
 
-                $customer = $visit->customer()->withoutGlobalScopes()->first();
+                $customerObj = DB::table('customers')->where('id', $visit->customer_id)->first();
+                $tenantData = DB::table('tenants')->where('id', $visit->tenant_id)->first();
+                
+                $currentGoal = (int)($tenantData->points_goal ?? 10);
+                $loyaltyData = DB::table('loyalty_settings')->where('tenant_id', $visit->tenant_id)->first();
+                $levels = $loyaltyData ? json_decode($loyaltyData->levels_config ?? '[]', true) : [];
+                $lvlIdx = max(0, (int)($customerObj->loyalty_level ?? 1) - 1);
+                if (is_array($levels) && isset($levels[$lvlIdx]['goal'])) {
+                    $currentGoal = (int)$levels[$lvlIdx]['goal'];
+                }
+
                 $newText = "<b>Ponto aprovado ✅</b>\n"
-                         . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
-                         . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
-                         . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
+                         . "Cliente agora possui <b>{$customerObj->points_balance}</b> pontos\n"
+                         . "Meta Atual: <b>" . ($customerObj->points_balance ?? 0) . " / " . $currentGoal . "</b>\n"
+                         . "Total de visitas: <b>" . ($customerObj->attendance_count ?? 0) . "</b>\n\n"
                          . "--- Dados da Solicitação ---\n"
                          . $originalText;
 
@@ -260,6 +270,8 @@ class TelegramWebhookController extends Controller
 
                 // Clear cache and reload customer using direct DB query to ensure fresh data and bypass Scope
                 $customerObj = DB::table('customers')->where('id', $request->customer_id)->first();
+                $tenantData = DB::table('tenants')->where('id', $request->tenant_id)->first();
+
                 if (!$customerObj) {
                    throw new \Exception("Customer not found for request {$request->id} in DB lookup");
                 }
