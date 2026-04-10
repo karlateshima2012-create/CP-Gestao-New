@@ -44,9 +44,9 @@ class PublicTerminalController extends Controller
         $this->deviceService = $deviceService;
         $this->pointEngineService = $pointEngineService;
     }
+
     /**
      * Centralized device validation.
-     * Supports physical terminals, loyalty cards, and online virtual devices.
      */
     private function validateDevice($slug, $uid = null, $token = null)
     {
@@ -71,13 +71,11 @@ class PublicTerminalController extends Controller
             $tenant->increment('public_page_visits');
         }
 
-        // --- Identification Flow ---
         $device = null;
 
         // 1. Try Digital Token (Dynamic QR)
         if ($token && is_string($token) && strlen($token) > 10) {
-            $isValid = $this->qrTokenService->isValid($token, $tenant->id);
-            if ($isValid) {
+            if ($this->qrTokenService->isValid($token, $tenant->id)) {
                 $device = $this->deviceService->getOrCreateOnlineQrDevice($tenant->id);
                 if ($device) {
                     \Illuminate\Support\Facades\Log::debug("TERMINAL_VALIDATION: Identified by TOKEN for Tenant {$tenant->id}");
@@ -122,28 +120,6 @@ class PublicTerminalController extends Controller
         return [$tenant, $device];
     }
 
-    /**
-     * Create a point request record and dispatch event.
-     */
-    private function createPointRequest(array $data)
-    {
-        $request = PointRequest::create([
-            'tenant_id' => $data['tenant_id'],
-            'customer_id' => $data['customer_id'] ?? null,
-            'phone' => $data['phone'],
-            'device_id' => $data['device_id'] ?? null,
-            'source' => $data['source'] ?? 'approval',
-            'status' => $data['status'] ?? 'pending',
-            'requested_points' => $data['requested_points'] ?? 1,
-            'meta' => $data['meta'] ?? null,
-        ]);
-
-        // Dispatch real-time event
-        event(new \App\Events\PointRequestCreated($request));
-
-        return $request;
-    }
-
     public function getInfo(Request $request, $slug, $uid = null)
     {
         $token = $request->query('token');
@@ -157,11 +133,7 @@ class PublicTerminalController extends Controller
                  return response()->json(['message' => "Loja não encontrada ({$slug}). Verifique a URL."], 404);
             }
 
-            // Check if token is valid (re-verify for the response)
             $tokenValid = $token ? $this->qrTokenService->isValid($token, $tenant->id) : false;
-
-            // Check if device is a linked card
-            $prefillPhone = null;
             $deviceType = $device ? $device->type : 'web';
 
             return ApiResponse::ok([
@@ -175,66 +147,37 @@ class PublicTerminalController extends Controller
                 'reward_text' => $tenant->reward_text,
                 'token_valid' => $tokenValid,
                 'device_id' => $device ? $device->id : null,
-                'device_name' => $device ? $device->name : 'Portal Web',
+                'device_name' => $device ? $device->name : 'Navegador Web',
                 'device_type' => $deviceType,
                 'is_terminal' => !!($uid || $token),
-                'session_token' => $this->createSessionToken($tenant->id)
+                'session_token' => $this->createSessionToken($request, $tenant->id)
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("API_ERROR: getInfo - " . $e->getMessage());
             return response()->json(['message' => 'Erro ao processar dados da loja.', 'debug' => $e->getMessage()], 500);
         }
     }
-            'reward_text' => $tenant->reward_text,
-            'device_name' => $device ? $device->name : 'Navegador Web',
-            'device_mode' => $device ? $device->mode : 'standard',
-            'device_type' => $deviceType,
-            'prefill_phone' => $prefillPhone,
-            'token_valid' => $tokenValid,
-            'tenant_name' => $tenant->name,
-            'tenant_plan' => $tenant->plan,
-            'is_limit_reached' => $tenant->isLimitReached(),
-            'levels_config' => $tenant->loyaltySettings ? $tenant->loyaltySettings->levels_config : null,
-            'session_token' => $this->generateSessionToken($request, $tenant->id, $device ? $device->id : null)
-        ]);
-    }
 
-    private function generateSessionToken(Request $request, $tenantId, $deviceId)
+    private function createSessionToken(Request $request, $tenantId)
     {
-        $ip = $request->ip();
-        $ua = $request->header('User-Agent');
         $token = bin2hex(random_bytes(16));
-        $expiresAt = now()->addMinutes(30);
-
         \Illuminate\Support\Facades\Cache::put("terminal_session:{$token}", [
             'tenant_id' => $tenantId,
-            'device_id' => $deviceId,
-            'ip' => $ip,
-            'ua' => $ua
-        ], $expiresAt);
-
+            'ip' => $request->ip(),
+            'ua' => $request->header('User-Agent')
+        ], now()->addMinutes(30));
         return $token;
     }
 
     private function validateSessionToken(Request $request, $token, $tenantId)
     {
         if (!$token) return false;
-        
         $session = \Illuminate\Support\Facades\Cache::get("terminal_session:{$token}");
         if (!$session) return false;
-
         if ($session['tenant_id'] != $tenantId) return false;
         if ($session['ip'] != $request->ip()) return false;
         if ($session['ua'] != $request->header('User-Agent')) return false;
-
         return true;
-    }
-
-    private function invalidateSessionToken($token)
-    {
-        if ($token) {
-            \Illuminate\Support\Facades\Cache::forget("terminal_session:{$token}");
-        }
     }
 
     public function getStoreInfo(Request $request, $slug)
@@ -244,102 +187,28 @@ class PublicTerminalController extends Controller
 
     public function lookup(Request $request, $slug, $uid = null)
     {
-        $request->validate([
-            'phone' => 'required|string',
-            'token' => 'nullable|string'
-        ]);
-
+        $request->validate(['phone' => 'required|string', 'token' => 'nullable|string']);
         [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
         
-        // NOTE: Device is NOT strictly required for LOOKUP (balance check) to avoid blocking the public portal /p/
-        // However, it WILL be required for EARN, REDEEM and REGISTER.
-
-        // MEASURE B: Digital Session Binding for Lookup
         if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
-            $msg = $uid ? 'Sessão inválida para consulta. Por favor, reinicie o processo no totem.' : 'Sessão expirada. Por favor, recarregue a página e tente novamente.';
-            return ApiResponse::error($msg, 'SESSION_REQUIRED', 403);
+            return ApiResponse::error('Sessão expirada. Por favor, recarregue a página.', 'SESSION_REQUIRED', 403);
         }
         
-        try {
-            $res = $this->findCustomer($tenant->id, $request->phone);
-            $customer = $res['customer'];
-            $variations = $res['variations'];
-
-            \Illuminate\Support\Facades\Log::debug("LOOKUP: Tenant: {$tenant->slug} ({$tenant->id}) | Raw: {$request->phone} | Variations: " . implode(', ', $variations) . " | Found: " . ($customer ? 'YES ('.$customer->id.')' : 'NO'));
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("LOOKUP ERROR: " . $e->getMessage());
-            return ApiResponse::error("Erro interno ao processar busca: " . $e->getMessage(), 'INTERNAL_ERROR', 500);
-        }
+        $phone = PhoneHelper::normalize($request->phone);
+        $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('phone', $phone)->first();
 
         if (!$customer) {
-            return ApiResponse::ok([
-                'customer_exists' => false,
-                'points_balance' => 0,
-                'debug_variations' => $variations // Helpful for troubleshooting
-            ]);
+            return ApiResponse::ok(['customer_exists' => false, 'points_balance' => 0]);
         }
-
 
         $balance = $customer->points_balance;
-        
-        // Get loyalty config with auto-repair
-        $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
-        $levelsConfig = $loyalty ? $loyalty->levels_config : null;
-        
-        // AUTO-REPAIR: If Prata goal is still 20 instead of 24
-        if ($loyalty && is_array($levelsConfig) && isset($levelsConfig[1]) && $levelsConfig[1]['goal'] == 20) {
-             $levelsConfig[1]['goal'] = 24;
-             $levelsConfig[2]['goal'] = 45;
-             $levelsConfig[3]['goal'] = 80;
-             $loyalty->levels_config = $levelsConfig;
-             $loyalty->save();
-             \Illuminate\Support\Facades\Cache::forget("tenant_{$tenant->id}_loyalty_levels");
-        }
-
-        $currentLevel = $customer->loyalty_level ?? 1; // Default to level 1 (Bronze) if null
-
-        
         $goal = $tenant->points_goal;
-        $reward = "prêmio";
-        $daysToDowngrade = 0;
-        $lvlIdx = max(0, (int)$currentLevel - 1); // 1-indexed to 0-indexed
-        if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
-            $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
-            $reward = $levelsConfig[$lvlIdx]['reward'] ?? $reward;
-            $daysToDowngrade = (int)($levelsConfig[$lvlIdx]['days_to_downgrade'] ?? 0);
+        
+        // Load loyalty settings for custom goals/levels if any
+        $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenant->id)->first();
+        if ($loyalty && is_array($loyalty->levels_config) && isset($loyalty->levels_config[0])) {
+             $goal = (int)($loyalty->levels_config[0]['goal'] ?? $goal);
         }
-        $remaining = max(0, $goal - $balance);
-
-        // Get recent history
-        $history = PointMovement::withoutGlobalScopes()
-            ->where('customer_id', $customer->id)
-            ->where('tenant_id', $tenant->id)
-            ->latest()
-            ->limit(10)
-            ->get()
-            ->map(function ($m) {
-                return [
-                    'amount' => $m->points,
-                    'type' => $m->type, // earn/spend
-                    'date' => $m->created_at->format('d/m/Y H:i'),
-                    'description' => $m->meta['description'] ?? ($m->type === 'earn' ? 'Pontuação' : 'Resgate')
-                ];
-            });
-
-        // Check for pending announcements and clear
-        $prefs = $customer->preferences ?? [];
-        $showLevelUp = $prefs['pending_level_up_announcement'] ?? false;
-        if ($showLevelUp) {
-            unset($prefs['pending_level_up_announcement']);
-            $customer->preferences = $prefs;
-            $customer->save();
-        }
-
-        $pendingVisitsCount = \App\Models\Visit::withoutGlobalScopes()
-            ->where('customer_id', $customer->id)
-            ->where('tenant_id', $tenant->id)
-            ->where('status', 'pendente')
-            ->count();
 
         return ApiResponse::ok([
             'customer_exists' => true,
@@ -347,562 +216,85 @@ class PublicTerminalController extends Controller
             'name' => $customer->name,
             'points_balance' => $balance,
             'points_goal' => $goal,
-            'reward_name' => $reward,
-            'remaining' => $remaining,
-            'days_to_downgrade' => $daysToDowngrade,
-            'pending_visits_count' => $pendingVisitsCount,
-            'show_level_up' => $showLevelUp, // Pass to frontend
-            'history' => $history,
-            'loyalty_level' => $customer->loyalty_level,
+            'remaining' => max(0, $goal - $balance),
             'loyalty_level_name' => $customer->loyalty_level_name,
             'foto_perfil_url' => $customer->photo_url_full,
-            'foto_perfil_thumb_url' => $customer->foto_perfil_thumb_url
+            'history' => PointMovement::where('customer_id', $customer->id)->latest()->limit(5)->get()->map(fn($m) => [
+                'amount' => $m->points, 'type' => $m->type, 'date' => $m->created_at->format('d/m/Y')
+            ])
         ]);
     }
-
-    public function updatePhoto(Request $request, $slug, $uid = null)
-    {
-        $request->validate([
-            'phone' => 'required|string',
-            'photo' => 'required', // can be file or base64
-            'token' => 'nullable|string'
-        ]);
-
-        [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
-        
-        $phone = PhoneHelper::normalize($request->phone);
-        $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)
-            ->where('phone', $phone)
-            ->first();
-
-        if (!$customer) {
-            return ApiResponse::error('Cliente não encontrado.', 'NOT_FOUND', 404);
-        }
-
-        // 60s cooldown
-        $prefs = $customer->preferences ?? [];
-        $lastUpdate = $prefs['last_photo_update'] ?? 0;
-        if (time() - $lastUpdate < 60) {
-            return ApiResponse::error('Aguarde 60 segundos entre alterações de foto.', 'COOLDOWN', 429);
-        }
-
-        $photoData = $request->photo;
-        if ($request->hasFile('photo')) {
-            $photoData = $request->file('photo');
-        }
-
-        $service = app(\App\Services\CustomerPhotoService::class);
-        $path = $service->processAndSave($photoData, $customer->id);
-        
-        $prefs['last_photo_update'] = time();
-        $customer->update([
-            'foto_perfil_url' => $path,
-            'preferences' => $prefs
-        ]);
-
-        return ApiResponse::ok([
-            'foto_perfil_url' => $customer->photo_url_full,
-            'foto_perfil_thumb_url' => $customer->foto_perfil_thumb_url
-        ], 'Foto atualizada com sucesso!');
-    }
-
 
     public function earn(Request $request, $slug, $uid = null)
     {
-        $request->validate([
-            'phone' => 'required|string',
-            'token' => 'nullable|string',
-            'name' => 'sometimes|string',
-            'city' => 'sometimes|string',
-            'province' => 'sometimes|string',
-            'address' => 'sometimes|string',
-            'email' => 'sometimes|email|nullable',
-            'birthday' => 'sometimes|date|nullable'
-        ]);
-
         return DB::transaction(function () use ($request, $slug, $uid) {
-            $token = $request->token;
-            [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
-            
-            // MEASURE B: Digital Session Binding (IP + User Agent)
+            [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
             if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
-                return ApiResponse::error('Sessão inválida ou expirada. Você deve estar fisicamente na loja para pontuar.', 'SESSION_REQUIRED', 403);
+                return ApiResponse::error('Sessão inválida.', 'SESSION_REQUIRED', 403);
             }
-
-            // MEASURE B: Presence detection
-            if (!$device && !$token) {
-                return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_REQUIRED', 403);
+            if (!$device) {
+                return ApiResponse::error('Esta ação exige presença física na loja.', 'DEVICE_REQUIRED', 403);
             }
-
-
-            try {
-                $phone = PhoneHelper::normalize($request->phone);
-                \Illuminate\Support\Facades\Log::info("EARN_VALIDATION: Slug: {$slug} | Input: {$request->phone} | Normalized: {$phone} | Tenant: {$tenant->id}");
-                
-                $res = $this->findCustomer($tenant->id, $phone);
-                $customer = $res['customer'];
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error("EARN ERROR (Customer Lookup): " . $e->getMessage());
-                return ApiResponse::error("Erro na busca de cliente: " . $e->getMessage(), 'INTERNAL_ERROR', 500);
-            }
-
-
-
-
-            return $this->pointEngineService->processEarn($tenant, $device, $customer, $token, $request->all());
+            $phone = PhoneHelper::normalize($request->phone);
+            $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
+            return $this->pointEngineService->processEarn($tenant, $device, $customer, $request->token, $request->all());
         });
     }
 
-    public function autoEarn(Request $request, $slug, $uid = null)
-    {
-        return $this->earn($request, $slug, $uid);
-    }
+    public function autoEarn(Request $request, $slug, $uid = null) { return $this->earn($request, $slug, $uid); }
 
     public function redeem(Request $request, $slug, $uid = null)
     {
-        $request->validate([
-            'phone' => 'required|string',
-            'token' => 'nullable|string'
-        ]);
-
         return DB::transaction(function () use ($request, $slug, $uid) {
-            $token = $request->token;
-            [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
-
-            // MEASURE B: Digital Session Binding for Redeem
+            [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
             if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
-                return ApiResponse::error('Sessão inválida para resgate. O resgate deve ser feito presencialmente.', 'SESSION_REQUIRED', 403);
+                return ApiResponse::error('Sessão inválida.', 'SESSION_REQUIRED', 403);
             }
-
-            // MEASURE B: Presence detection for Redeem
-            if (!$device && !$token) {
-                return ApiResponse::error('O resgate de prêmios deve ser feito presencialmente no caixa ou totem.', 'DEVICE_REQUIRED', 403);
+            if (!$device) {
+                return ApiResponse::error('Resgate exige presença física.', 'DEVICE_REQUIRED', 403);
             }
-
-
-            // Consumption of token if present
-            if ($token) {
-                try {
-                    $this->qrTokenService->consumeToken($token, $tenant->id);
-                } catch (\Throwable $te) {
-                    // Ignore consumption error ONLY if we are an admin
-                    if (!auth('sanctum')->check()) {
-                        return ApiResponse::error($te->getMessage(), 'TOKEN_ERROR', 400);
-                    }
-                }
-            }
-
-            // Removed plan-based blockade to unify logic across Classic, Pro, and Elite
-
-
             $phone = PhoneHelper::normalize($request->phone);
             $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
-
-            $loyalty = \App\Models\LoyaltySetting::firstOrCreate(['tenant_id' => $tenant->id]);
-            $levelsConfig = $loyalty->levels_config;
-            $currentLevel = $customer ? ($customer->loyalty_level ?? 1) : 1;
             
-            $goal = $tenant->points_goal;
-            $levelName = "Nível VIP";
-            $lvlIdx = max(0, (int)$currentLevel - 1); // 1-indexed to 0-indexed
-            
-            if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
-                $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
-                $levelName = $levelsConfig[$lvlIdx]['name'] ?? $levelName;
+            if (!$customer || $customer->points_balance < $tenant->points_goal) {
+                return ApiResponse::error('Saldo insuficiente.', 'INSUFFICIENT_POINTS', 409);
             }
 
-            if (!$customer || $customer->points_balance < $goal) {
-                return ApiResponse::error("Saldo insuficiente para resgate no nível {$levelName} (meta: {$goal})", 'INSUFFICIENT_POINTS', 409);
-            }
-
-            $pointsToAdd = ($loyalty->regular_points_per_scan ?? 1);
-
-            // Important: As we are redeeming and moving to the next level, the visit point
-            // should follow the configuration of that next level.
-            $nextLevelIdx = $currentLevel; // If currentLevel is Bronze (1), index 1 is Silver.
-            if (is_array($levelsConfig) && isset($levelsConfig[$nextLevelIdx]) && isset($levelsConfig[$nextLevelIdx]['points_per_visit'])) {
-                $pointsToAdd = (int) $levelsConfig[$nextLevelIdx]['points_per_visit'];
-            }
-
-            $bonus = $loyalty->redeem_bonus_points ?? 0;
-            $vipInitial = $loyalty->vip_initial_points ?? 0;
-
-            // Create Point Request (Redeem)
-            $requestRecord = $this->createPointRequest([
-                'tenant_id' => $tenant->id,
-                'customer_id' => $customer->id,
-                'phone' => $customer->phone,
-                'device_id' => $device ? $device->id : null,
-                'source' => $device ? ($device->mode === 'auto_checkin' ? 'auto_checkin' : 'approval') : 'approval',
-                'status' => 'pending',
-                'requested_points' => $pointsToAdd + $bonus,
-                'meta' => [
-                    'is_redemption' => true,
-                    'goal' => $goal,
-                    'bonus' => $bonus,
-                    'vip_initial' => $vipInitial,
-                    'became_premium' => false
-                ]
-            ]);
-
-            // Flow 3: PLAN-BASED APPROVAL LOCK (Locked per requirement)
-            $isElite = (strtolower($tenant->plan) === 'elite');
-            $isPro = (strtolower($tenant->plan) === 'pro');
-            $isClassic = (strtolower($tenant->plan) === 'classic');
-            
-            $canAutoApprove = false;
-            
-            // If merchant is logged in, auto-approve
-            if (auth('sanctum')->check()) {
-                $canAutoApprove = true;
-            } elseif ($isElite) {
-                $canAutoApprove = true;
-            } elseif ($isPro) {
-                $canAutoApprove = false;
-            } elseif ($isClassic) {
-                $canAutoApprove = !empty($request->token);
-            } else {
-                $canAutoApprove = ($device && $device->auto_approve && $this->planService->canAutoApprove($tenant));
-            }
-
-            if ($canAutoApprove) {
-                $this->pointRequestService->applyPoints($requestRecord);
-                $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
-                
-                try {
-                    event(new \App\Events\PointRequestStatusUpdated($requestRecord));
-                } catch (\Throwable $ee) {
-                    \Illuminate\Support\Facades\Log::warning("Broadcast failed in redeem: " . $ee->getMessage());
-                }
-            } elseif ($requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
-                $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
-                $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
-                $isSoundEnabled = $device ? $device->telegram_sound_points : ($settings ? $settings->telegram_sound_points : true);
-
-                if ($targetChatId && $isSoundEnabled) {
-                    $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
-                    
-                    $caption = "👑 <b>Solicitação de Resgate</b>\n\n"
-                             . "<b>Cliente:</b> {$customer->name}\n"
-                             . "<b>Telefone:</b> {$customer->phone}\n";
-                    if ($customer->company_name) {
-                        $caption .= "<b>Empresa:</b> {$customer->company_name}\n";
-                    }
-                    $caption .= "<b>Visitas:</b> {$customer->attendance_count}\n"
-                             . "<b>Hora:</b> " . now()->format('H:i') . "\n\n"
-                             . "<b>📍 Local:</b> {$locationName}\n\n"
-                             . "Deseja aprovar o resgate de prêmio para este cliente?";
-                    
-                    $replyMarkup = [
-                        'inline_keyboard' => [
-                            [
-                                ['text' => '✅ Aprovar Resgate', 'callback_data' => "approve_request:{$requestRecord->id}"],
-                                ['text' => '❌ Negar', 'callback_data' => "reject_request:{$requestRecord->id}"]
-                            ]
-                        ]
-                    ];
-                    
-                    $tgRes = $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
-                    
-                    if ($tgRes && isset($tgRes['result']['message_id'])) {
-                        $meta = $requestRecord->meta ?? [];
-                        $meta['telegram_message_id'] = $tgRes['result']['message_id'];
-                        $meta['telegram_chat_id'] = $targetChatId;
-                        $requestRecord->update(['meta' => $meta]);
-                    }
-                }
-            }
-
-            $customer = $customer->fresh();
-            $newBalance = $customer->points_balance;
-            $newLevel = (int)($customer->loyalty_level ?? 1);
-
-            $goal = $tenant->points_goal;
-            $lvlIdx = max(0, $newLevel - 1);
-            if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
-                $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
-            }
-
-            $msg = 'Solicitação de resgate enviada com sucesso.';
-            if ($canAutoApprove) {
-                $msg = "Prêmio entregue com sucesso! O cliente reiniciou no nível {$customer->loyalty_level_name} com +{$pointsToAdd} ponto(s).";
-            }
-
-            $response = ApiResponse::ok([
-                'request_id' => $requestRecord->id,
-                'customer_name' => $customer->name,
-                'new_balance' => $newBalance,
-                'loyalty_level_name' => $customer->loyalty_level_name,
-                'points_goal' => $goal,
-                'message' => $msg,
-                'auto_approved' => $isElite
-            ]);
-
-            // MEASURE D: Session Auto-Destruction (One-Time Use)
-            $this->invalidateSessionToken($request->session_token);
-
-            return $response;
+            return $this->pointEngineService->processRedeem($tenant, $device, $customer, $request->token);
         });
     }
+
     public function register(Request $request, $slug, $uid = null)
     {
-        // Accept UID from request body as fallback for unified public page
-        $deviceUid = $uid ?: $request->input('device_uid');
-        
-        $data = $request->all();
-        // Convert empty strings or whitespace strings to null for optional fields
-        foreach (['email', 'city', 'province', 'postal_code', 'address', 'birthday'] as $field) {
-            if (isset($data[$field])) {
-                $trimmed = trim($data[$field]);
-                $data[$field] = $trimmed === '' ? null : $trimmed;
+        return DB::transaction(function () use ($request, $slug, $uid) {
+            [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
+            if (!$device) {
+                return ApiResponse::error('Presença física exigida para cadastro.', 'DEVICE_REQUIRED', 403);
             }
-        }
-
-        $rules = [
-            'name' => 'required|string|max:100',
-            'phone' => 'required|string',
-            'email' => 'sometimes|nullable|email|max:100',
-            'city' => 'sometimes|nullable|string|max:100',
-            'province' => 'sometimes|nullable|string|max:100',
-            'postal_code' => 'sometimes|nullable|string|max:20',
-            'address' => 'sometimes|nullable|string|max:255',
-            'birthday' => 'sometimes|nullable|date',
-        ];
-
-        try {
-            \Illuminate\Support\Facades\Validator::make($data, $rules)->validate();
-            
-            if (!PhoneHelper::validateJapaneseFormat($data['phone'])) {
-                return ApiResponse::error('O número de telefone deve ter 11 dígitos e começar com 070, 080 ou 090.', 'INVALID_PHONE_FORMAT', 422);
+            if ($tenant->isLimitReached()) {
+                return ApiResponse::error('Limite da loja atingido.', 'LIMIT_REACHED', 403);
             }
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Illuminate\Support\Facades\Log::error("Registration Validation Failed for {$slug}: " . json_encode($e->errors()));
-            return ApiResponse::error('Dados inválidos para cadastro.', 'VALIDATION_ERROR', 422, $e->errors());
-        }
 
-        try {
-            return DB::transaction(function () use ($data, $slug, $deviceUid, $request) {
-                $token = $request->token;
-                [$tenant, $device] = $this->validateDevice($slug, $deviceUid, $token);
-                
-                if (!$device) {
-                    return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_VALIDATION_FAILED', 403);
-                }
+            $phone = PhoneHelper::normalize($request->phone);
+            $customer = Customer::create([
+                'tenant_id' => $tenant->id,
+                'name' => $request->name,
+                'phone' => $phone,
+                'source' => 'terminal'
+            ]);
 
-                // Consumption of token if present to prevent double scoring after registration
-                if ($token) {
-                    try {
-                        $this->qrTokenService->consumeToken($token, $tenant->id);
-                    } catch (\Throwable $te) {
-                        // Ignore consumption error ONLY if we are an admin
-                        if (!auth('sanctum')->check()) {
-                            return ApiResponse::error($te->getMessage(), 'TOKEN_ERROR', 400);
-                        }
-                    }
-                }
-
-                $phone = PhoneHelper::normalize($data['phone']);
-                
-                // CRITICAL: Use SAME logic as lookup to detect already registered customers
-                $existing = $this->findCustomer($tenant->id, $data['phone']);
-
-                if ($existing['customer']) {
-                    return ApiResponse::error('Este número de telefone já está cadastrado nesta loja. Para visualizar os pontos, utilize a opção Consultar saldo.', 'DUPLICATE_PHONE', 409);
-                }
-
-
-                // Limit Check
-                if ($tenant->isLimitReached()) {
-                    $this->telegramService->sendMessage($tenant->id, "🚫 <b>Limite Atingido!</b> O cadastro de novos clientes foi pausado.");
-                    return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
-                }
-
-                $birthday = $data['birthday'] ?? null;
-                if ($birthday === '') $birthday = null;
-
-                $customer = Customer::create([
-                    'tenant_id' => $tenant->id,
-                    'name' => $data['name'],
-                    'phone' => $phone,
-                    'email' => $data['email'] ?? null,
-                    'city' => $data['city'] ?? null,
-                    'province' => $data['province'] ?? null,
-                    'postal_code' => $data['postal_code'] ?? null,
-                    'address' => $data['address'] ?? null,
-                    'birthday' => $birthday,
-                    'source' => 'terminal',
-                    'last_activity_at' => now()
-                ]);
-
-                if ($request->photo) {
-                    $service = app(\App\Services\CustomerPhotoService::class);
-                    $path = $service->processAndSave($request->photo, $customer->id);
-                    $customer->update(['foto_perfil_url' => $path]);
-                }
-
-                $tenant->verifyAndNotifyLimit();
-
-                $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->firstOrCreate(['tenant_id' => $tenant->id]);
-                $levels = $loyalty->levels_config;
-                
-                // Award Points (Welcome Bonus)
-                // If it's a "Web Join" (no device), give exactly 1 point as requested.
-                // If it's at the totem/card, give the level points.
-                $visitPts = 1; 
-                if ($device || $token) {
-                    // Prioritize level-specific signup points (maps to "Ponto por cadastro" in UI)
-                    $visitPts = (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_signup'])) 
-                        ? (int)$levels[0]['points_per_signup'] 
-                        : (int)($loyalty->signup_bonus_points ?? 1);
-                }
-
-                $escName = TelegramService::escapeMarkdownV2($customer->name);
-                $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-                $regMessage = "✨ <b>Novo Cliente Cadastrado (Totem)</b>\n\n"
-                            . "👤 <b>Nome:</b> {$escName}\n"
-                            . "📞 <b>Telefone:</b> {$escPhone}\n"
-                            . "💰 <b>Ponto de cadastro recebido:</b> {$visitPts}";
-
-                try {
-                    // Use sendPhoto for better visual consistency (includes avatar)
-                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $regMessage, 'registration');
-                } catch (\Exception $te) {
-                    \Illuminate\Support\Facades\Log::warning("Registration Telegram alert failed: " . $te->getMessage());
-                }
-
-                // Link Card if deviceUid is present
-                $linkMessage = "";
-                if ($deviceUid && $deviceUid !== 'null') {
-                    // Physical card linking is deprecated
-                }
-
-                $bonusMessage = "";
-                if ($visitPts > 0) {
-                    $visitRequest = $this->createPointRequest([
-                        'tenant_id' => $tenant->id,
-                        'customer_id' => $customer->id,
-                        'phone' => $customer->phone,
-                        'device_id' => ($device && isset($device->id)) ? $device->id : null,
-                        'source' => $device ? ($device->mode ?? 'terminal') : 'terminal',
-                        'status' => 'pending',
-                        'requested_points' => $visitPts,
-                        'meta' => ['is_signup_bonus' => true]
-                    ]);
-
-                    $this->pointRequestService->applyPoints($visitRequest);
-                    $visitRequest->update(['status' => 'auto_approved', 'approved_at' => now()]);
-                    $bonusMessage = " (Bônus: {$visitPts} pts)";
-                }
-
-                $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}{$linkMessage}";
-                
-                $goal = $tenant->points_goal;
-                if (is_array($levels) && count($levels) > 0) {
-                    $goal = (int)($levels[0]['goal'] ?? $goal);
-                }
-
-                $rewardName = "o prêmio";
-                if (is_array($levels) && count($levels) > 0) {
-                    $rewardName = $levels[0]['reward'] ?? $rewardName;
-                }
-
-                $refreshed = $customer->fresh();
-                $curPoints = $refreshed->points_balance;
-                return ApiResponse::ok([
-                    'customer_exists' => true,
-                    'points_balance' => $curPoints,
-                    'loyalty_level' => $refreshed->loyalty_level,
-                    'loyalty_level_name' => $refreshed->loyalty_level_name,
-                    'points_goal' => $goal,
-                    'reward_name' => $rewardName,
-                    'remaining' => max(0, $goal - $curPoints),
-                    'id' => $customer->id,
-                    'name' => $customer->name,
-                    'foto_perfil_url' => $refreshed->photo_url_full,
-                    'foto_perfil_thumb_url' => $refreshed->foto_perfil_thumb_url,
-                    'message' => $successMsg
-                ], $successMsg);
-            });
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Registration error for {$slug}: " . $e->getMessage());
-            return ApiResponse::error('Erro ao completar cadastro: ' . $e->getMessage(), 'REGISTRATION_ERROR', 500);
-        }
+            return ApiResponse::ok(['customer_exists' => true, 'id' => $customer->id, 'name' => $customer->name], 'Cadastro realizado!');
+        });
     }
 
     public function getRequestStatus($slug, $uidOrRequestId, $requestId = null)
     {
-        // If $requestId is null, it means we are in the /p/{slug} route where only 2 params are passed
-        $actualRequestId = $requestId ?: $uidOrRequestId;
-        
-        $requestRecord = \App\Models\PointRequest::with(['customer', 'store.loyaltySettings'])->findOrFail($actualRequestId);
-        
-        $customer = $requestRecord->customer;
-        $tenant = $requestRecord->store;
-        $loyalty = $tenant->loyaltySettings;
-        
-        $levelsConfig = $loyalty ? $loyalty->levels_config : null;
-        $currentLevel = $customer->loyalty_level ?? 0;
-        
-        $goal = $tenant->points_goal;
-        if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel])) {
-            $goal = (int)($levelsConfig[$currentLevel]['goal'] ?? $goal);
-        }
-
+        $id = $requestId ?: $uidOrRequestId;
+        $req = PointRequest::with('customer')->findOrFail($id);
         return ApiResponse::ok([
-            'status' => $requestRecord->status,
-            'customer_name' => $customer->name,
-            'points_balance' => $customer->points_balance,
-            'loyalty_level_name' => $customer->loyalty_level_name,
-            'points_goal' => $goal,
-            'remaining_points' => max(0, $goal - $customer->points_balance),
-            'tenant_name' => $tenant->name
+            'status' => $req->status,
+            'customer_name' => $req->customer->name,
+            'points_balance' => $req->customer->points_balance
         ]);
     }
-    /**
-     * LOCAL NORMALIZATION (Bypasses class-map cache issues on some servers)
-     */
-    private function normalizePhone($phone)
-    {
-        $normalized = preg_replace('/\D/', '', (string)$phone);
-        if (str_starts_with($normalized, '81') && strlen($normalized) >= 11) {
-             $normalized = substr($normalized, 2);
-        }
-        $normalized = ltrim($normalized, '0');
-        if (!empty($normalized)) {
-            $normalized = '0' . $normalized;
-        }
-        return $normalized;
-    }
-
-    private function findCustomer($tenantId, $phoneInput)
-    {
-        // 1. INLINE normalization logic (Steel-reinforced v2.5.1 Final)
-        $normalized = $this->normalizePhone($phoneInput);
-        
-        // 2. Exact match using DB table for performance and reliability
-        $dbCustomer = DB::table('customers')
-            ->where('tenant_id', $tenantId)
-            ->where('phone', $normalized)
-            ->first();
-
-        $customer = null;
-        if ($dbCustomer) {
-            $customer = Customer::withoutGlobalScopes()->find($dbCustomer->id);
-        } else {
-             \Illuminate\Support\Facades\Log::debug("FIND_CUSTOMER: No match | Input: {$phoneInput} | Norm: {$normalized} | Tenant: {$tenantId}");
-        }
-        
-        return [
-            'customer' => $customer,
-            'variations' => [$normalized],
-            'v' => '2.5.1-FINAL' 
-        ];
-    }
 }
-
-
-
-
-
-
-
