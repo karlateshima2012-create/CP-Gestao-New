@@ -53,7 +53,7 @@ class PublicTerminalController extends Controller
         $tenant = Tenant::where('slug', $slug)->first();
         if (!$tenant) {
             \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: Tenant not found. Slug: {$slug}");
-            abort(404);
+            return [null, null];
         }
 
         if ($tenant->status !== 'active') {
@@ -75,7 +75,6 @@ class PublicTerminalController extends Controller
         $device = null;
 
         // 1. Try Digital Token (Dynamic QR)
-        // Only attempt if token is a non-empty string and looks potentially valid (more than 10 chars)
         if ($token && is_string($token) && strlen($token) > 10) {
             $isValid = $this->qrTokenService->isValid($token, $tenant->id);
             if ($isValid) {
@@ -86,13 +85,11 @@ class PublicTerminalController extends Controller
             }
         }
 
-        // 2. Try Physical Device ID (Static QR / Totem) - Only if not already found by token
+        // 2. Try Physical Device ID (Static QR / Totem)
         if (!$device) {
-            // Fallback or explicit UID detection: Path parameter > Request body > Request query
             $rawUid = $uid ?: (request()->input('device_uid') ?: request()->input('uid'));
             $effectiveUid = trim((string)$rawUid);
             
-            // Explicitly filter out strings "null", "undefined", or empty
             if ($effectiveUid && !in_array(strtolower($effectiveUid), ['null', 'undefined', ''])) {
                 $device = Device::withoutGlobalScopes()
                     ->where('tenant_id', $tenant->id)
@@ -108,19 +105,13 @@ class PublicTerminalController extends Controller
                     \Illuminate\Support\Facades\Log::debug("TERMINAL_VALIDATION: Identified by UID ({$effectiveUid}) for Tenant {$tenant->id}");
                 } else {
                     $available = Device::withoutGlobalScopes()->where('tenant_id', $tenant->id)->pluck('nfc_uid')->toArray();
-                    \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: UID not found. Input: '{$effectiveUid}', Slug: {$slug}. Available UIDs: " . implode(', ', $available));
+                    \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: UID not found. Input: '{$effectiveUid}'. Available: " . implode(', ', $available));
                 }
             }
         }
 
-        // 3. Admin Override (for testing/manual entry from dashboard)
-        if (!$device && auth('sanctum')->check()) {
-            // If logged in as admin/staff, we might allow certain actions depending on the context
-            // But for terminal actions, we still prefer hardware presence.
-        }
-
         if (!$device) {
-            \Illuminate\Support\Facades\Log::info("TERMINAL_VALIDATION: No valid identification found (Token: " . substr($token, 0, 8) . "..., UID: {$uid})");
+            \Illuminate\Support\Facades\Log::info("TERMINAL_VALIDATION: No valid identification found (Slug: {$slug})");
             return [$tenant, null];
         }
 
