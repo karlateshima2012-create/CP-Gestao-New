@@ -62,9 +62,9 @@ class TelegramWebhookTest extends TestCase
         
         $this->telegramServiceMock->shouldReceive('editMessage')
             ->once()
-            ->with('999888777', '12345', Mockery::on(function ($text) {
+            ->with('999888777', '12345', \Mockery::on(function ($text) {
                 return stripos($text, 'aprovado') !== false;
-            }));
+            }), \Mockery::any());
 
         // Execute Webhook call
         $response = $this->postJson('/api/webhooks/telegram', [
