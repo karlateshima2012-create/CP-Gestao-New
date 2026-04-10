@@ -299,7 +299,7 @@ class PointEngineService
                 : "Solicitação enviada. Falta apenas 1 ponto para sua meta!";
         } else {
             $msg = ($canAutoApprove ? "✅ +{$pointsToAdd} ponto(s) adicionado(s)." : "Solicitação de ponto enviada.") 
-                 . " Saldo: {$newBalance}/{$goal}.";
+                 . " Saldo: {$newBalance}/{$currentGoal}.";
         }
 
         return ApiResponse::ok([
@@ -314,7 +314,7 @@ class PointEngineService
             'remaining' => max(0, $remaining),
             'message' => $msg,
             'auto_approved' => $canAutoApprove,
-            'is_reward_ready' => ($newBalance >= $goal && $canAutoApprove)
+            'is_reward_ready' => ($newBalance >= $currentGoal && $canAutoApprove)
         ]);
     }
 }
