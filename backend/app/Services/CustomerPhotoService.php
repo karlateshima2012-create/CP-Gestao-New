@@ -58,14 +58,14 @@ class CustomerPhotoService
             $image->cover(400, 400); 
             
             // Convert to WebP and optimize
-            $encoded = $image->encodeByExtension('webp', quality: 80);
+            $encoded = $image->toWebp(80);
             
             Storage::disk('public')->put($path, (string) $encoded);
 
             // 2. Process Thumbnail (120x120, WEBP)
             $thumb = $this->manager->read($input);
             $thumb->cover(120, 120);
-            $thumbEncoded = $thumb->encodeByExtension('webp', quality: 75);
+            $thumbEncoded = $thumb->toWebp(75);
             
             Storage::disk('public')->put($thumbPath, (string) $thumbEncoded);
 
