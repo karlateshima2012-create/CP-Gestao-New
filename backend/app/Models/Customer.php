@@ -115,24 +115,29 @@ class Customer extends Model
 
     public function getLoyaltyGoalAttribute()
     {
-        $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($this->tenant_id);
+        // Try relationship first (efficiency)
+        $tenant = $this->relationLoaded('tenant') ? $this->tenant : null;
+        
+        // Fallback to manual lookup (webhook safety)
+        if (!$tenant && $this->tenant_id) {
+            $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($this->tenant_id);
+        }
+
         if (!$tenant) return 10;
 
-        $goal = $tenant->points_goal;
-        
         $cacheKey = "tenant_{$this->tenant_id}_loyalty_config";
         $loyalty = cache()->remember($cacheKey, 60 * 24, function () {
             return \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $this->tenant_id)->first();
         });
 
         $levels = $loyalty ? $loyalty->levels_config : null;
-        $levelIndex = $this->loyalty_level - 1;
+        $levelIndex = (int)($this->loyalty_level ?? 1) - 1;
 
         if (is_array($levels) && isset($levels[$levelIndex]['goal'])) {
             return (int)$levels[$levelIndex]['goal'];
         }
 
-        return (int)$goal;
+        return (int)($tenant->points_goal ?? 10);
     }
 
     public function getLoyaltyLevelNameAttribute()

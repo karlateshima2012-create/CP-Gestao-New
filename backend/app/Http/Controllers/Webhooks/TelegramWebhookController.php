@@ -159,7 +159,11 @@ class TelegramWebhookController extends Controller
                 ]);
             });
 
-            $customer = $visit->customer->fresh();
+            $customer = $visit->customer()->withoutGlobalScopes()->first();
+            if (!$customer) {
+                return response()->json(['status' => 'error', 'message' => 'Customer bound to visit not found.'], 404);
+            }
+
             $newText = "<b>Ponto aprovado ✅</b>\n"
                      . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
                      . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
@@ -252,7 +256,11 @@ class TelegramWebhookController extends Controller
                 'approved_at' => now(),
             ]);
 
-            $customer = $request->customer->fresh();
+            $customer = $request->customer()->withoutGlobalScopes()->first();
+            if (!$customer) {
+               return response()->json(['status' => 'error', 'message' => 'Customer bound to request not found.'], 404);
+            }
+
             $newText = "<b>Ponto aprovado ✅</b>\n"
                      . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
                      . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
