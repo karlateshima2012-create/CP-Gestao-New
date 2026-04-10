@@ -80,6 +80,9 @@ jobs:
               # Bypass API requests
               RewriteRule ^api(/.*)?$ - [L]
               
+              # Route Storage requests to Backend Storage
+              RewriteRule ^storage/(.*)$ api_backend/public/storage/$1 [L]
+              
               # SPA Routing
               RewriteRule ^index\.html$ - [L]
               RewriteCond %{REQUEST_FILENAME} !-f

@@ -359,6 +359,44 @@ class PublicTerminalController extends Controller
         });
     }
 
+    public function updatePhoto(Request $request, $slug, $uid = null)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'photo' => 'required|image|max:10240'
+        ]);
+
+        return DB::transaction(function () use ($request, $slug, $uid) {
+            [$tenant, $device] = $this->validateDevice($slug, $uid, null);
+            if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
+                return ApiResponse::error('Sessão expirada. Recarregue a página.', 'SESSION_REQUIRED', 403);
+            }
+
+            $phone = PhoneHelper::normalize($request->phone);
+            $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
+
+            if (!$customer) {
+                return ApiResponse::error('Cliente não encontrado.', 'NOT_FOUND', 404);
+            }
+
+            if ($request->hasFile('photo')) {
+                if ($customer->foto_perfil_url) {
+                    app(\App\Services\CustomerPhotoService::class)->delete($customer->foto_perfil_url);
+                }
+                
+                $path = app(\App\Services\CustomerPhotoService::class)->processAndSave($request->file('photo'), $customer->id);
+                $customer->update(['foto_perfil_url' => $path]);
+            }
+
+            $customer = $customer->fresh();
+
+            return ApiResponse::ok([
+                'foto_perfil_url' => $customer->photo_url_full,
+                'foto_perfil_thumb_url' => $customer->foto_perfil_thumb_url
+            ], 'Foto de perfil atualizada com sucesso!');
+        });
+    }
+
     public function getRequestStatus($slug, $uidOrRequestId, $requestId = null)
     {
         $id = $requestId ?: $uidOrRequestId;
