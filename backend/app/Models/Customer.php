@@ -118,7 +118,7 @@ class Customer extends Model
             $cleanPath = substr($cleanPath, 8);
         }
 
-        return env('APP_URL') . '/api/storage/' . $cleanPath;
+        return config('app.url') . '/api/storage/' . $cleanPath;
     }
 
     public function getLoyaltyGoalAttribute()
