@@ -50,8 +50,9 @@ class CustomerPhotoService
         }
 
         try {
+            $input = $file instanceof \Illuminate\Http\UploadedFile ? $file->getRealPath() : $file;
             // 1. Process Main Image (400x400, WEBP, central crop)
-            $image = $this->manager->read($file);
+            $image = $this->manager->read($input);
             
             // Square crop central and resize using cover()
             $image->cover(400, 400); 
@@ -62,7 +63,7 @@ class CustomerPhotoService
             Storage::disk('public')->put($path, (string) $encoded);
 
             // 2. Process Thumbnail (120x120, WEBP)
-            $thumb = $this->manager->read($file);
+            $thumb = $this->manager->read($input);
             $thumb->cover(120, 120);
             $thumbEncoded = $thumb->encodeByExtension('webp', quality: 75);
             

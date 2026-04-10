@@ -219,6 +219,7 @@ class PublicTerminalController extends Controller
             'remaining' => max(0, $goal - $balance),
             'loyalty_level_name' => $customer->loyalty_level_name,
             'foto_perfil_url' => $customer->photo_url_full,
+            'reward_name' => $tenant->reward_text,
             'history' => PointMovement::where('customer_id', $customer->id)->latest()->limit(5)->get()->map(fn($m) => [
                 'amount' => $m->points, 'type' => $m->type, 'date' => $m->created_at->format('d/m/Y')
             ])
@@ -363,7 +364,7 @@ class PublicTerminalController extends Controller
     {
         $request->validate([
             'phone' => 'required|string',
-            'photo' => 'required|image|max:10240'
+            'photo' => 'required|file|mimes:jpeg,jpg,png,webp,heic|max:10240'
         ]);
 
         return DB::transaction(function () use ($request, $slug, $uid) {
