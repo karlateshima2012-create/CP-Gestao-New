@@ -144,65 +144,65 @@ class TelegramWebhookController extends Controller
 
         $this->telegramService->answerCallbackQuery($callbackQueryId, $action === 'approved' ? "✅ Ponto Aprovado!" : "❌ Ponto Recusado!");
 
-        if ($action === 'approved') {
-            \Illuminate\Support\Facades\DB::transaction(function() use ($visit) {
-                $customer = $visit->customer;
-                
-                // Use the PointRequestService to apply points consistently
-                // This handles level upgrades, movements, and correctly respects points_granted
-                $service = app(\App\Services\PointRequestService::class);
-                $service->applyPoints($visit);
+        try {
+            if ($action === 'approved') {
+                \Illuminate\Support\Facades\DB::transaction(function() use ($visit) {
+                    $customer = $visit->customer()->withoutGlobalScopes()->first();
+                    if (!$customer) {
+                        throw new \Exception("Customer not found for visit {$visit->id}");
+                    }
+                    
+                    $service = app(\App\Services\PointRequestService::class);
+                    $service->applyPoints($visit);
 
+                    $visit->update([
+                        'status' => 'aprovado',
+                        'approved_at' => now()
+                    ]);
+                });
+
+                $customer = $visit->customer()->withoutGlobalScopes()->first();
+                $newText = "<b>Ponto aprovado ✅</b>\n"
+                         . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
+                         . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
+                         . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
+                         . "--- Dados da Solicitação ---\n"
+                         . $originalText;
+
+                $markup = [
+                    'inline_keyboard' => [
+                        [['text' => '✅ APROVADO', 'callback_data' => 'already_processed']]
+                    ]
+                ];
+
+                if (isset($callbackQuery['message']['photo'])) {
+                    $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+                } else {
+                    $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
+                }
+            } else {
                 $visit->update([
-                    'status' => 'aprovado',
+                    'status' => 'negado',
                     'approved_at' => now()
                 ]);
-            });
 
-            $customer = $visit->customer()->withoutGlobalScopes()->first();
-            if (!$customer) {
-                return response()->json(['status' => 'error', 'message' => 'Customer bound to visit not found.'], 404);
+                $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>\n\n"
+                         . "--- Dados da Solicitação ---\n"
+                         . $originalText;
+                $markup = [
+                    'inline_keyboard' => [
+                        [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
+                    ]
+                ];
+                if (isset($callbackQuery['message']['photo'])) {
+                    $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+                } else {
+                    $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
+                }
             }
-
-            $newText = "<b>Ponto aprovado ✅</b>\n"
-                     . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
-                     . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
-                     . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
-                     . "--- Dados da Solicitação ---\n"
-                     . $originalText;
-
-            $markup = [
-                'inline_keyboard' => [
-                    [['text' => '✅ APROVADO', 'callback_data' => 'already_processed']]
-                ]
-            ];
-
-            $tenant = \App\Models\Tenant::find($visit->tenant_id);
-
-            if (isset($callbackQuery['message']['photo'])) {
-                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
-            } else {
-                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
-            }
-        } else {
-            $visit->update([
-                'status' => 'negado',
-                'approved_at' => now()
-            ]);
-
-            $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>\n\n"
-                     . "--- Dados da Solicitação ---\n"
-                     . $originalText;
-            $markup = [
-                'inline_keyboard' => [
-                    [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
-                ]
-            ];
-            if (isset($callbackQuery['message']['photo'])) {
-                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
-            } else {
-                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
-            }
+        } catch (\Throwable $e) {
+            Log::error("Telegram processVisit Error: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
 
         return response()->json(['status' => 'success']);
@@ -249,65 +249,68 @@ class TelegramWebhookController extends Controller
         // Answer now to stop spinner and give feedback
         $this->telegramService->answerCallbackQuery($callbackQueryId, $action === 'approved' ? "✅ Ponto Aprovado!" : "❌ Ponto Recusado!");
 
-        if ($action === 'approved') {
-            $this->pointRequestService->applyPoints($request);
-            $request->update([
-                'status' => 'approved',
-                'approved_at' => now(),
-            ]);
+        try {
+            if ($action === 'approved') {
+                $this->pointRequestService->applyPoints($request);
+                $request->update([
+                    'status' => 'approved',
+                    'approved_at' => now(),
+                ]);
 
-            $customer = $request->customer()->withoutGlobalScopes()->first();
-            if (!$customer) {
-               return response()->json(['status' => 'error', 'message' => 'Customer bound to request not found.'], 404);
-            }
+                $customer = $request->customer()->withoutGlobalScopes()->first();
+                if (!$customer) {
+                   throw new \Exception("Customer not found for request {$request->id}");
+                }
 
-            $newText = "<b>Ponto aprovado ✅</b>\n"
-                     . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
-                     . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
-                     . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
-                     . "--- Dados da Solicitação ---\n"
-                     . $originalText;
+                $newText = "<b>Ponto aprovado ✅</b>\n"
+                         . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
+                         . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
+                         . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
+                         . "--- Dados da Solicitação ---\n"
+                         . $originalText;
 
-            $markup = [
-                'inline_keyboard' => [
-                    [['text' => '✅ APROVADO', 'callback_data' => 'already_processed']]
-                ]
-            ];
+                $markup = [
+                    'inline_keyboard' => [
+                        [['text' => '✅ APROVADO', 'callback_data' => 'already_processed']]
+                    ]
+                ];
 
-            $tenant = \App\Models\Tenant::find($request->tenant_id);
-
-            if (isset($callbackQuery['message']['photo'])) {
-                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+                if (isset($callbackQuery['message']['photo'])) {
+                    $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+                } else {
+                    $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
+                }
             } else {
-                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
-            }
-        } else {
-            $request->update([
-                'status' => 'denied',
-                'approved_at' => now(),
-            ]);
+                $request->update([
+                    'status' => 'denied',
+                    'approved_at' => now(),
+                ]);
 
-            $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>\n\n"
-                     . "--- Dados da Solicitação ---\n"
-                     . $originalText;
-            
-            $markup = [
-                'inline_keyboard' => [
-                    [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
-                ]
-            ];
+                $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>\n\n"
+                         . "--- Dados da Solicitação ---\n"
+                         . $originalText;
+                
+                $markup = [
+                    'inline_keyboard' => [
+                        [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
+                    ]
+                ];
 
-            if (isset($callbackQuery['message']['photo'])) {
-                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
-            } else {
-                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
+                if (isset($callbackQuery['message']['photo'])) {
+                    $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+                } else {
+                    $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
+                }
             }
+
+            // Fire Broadcast Event for real-time UI updates (Public Terminal & Admin)
+            event(new \App\Events\PointRequestStatusUpdated($request));
+
+            return response()->json(['status' => 'success']);
+        } catch (\Throwable $e) {
+            Log::error("Telegram processRequest Error: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
-
-        // Fire Broadcast Event for real-time UI updates (Public Terminal & Admin)
-        event(new \App\Events\PointRequestStatusUpdated($request));
-
-        return response()->json(['status' => 'success']);
     }
 
     /**
