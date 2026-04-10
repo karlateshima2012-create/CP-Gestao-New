@@ -372,12 +372,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         setRewardModal({
           isOpen: true,
-          title: reachedGoal ? 'Meta Atingida! 🎉' : 'Ponto registrado com sucesso!',
-          message: backendMsg || (reachedGoal
-            ? 'Parabéns! Você acaba de atingir sua meta.\nResgate seu prêmio na próxima visita.'
-            : (isAuto
-              ? 'Você pode consultar seu saldo clicando no botão abaixo:'
-              : 'Assim que aprovado, ele entrará no seu saldo.')),
+          title: 'Ponto registrado com sucesso!',
+          message: isAuto
+            ? 'Você pode consultar seu saldo clicando no botão abaixo:'
+            : 'Assim que aprovado, ele entrará no seu saldo.',
           points: earnRes.data.new_balance,
           goal: earnRes.data.points_goal
         });
