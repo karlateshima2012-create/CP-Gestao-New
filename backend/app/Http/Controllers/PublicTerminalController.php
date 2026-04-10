@@ -156,28 +156,44 @@ class PublicTerminalController extends Controller
     public function getInfo(Request $request, $slug, $uid = null)
     {
         $token = $request->query('token');
-        [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+        \Illuminate\Support\Facades\Log::debug("API_REQUEST: getInfo - Slug: {$slug}, UID: {$uid}, Token: " . ($token ? 'YES' : 'NO'));
+        
+        try {
+            [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+            
+            if (!$tenant) {
+                 \Illuminate\Support\Facades\Log::error("API_FAILURE: Tenant not found for slug: {$slug}");
+                 return response()->json(['message' => "Loja não encontrada ({$slug}). Verifique a URL."], 404);
+            }
 
-        // Check if token is valid (re-verify for the response)
-        $tokenValid = $token ? $this->qrTokenService->isValid($token, $tenant->id) : false;
+            // Check if token is valid (re-verify for the response)
+            $tokenValid = $token ? $this->qrTokenService->isValid($token, $tenant->id) : false;
 
-        // Check if device is a linked card
-        $prefillPhone = null;
-        $deviceType = $device ? $device->type : 'web';
+            // Check if device is a linked card
+            $prefillPhone = null;
+            $deviceType = $device ? $device->type : 'web';
 
-        if ($uid && $uid !== 'null') {
-             // Physical Loyalty Cards were deprecated in v2.2
-             // We only support Totems and Web flow now.
+            return ApiResponse::ok([
+                'name' => $tenant->name,
+                'slug' => $tenant->slug,
+                'description' => $tenant->description,
+                'logo_url' => $tenant->logo_url,
+                'cover_url' => $tenant->cover_url,
+                'rules_text' => $tenant->rules_text,
+                'points_goal' => $tenant->points_goal,
+                'reward_text' => $tenant->reward_text,
+                'token_valid' => $tokenValid,
+                'device_id' => $device ? $device->id : null,
+                'device_name' => $device ? $device->name : 'Portal Web',
+                'device_type' => $deviceType,
+                'is_terminal' => !!($uid || $token),
+                'session_token' => $this->createSessionToken($tenant->id)
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("API_ERROR: getInfo - " . $e->getMessage());
+            return response()->json(['message' => 'Erro ao processar dados da loja.', 'debug' => $e->getMessage()], 500);
         }
-
-        return ApiResponse::ok([
-            'name' => $tenant->name,
-            'slug' => $tenant->slug,
-            'description' => $tenant->description,
-            'logo_url' => $tenant->logo_url,
-            'cover_url' => $tenant->cover_url,
-            'rules_text' => $tenant->rules_text,
-            'points_goal' => $tenant->points_goal,
+    }
             'reward_text' => $tenant->reward_text,
             'device_name' => $device ? $device->name : 'Navegador Web',
             'device_mode' => $device ? $device->mode : 'standard',

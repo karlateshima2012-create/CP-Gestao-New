@@ -109,31 +109,31 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // =========================================================================
-// PUBLIC TERMINAL
-// Protection: Throttling + Device Validation + PIN Hash Checking
+// PUBLIC TERMINAL & PORTAL
 // =========================================================================
 Route::prefix('public')->group(function () {
-    Route::get('/p/{slug}', [PublicTerminalController::class, 'getStoreInfo']);
+    // Portal & Terminal Base Information
+    Route::get('/p/{slug}', [PublicTerminalController::class, 'getInfo']);
+    Route::get('/terminal/{slug}/{uid}', [PublicTerminalController::class, 'getInfo']);
     
+    // Unified Actions for both Terminal and Portal (UID as optional parameter/input)
+    Route::prefix('p/{slug}')->group(function () {
+        Route::post('/lookup', [PublicTerminalController::class, 'lookup'])->middleware('throttle:30,1');
+        Route::post('/photo', [PublicTerminalController::class, 'updatePhoto'])->middleware('throttle:10,1');
+        Route::post('/register', [PublicTerminalController::class, 'register'])->middleware('throttle:10,1');
+        Route::post('/earn', [PublicTerminalController::class, 'earn'])->middleware('throttle:20,1');
+        Route::post('/redeem', [PublicTerminalController::class, 'redeem'])->middleware('throttle:20,1');
+        Route::get('/point-requests/{requestId}/status', [PublicTerminalController::class, 'getRequestStatus']);
+    });
+
+    // Device-specific actions (legacy support or explicit UID in path)
     Route::prefix('terminal/{slug}/{uid}')->group(function () {
-        Route::get('/', [PublicTerminalController::class, 'getInfo']);
         Route::post('/lookup', [PublicTerminalController::class, 'lookup'])->middleware('throttle:30,1');
         Route::post('/photo', [PublicTerminalController::class, 'updatePhoto'])->middleware('throttle:10,1');
         Route::post('/earn', [PublicTerminalController::class, 'earn'])->middleware('throttle:20,1');
         Route::post('/auto-earn', [PublicTerminalController::class, 'autoEarn'])->middleware('throttle:20,1');
         Route::post('/redeem', [PublicTerminalController::class, 'redeem'])->middleware('throttle:20,1');
         Route::post('/register', [PublicTerminalController::class, 'register'])->middleware('throttle:10,1');
-        Route::get('/point-requests/{requestId}/status', [PublicTerminalController::class, 'getRequestStatus']);
-    });
-
-    // Alias endpoints for UID-less operations if called via /p/{slug} in front
-    Route::prefix('p/{slug}')->group(function () {
-        Route::get('/', [PublicTerminalController::class, 'getInfo']);
-        Route::post('/lookup', [PublicTerminalController::class, 'lookup'])->middleware('throttle:30,1');
-        Route::post('/photo', [PublicTerminalController::class, 'updatePhoto'])->middleware('throttle:10,1');
-        Route::post('/register', [PublicTerminalController::class, 'register'])->middleware('throttle:10,1');
-        Route::post('/earn', [PublicTerminalController::class, 'earn'])->middleware('throttle:20,1');
-        Route::post('/redeem', [PublicTerminalController::class, 'redeem'])->middleware('throttle:20,1');
         Route::get('/point-requests/{requestId}/status', [PublicTerminalController::class, 'getRequestStatus']);
     });
 });
