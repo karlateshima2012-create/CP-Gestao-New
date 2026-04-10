@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         
         // Seed Plans first
         $this->call(PlanSeeder::class);
+        $this->call(MigratePlansSeeder::class);
         $this->call(SpecificTestUsersSeeder::class);
 
         // Limpeza opcional (apenas se necessário, mas as seeds acima usam updateOrCreate)

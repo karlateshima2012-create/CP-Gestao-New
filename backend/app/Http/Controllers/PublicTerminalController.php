@@ -267,23 +267,97 @@ class PublicTerminalController extends Controller
     public function register(Request $request, $slug, $uid = null)
     {
         return DB::transaction(function () use ($request, $slug, $uid) {
-            [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
-            if (!$device) {
-                return ApiResponse::error('Presença física exigida para cadastro.', 'DEVICE_REQUIRED', 403);
-            }
-            if ($tenant->isLimitReached()) {
-                return ApiResponse::error('Limite da loja atingido.', 'LIMIT_REACHED', 403);
+            // Identify tenant and optional device
+            $token = $request->input('token');
+            [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+            
+            if (!$tenant) {
+                return ApiResponse::error('Loja não encontrada.', 'NOT_FOUND', 404);
             }
 
+            if ($tenant->isLimitReached()) {
+                return ApiResponse::error('Limite de clientes da loja atingido.', 'LIMIT_REACHED', 403);
+            }
+
+            // Normalization and Validation
             $phone = PhoneHelper::normalize($request->phone);
+            
+            // Avoid duplicates
+            $existing = $this->findCustomer($tenant->id, $phone);
+            if ($existing['customer']) {
+                return ApiResponse::error('Este número já está cadastrado.', 'DUPLICATE_PHONE', 409);
+            }
+
+            // Create Customer
             $customer = Customer::create([
                 'tenant_id' => $tenant->id,
                 'name' => $request->name,
                 'phone' => $phone,
-                'source' => 'terminal'
+                'email' => $request->email,
+                'city' => $request->city,
+                'province' => $request->province,
+                'address' => $request->address,
+                'source' => $device ? 'terminal' : 'web_portal',
+                'last_activity_at' => now()
             ]);
 
-            return ApiResponse::ok(['customer_exists' => true, 'id' => $customer->id, 'name' => $customer->name], 'Cadastro realizado!');
+            // Handle Photo if present
+            if ($request->photo) {
+                try {
+                    $service = app(\App\Services\CustomerPhotoService::class);
+                    $path = $service->processAndSave($request->photo, $customer->id);
+                    $customer->update(['foto_perfil_url' => $path]);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("PHOTO_SAVE_FAILED: " . $e->getMessage());
+                }
+            }
+
+            // AWARD BONUS POINT (Always, as per requirement)
+            $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenant->id)->first();
+            $pointsToAdd = 1; // Default
+            if ($loyalty) {
+                $levels = $loyalty->levels_config;
+                // Try level 1 signup points or the global signup bonus
+                if (is_array($levels) && isset($levels[0]['points_per_signup'])) {
+                    $pointsToAdd = (int)$levels[0]['points_per_signup'];
+                } else {
+                    $pointsToAdd = (int)($loyalty->signup_bonus_points ?? 1);
+                }
+            }
+
+            if ($pointsToAdd > 0) {
+                $pointRequest = $this->createPointRequest([
+                    'tenant_id' => $tenant->id,
+                    'customer_id' => $customer->id,
+                    'phone' => $customer->phone,
+                    'device_id' => $device ? $device->id : null,
+                    'source' => $device ? 'terminal' : 'web_portal',
+                    'status' => 'auto_approved',
+                    'requested_points' => $pointsToAdd,
+                    'meta' => ['is_signup_bonus' => true]
+                ]);
+
+                $this->pointRequestService->applyPoints($pointRequest);
+                $pointRequest->update(['approved_at' => now()]);
+            }
+
+            // Log activity to Telegram
+            try {
+                $msg = $device ? "✨ <b>Novo Cliente (Terminal)</b>" : "✨ <b>Novo Cliente (Web Portal)</b>";
+                $msg .= "\n👤 <b>Nome:</b> {$customer->name}\n📞 <b>Telefone:</b> {$customer->phone}\n💰 <b>Bônus:</b> +{$pointsToAdd} pts";
+                $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $msg, 'registration');
+            } catch (\Exception $te) {
+                \Illuminate\Support\Facades\Log::warning("TELEGRAM_NOTIFY_FAILED: " . $te->getMessage());
+            }
+
+            return ApiResponse::ok([
+                'customer_exists' => true,
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'points_balance' => $customer->fresh()->points_balance,
+                'points_goal' => $tenant->points_goal,
+                'message' => 'Cadastro realizado com sucesso! Você ganhou um ponto de bônus.'
+            ], 'Cadastro concluído!');
         });
     }
 
