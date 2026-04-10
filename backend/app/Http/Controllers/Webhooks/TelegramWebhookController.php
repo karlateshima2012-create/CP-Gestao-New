@@ -162,6 +162,7 @@ class TelegramWebhookController extends Controller
             $customer = $visit->customer->fresh();
             $newText = "<b>Ponto aprovado ✅</b>\n"
                      . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
+                     . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
                      . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
                      . "--- Dados da Solicitação ---\n"
                      . $originalText;
@@ -251,9 +252,10 @@ class TelegramWebhookController extends Controller
                 'approved_at' => now(),
             ]);
 
-            $customer = $request->customer;
+            $customer = $request->customer->fresh();
             $newText = "<b>Ponto aprovado ✅</b>\n"
                      . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
+                     . "Meta Atual: <b>{$customer->points_balance} / {$customer->loyalty_goal}</b>\n"
                      . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
                      . "--- Dados da Solicitação ---\n"
                      . $originalText;

@@ -163,15 +163,15 @@ class PointEngineService
             }
         }
 
-        $goal = $tenant->points_goal;
+        $currentGoal = $tenant->points_goal;
         if (is_array($levelsConfig)) {
             $lvlIdx = max(0, (int)$currentLevel - 1);
             if (isset($levelsConfig[$lvlIdx]) && isset($levelsConfig[$lvlIdx]['goal'])) {
-                $goal = (int) $levelsConfig[$lvlIdx]['goal'];
+                $currentGoal = (int) $levelsConfig[$lvlIdx]['goal'];
             }
         }
 
-        if ($customer->points_balance >= $goal) {
+        if ($customer->points_balance >= $currentGoal) {
             $visit = \App\Models\Visit::create([
                 'tenant_id' => $tenant->id,
                 'customer_id' => $customer->id,
@@ -187,7 +187,7 @@ class PointEngineService
 
             $customerNameEscaped = \App\Services\TelegramService::escapeMarkdownV2($customer->name);
             $msg = "🏆 *RESGATE PENDENTE* 🏆\n"
-                 . "O cliente *{$customerNameEscaped}* já atingiu a meta aguarda o prêmio\.\n\n"
+                 . "O cliente *{$customerNameEscaped}* já atingiu a meta e aguarda o prêmio\.\n\n"
                  . "Clique abaixo para entregar a recompensa e reiniciar o ciclo:";
                  
             $markup = [
@@ -212,7 +212,7 @@ class PointEngineService
                 'new_balance' => $customer->points_balance,
                 'loyalty_level' => $customer->loyalty_level,
                 'loyalty_level_name' => $customer->loyalty_level_name,
-                'points_goal' => $goal,
+                'points_goal' => $currentGoal,
                 'reward_name' => $rewardName,
                 'message' => "🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar e subir para o próximo nível.",
                 'auto_approved' => false,
@@ -281,15 +281,15 @@ class PointEngineService
         
         $rewardName = "o prêmio";
         if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
-            $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+            $currentGoal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $currentGoal);
             $rewardName = $levelsConfig[$lvlIdx]['reward'] ?? $rewardName;
         }
 
         $canAutoApprove = ($status === 'aprovado' || $status === 'auto_approved');
-        $remaining = $goal - $newBalance;
+        $remaining = $currentGoal - $newBalance;
 
         // Custom messages based on defined rules
-        if ($newBalance >= $goal) {
+        if ($newBalance >= $currentGoal) {
             $msg = $canAutoApprove 
                 ? "🎉 META ATINGIDA! Seu prêmio estará esperando na próxima visita."
                 : "Solicitação enviada. Se aprovada, você atingirá sua meta!";
@@ -309,7 +309,7 @@ class PointEngineService
             'new_balance' => $newBalance,
             'loyalty_level' => $customer->loyalty_level,
             'loyalty_level_name' => $customer->loyalty_level_name,
-            'points_goal' => $goal,
+            'points_goal' => $currentGoal,
             'reward_name' => $rewardName,
             'remaining' => max(0, $remaining),
             'message' => $msg,

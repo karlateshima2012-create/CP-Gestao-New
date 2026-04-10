@@ -44,6 +44,13 @@ jobs:
           ./vendor/bin/phpstan analyse --error-format=github
           cd ..
 
+      - name: Run Backend Tests (PHPUnit)
+        run: |
+          cd backend
+          # Garante que o motor de pontuação está saudável antes do deploy
+          php artisan test
+          cd ..
+
       - name: Cleanup Dev Dependencies before Deploy
         run: |
           cd backend
