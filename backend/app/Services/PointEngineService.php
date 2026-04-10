@@ -104,7 +104,7 @@ class PointEngineService
                     'customer_name' => $customer->name,
                     'new_balance' => $customer->points_balance,
                     'points_goal' => $goal,
-                    'message' => "🎉 Meta Atingida! Seu prêmio estará esperando na sua próxima visita!",
+                    'message' => "🎉 META ATINGIDA! Seu prêmio estará esperando na próxima visita.",
                     'is_reward_ready' => false, // Ainda não pode resgatar (dentro das 12h)
                     'is_goal_reached' => true
                 ]);
