@@ -138,5 +138,22 @@ Route::prefix('public')->group(function () {
     });
 });
 
+// Storage File Server (Bulletproof symlink bypass & Legacy fallback)
+Route::get('/storage/{path}', function ($path) {
+    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        return response()->file(\Illuminate\Support\Facades\Storage::disk('public')->path($path));
+    }
+    
+    // Check legacy root storage just in case Old Deployments didn't migrate files
+    // In production, the old storage is located at public_html/cpgestaonew/storage
+    // which corresponds to base_path('../../storage/' . $path)
+    $legacyPath = base_path('../../storage/' . $path);
+    if (file_exists($legacyPath)) {
+        return response()->file($legacyPath);
+    }
+
+    return response()->json(['message' => 'Image not found.'], 404);
+})->where('path', '.*');
+
 // Webhooks
 Route::post('/webhooks/telegram', [\App\Http\Controllers\Webhooks\TelegramWebhookController::class, 'handle']);

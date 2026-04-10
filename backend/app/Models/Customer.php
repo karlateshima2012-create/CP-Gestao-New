@@ -118,10 +118,7 @@ class Customer extends Model
             $cleanPath = substr($cleanPath, 8);
         }
 
-        // Construction optimized for the /api/storage rewrite rule and local dev
-        // In some environments, we might want the absolute URL, in others relative.
-        // We'll use the DISK url configuration for maximum flexibility.
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($cleanPath);
+        return env('APP_URL') . '/api/storage/' . $cleanPath;
     }
 
     public function getLoyaltyGoalAttribute()

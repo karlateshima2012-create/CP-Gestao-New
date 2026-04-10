@@ -505,7 +505,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       }));
       setModal({ isOpen: true, title: 'Sucesso', message: 'Foto de perfil atualizada!', type: 'success' });
     } catch (error: any) {
-      setModal({ isOpen: true, title: 'Erro no Upload', message: 'Não foi possível atualizar a foto agora.', type: 'error' });
+      const msg = error.response?.data?.message || 'Não foi possível atualizar a foto agora.';
+      setModal({ isOpen: true, title: 'Erro no Upload', message: msg, type: 'error' });
     } finally {
       setUploading(false);
     }
