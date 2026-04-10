@@ -901,7 +901,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Ponto registrado com sucesso!</h2>
               <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">Assim que aprovado, ele entrará no seu saldo.</p>
             </div>
-            <Button onClick={handleViewBalance} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">Ver meu saldo</Button>
+            <Button onClick={handleViewBalance} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">VER MEU SALDO</Button>
           </div>
         )}
 
