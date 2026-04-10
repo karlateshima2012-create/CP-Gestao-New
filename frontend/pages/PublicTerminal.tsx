@@ -766,7 +766,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <input 
                   type="file" 
-                  accept="image/jpeg,image/png,image/webp,image/heic" 
+                  accept="image/jpeg,image/png,image/webp" 
                   className="hidden" 
                   onChange={handlePhotoUpload} 
                   disabled={uploading} 

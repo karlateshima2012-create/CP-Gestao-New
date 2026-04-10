@@ -364,7 +364,7 @@ class PublicTerminalController extends Controller
     {
         $request->validate([
             'phone' => 'required|string',
-            'photo' => 'required|file|mimes:jpeg,jpg,png,webp,heic|max:10240'
+            'photo' => 'required|file|mimes:jpeg,jpg,png,webp|max:10240'
         ]);
 
         try {

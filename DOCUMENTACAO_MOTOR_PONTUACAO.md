@@ -122,7 +122,11 @@ Diferente do portal `/p/`, o totem acessado via `/public/terminal/` foca na agil
   - **PLANO ELITE (Auto-Aprovação):**
     - **Título:** "Ponto registrado com sucesso!"
     - **Subtítulo:** "Você pode consultar seu saldo clicando no botão abaixo:"
-  - **Ação Unificada:** Botão **VER MEU SALDO** (Redireciona para o Portal do Cliente - `/p/`).
+  - **Ação Unificada:** Botão **VER MEU SALDO** (Redireciona para o Portal do Cliente - `/p/`).A tela de sucesso aparece.
+Ele clica em 🎁 VER MEU SALDO.
+O sistema, de forma invisível, acopla o telefone dele ao túnel de redirecionamento (?phone=090-XXXX-XXXX).
+A página salta para a URL do Portal Seguro do Cliente (/p/...) limpando o histórico do navegador no terminal físico.
+Em décimos de segundo, a nova página "lê" o celular que passamos, carrega o banco de dados e a foto, e já abre direto na cara do cliente a Tela Completa de Saldo dele, com o nome, a foto e o novo ponto computado. Sem que ele precise trancar fila digitando nada.
 
 ---
 
