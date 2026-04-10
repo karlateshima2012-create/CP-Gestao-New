@@ -71,41 +71,52 @@ class PublicTerminalController extends Controller
             $tenant->increment('public_page_visits');
         }
 
-        // Online Flow with token
-        if ($token) {
+        // --- Identification Flow ---
+        $device = null;
+
+        // 1. Try Digital Token (Dynamic QR)
+        // Only attempt if token is a non-empty string and looks potentially valid (more than 10 chars)
+        if ($token && is_string($token) && strlen($token) > 10) {
             $isValid = $this->qrTokenService->isValid($token, $tenant->id);
             if ($isValid) {
                 $device = $this->deviceService->getOrCreateOnlineQrDevice($tenant->id);
-                return [$tenant, $device];
-            } else {
-                // If token is invalid/used, only allow proceeding if user is an admin
-                if (auth('sanctum')->check()) {
-                   // Admin can proceed without a valid token (web flow)
-                } else {
-                    \Illuminate\Support\Facades\Log::info("TERMINAL_VALIDATION: Invalid/Used Token for Tenant {$tenant->id}");
-                    return [$tenant, null]; 
+                if ($device) {
+                    \Illuminate\Support\Facades\Log::debug("TERMINAL_VALIDATION: Identified by TOKEN for Tenant {$tenant->id}");
                 }
             }
         }
 
-        // Fallback or explicit UID detection: Path parameter > Request body > Request query
-        $effectiveUid = $uid ?: (request()->input('device_uid') ?: request()->input('uid'));
+        // 2. Try Physical Device ID (Static QR / Totem) - Only if not already found by token
+        if (!$device) {
+            // Fallback or explicit UID detection: Path parameter > Request body > Request query
+            $effectiveUid = $uid ?: (request()->input('device_uid') ?: request()->input('uid'));
+            
+            // Explicitly filter out string "null" or "undefined" coming from frontend
+            if ($effectiveUid && !in_array($effectiveUid, ['null', 'undefined', ''])) {
+                $device = Device::withoutGlobalScopes()
+                    ->where('tenant_id', $tenant->id)
+                    ->where(function ($q) use ($effectiveUid) {
+                        $q->where('nfc_uid', $effectiveUid)->orWhere('id', $effectiveUid);
+                    })
+                    ->first();
 
-        if (!$effectiveUid || $effectiveUid === 'null') {
-            return [$tenant, null];
+                if ($device) {
+                    \Illuminate\Support\Facades\Log::debug("TERMINAL_VALIDATION: Identified by UID ({$effectiveUid}) for Tenant {$tenant->id}");
+                } else {
+                    \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: UID provided but not found. Slug: {$slug}, UID: {$effectiveUid}");
+                }
+            }
         }
 
-        // Device lookup: supports both nfc_uid (QR Code identifier) and id (UUID)
-        $device = Device::withoutGlobalScopes()
-            ->where('tenant_id', $tenant->id)
-            ->where(function ($q) use ($effectiveUid) {
-                $q->where('nfc_uid', $effectiveUid)->orWhere('id', $effectiveUid);
-            })
-            ->first();
+        // 3. Admin Override (for testing/manual entry from dashboard)
+        if (!$device && auth('sanctum')->check()) {
+            // If logged in as admin/staff, we might allow certain actions depending on the context
+            // But for terminal actions, we still prefer hardware presence.
+        }
 
         if (!$device) {
-            \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: Device not recognized. Slug: {$slug}, UID: {$effectiveUid}");
-            abort(404, "Dispositivo não reconhecido. (Slug: {$slug}, UID: {$effectiveUid})");
+            \Illuminate\Support\Facades\Log::info("TERMINAL_VALIDATION: No valid identification found (Token: " . substr($token, 0, 8) . "..., UID: {$uid})");
+            return [$tenant, null];
         }
 
         if (!$device->active) {
@@ -228,6 +239,10 @@ class PublicTerminalController extends Controller
 
         [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
         
+        if (!$device) {
+            return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_VALIDATION_FAILED', 403);
+        }
+
         // MEASURE B: Digital Session Binding for Lookup
         if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
             $msg = $uid ? 'Sessão inválida para consulta. Por favor, reinicie o processo no totem.' : 'Sessão expirada. Por favor, recarregue a página e tente novamente.';
@@ -658,6 +673,10 @@ class PublicTerminalController extends Controller
             return DB::transaction(function () use ($data, $slug, $deviceUid, $request) {
                 $token = $request->token;
                 [$tenant, $device] = $this->validateDevice($slug, $deviceUid, $token);
+                
+                if (!$device) {
+                    return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_VALIDATION_FAILED', 403);
+                }
 
                 // Consumption of token if present to prevent double scoring after registration
                 if ($token) {
