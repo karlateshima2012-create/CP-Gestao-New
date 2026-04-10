@@ -549,6 +549,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     }
   };
 
+  const handleViewBalance = () => {
+    if (window.location.pathname.includes('/terminal') && tenantSlug) {
+      // Força um redirecionamento físico para a URL pública para "queimar" o link do terminal no histórico do cliente
+      window.location.href = `/p/${tenantSlug}`;
+    } else {
+      setMode('RESULT_CLIENT');
+    }
+  };
+
   const reset = () => {
     setMode('START');
     setPhone('');
@@ -892,7 +901,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Ponto registrado com sucesso!</h2>
               <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">Assim que aprovado, ele entrará no seu saldo.</p>
             </div>
-            <Button onClick={() => setMode('RESULT_CLIENT')} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">Ver meu saldo</Button>
+            <Button onClick={handleViewBalance} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">Ver meu saldo</Button>
           </div>
         )}
 
@@ -905,17 +914,22 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </h2>
             <p className="text-sm text-slate-500 font-medium mb-4">
               {approvedData.is_registration 
-                ? "Cadastro realizado com sucesso, Você recebeu 1 ponto de bônus!  consulte seu saldo clicando no botão abaixo:" 
+                ? "Você recebeu 1 ponto de bônus, consulte seu saldo clicando no botão abaixo:" 
                 : (approvedData.auto_approved 
                    ? "Você pode consultar seu saldo clicando no botão abaixo:" 
                    : "Assim que aprovado, ele entrará no seu saldo.")
               }
             </p>
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-2 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
-              <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
-              <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
-            </div>
-            <Button onClick={() => setMode('RESULT_CLIENT')} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase gap-3"><Gift className="w-5 h-5" /> VER MEU SALDO</Button>
+            
+            {/* O card de saldo só aparece se NÃO for um novo cadastro, para manter a tela limpa conforme solicitado */}
+            {!approvedData.is_registration && (
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-2 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
+                <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
+                <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
+              </div>
+            )}
+
+            <Button onClick={handleViewBalance} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase gap-3"><Gift className="w-5 h-5" /> VER MEU SALDO</Button>
           </div>
         )}
       </div>

@@ -105,21 +105,24 @@ Caso o número digitado seja válido mas não exista no banco de dados (tanto em
 - **Campos Obrigatórios:** Nome Completo, Cidade e Província.
 - **Botão:** **CADASTRAR E GANHAR PONTO**.
 - **Resultado:** O cliente é cadastrado, recebe o bônus de boas-vidas (se configurado no Bronze) e vê a tela de sucesso:
-  - **Mensagem:** *"Cadastro realizado com sucesso, Você recebeu 1 ponto de bônus!  consulte seu saldo clicando no botão abaixo:"*
-  - **Botão:** **VER MEU SALDO** (direciona para a Tela de Saldo - RESULT_CLIENT).
+  - **Título:** *"Cadastro realizado com sucesso!"*
+  - **Subtítulo:** *"Você recebeu 1 ponto de bônus, consulte seu saldo clicando no botão abaixo:"*
+  - **Interface:** Tela limpa (sem card de saldo nesta etapa) para foco na ação.
+  - **Botão:** **VER MEU SALDO** (direciona para a Tela de Saldo via URL Pública).
 
 ### E. Fluxo: Totem de Solicitação (Modo Terminal)
 Diferente do portal `/p/`, o totem acessado via `/public/terminal/` foca na agilidade:
 - **Visual Inicial:** Apresenta o título **SOLICITAR PONTO**.
-- **Ação:** O cliente digita o telefone e clica em **SOLICITAR PONTO**.
+- **Segurança (URL Swap):** Ao clicar em "VER MEU SALDO" no final do fluxo, o sistema redireciona o cliente para o Portal Público (`/p/{slug}`). Isso "queima" o acesso ao terminal no histórico do navegador do cliente, impedindo compartilhamento ou uso indevido fora da loja.
 - **Comportamento Direto:** O sistema pula a tela de consulta intermediária. Se o cliente for encontrado, o ponto é processado imediatamente.
 - **Telas de Feedback Pós-Solicitação:**
   - **PLANO PRO (Aprovação Manual):**
-    - **Mensagem:** "Ponto registrado com sucesso! Assim que aprovado, ele entrará no seu saldo."
-    - **Ação:** Botão **VER MEU SALDO** (Direciona para o Portal do Cliente - RESULT_CLIENT).
+    - **Título:** "Ponto registrado com sucesso!"
+    - **Subtítulo:** "Assim que aprovado, ele entrará no seu saldo."
   - **PLANO ELITE (Auto-Aprovação):**
-    - **Mensagem:** "Ponto registrado com sucesso! Você pode consultar seu saldo clicando no botão abaixo:"
-    - **Ação:** Botão **VER MEU SALDO** (Direciona para o Portal do Cliente - RESULT_CLIENT).
+    - **Título:** "Ponto registrado com sucesso!"
+    - **Subtítulo:** "Você pode consultar seu saldo clicando no botão abaixo:"
+  - **Ação Unificada:** Botão **VER MEU SALDO** (Redireciona para o Portal do Cliente - `/p/`).
 
 ---
 

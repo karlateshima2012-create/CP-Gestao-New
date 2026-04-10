@@ -52,6 +52,7 @@ class PublicTerminalController extends Controller
     {
         $tenant = Tenant::where('slug', $slug)->first();
         if (!$tenant) {
+            \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: Tenant not found. Slug: {$slug}");
             abort(404);
         }
 
@@ -78,33 +79,33 @@ class PublicTerminalController extends Controller
                 return [$tenant, $device];
             } else {
                 // If token is invalid/used, only allow proceeding if user is an admin
-                // This prevents blocking general users from seeing the store page if they have a stale token.
                 if (auth('sanctum')->check()) {
                    // Admin can proceed without a valid token (web flow)
                 } else {
-                    // For customers, if they have a token, it MUST be valid to use it as a device-identifier
-                    // But maybe we should just return no device?
-                    // Let's stick to 403 for now as it's the current behavior, but make it clearer.
+                    \Illuminate\Support\Facades\Log::info("TERMINAL_VALIDATION: Invalid/Used Token for Tenant {$tenant->id}");
                     return [$tenant, null]; 
                 }
             }
         }
 
-        if (!$uid || $uid === 'null') {
+        // Fallback or explicit UID detection: Path parameter > Request body > Request query
+        $effectiveUid = $uid ?: (request()->input('device_uid') ?: request()->input('uid'));
+
+        if (!$effectiveUid || $effectiveUid === 'null') {
             return [$tenant, null];
         }
 
         // Device lookup: supports both nfc_uid (QR Code identifier) and id (UUID)
-        // This ensures backward compatibility for QR codes generated with either field.
         $device = Device::withoutGlobalScopes()
             ->where('tenant_id', $tenant->id)
-            ->where(function ($q) use ($uid) {
-                $q->where('nfc_uid', $uid)->orWhere('id', $uid);
+            ->where(function ($q) use ($effectiveUid) {
+                $q->where('nfc_uid', $effectiveUid)->orWhere('id', $effectiveUid);
             })
             ->first();
 
         if (!$device) {
-            abort(404, "Dispositivo não reconhecido. (Slug: {$slug}, UID: {$uid})");
+            \Illuminate\Support\Facades\Log::warning("TERMINAL_VALIDATION: Device not recognized. Slug: {$slug}, UID: {$effectiveUid}");
+            abort(404, "Dispositivo não reconhecido. (Slug: {$slug}, UID: {$effectiveUid})");
         }
 
         if (!$device->active) {
