@@ -551,7 +551,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const handleViewBalance = () => {
     if (window.location.pathname.includes('/terminal') && tenantSlug) {
       // Força um redirecionamento físico para a URL pública para "queimar" o link do terminal no histórico do cliente
-      window.location.href = `/p/${tenantSlug}`;
+      // Passamos o telefone via query string para auto-login sem atrito (Frictionless UX)
+      window.location.href = `/p/${tenantSlug}?phone=${phone}`;
     } else {
       setMode('RESULT_CLIENT');
     }
