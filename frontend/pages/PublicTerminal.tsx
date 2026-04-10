@@ -943,7 +943,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       </div>
 
       {modal.isOpen && <StatusModal isOpen={modal.isOpen} title={modal.title} message={modal.message} type={modal.type} theme="neutral" confirmLabel="OK" onClose={() => setModal(prev => ({ ...prev, isOpen: false }))} />}
-      <RewardSuccessModal {...rewardModal} onClose={() => { setRewardModal(prev => ({ ...prev, isOpen: false })); setMode('RESULT_CLIENT'); }} />
+      <RewardSuccessModal {...rewardModal} onClose={() => { setRewardModal(prev => ({ ...prev, isOpen: false })); handleViewBalance(); }} />
     </div>
   );
 };
