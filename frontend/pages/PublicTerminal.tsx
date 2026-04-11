@@ -261,10 +261,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       const phoneParam = urlParams.get('phone');
 
       if (phoneParam) {
-        setPhone(formatJapanesePhone(phoneParam));
+        const cleanedForAuto = phoneParam.replace(/\D/g, '');
+        setPhone(formatJapanesePhone(cleanedForAuto));
         setTimeout(() => {
-          handleLookup(phoneParam, slug, uid, token, newSessionToken);
-        }, 100);
+          handleLookup(cleanedForAuto, slug, uid, token, newSessionToken);
+        }, 800);
       }
     } catch (error: any) {
       const msg = error.response?.data?.error || error.response?.data?.message;
@@ -307,7 +308,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setModal({
           isOpen: true,
           title: 'Erro',
-          message: error.response?.data?.message || 'Erro ao buscar cliente',
+          message: error.response?.data?.message || error.message || 'Erro ao buscar cliente',
           type: 'error'
         });
       }
@@ -553,7 +554,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     if (window.location.pathname.includes('/terminal') && tenantSlug) {
       // Força um redirecionamento físico para a URL pública para "queimar" o link do terminal no histórico do cliente
       // Passamos o telefone via query string para auto-login sem atrito (Frictionless UX)
-      window.location.href = `/p/${tenantSlug}?phone=${encodeURIComponent(phone)}`;
+      const cleanPhoneNumber = phone.replace(/\D/g, '');
+      window.location.href = `/p/${tenantSlug}?phone=${encodeURIComponent(cleanPhoneNumber)}`;
     } else {
       setMode('RESULT_CLIENT');
     }
