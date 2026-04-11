@@ -495,6 +495,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     formData.append('photo', file);
     formData.append('phone', phone);
     if (qrToken) formData.append('token', qrToken);
+    if (sessionToken) formData.append('session_token', sessionToken);
 
     try {
       const res = await terminalService.updatePhoto(tenantSlug, deviceUid, formData);

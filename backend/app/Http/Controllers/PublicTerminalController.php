@@ -430,7 +430,7 @@ class PublicTerminalController extends Controller
             return response()->file(\Illuminate\Support\Facades\Storage::disk('public')->path($path));
         }
         
-        $legacyPath = base_path('../storage/' . $path);
+        $legacyPath = base_path('../storage/app/public/' . $path);
         if (file_exists($legacyPath)) {
             return response()->file($legacyPath);
         }
