@@ -103,7 +103,7 @@ class VisitController extends Controller
         $visit = Visit::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
 
         if ($visit->status !== 'pendente') {
-            return ApiResponse::error('Este registro já foi processado.', 'ALREADY_PROCESSED', 400);
+            return ApiResponse::error('Este registro já foi processado ou estornado.', 'ALREADY_PROCESSED', 400);
         }
 
         $visit->update([
@@ -114,7 +114,47 @@ class VisitController extends Controller
 
         $this->syncTelegramStatus($visit, 'denied');
 
-        return ApiResponse::ok($visit);
+        return ApiResponse::ok($visit, 'Solicitação recusada com sucesso.');
+    }
+
+    /**
+     * Revert/Undo an approved visit (Estorno).
+     */
+    public function revert(Request $request, $id)
+    {
+        $visit = Visit::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
+
+        if ($visit->status !== 'aprovado') {
+            return ApiResponse::error('Somente visitas aprovadas podem ser estornadas.', 'NOT_PROCESSABLE', 400);
+        }
+
+        return DB::transaction(function () use ($visit) {
+            $customer = $visit->customer;
+            
+            if ($customer) {
+                // Remove points
+                $pointsToRemove = (int)$visit->points_granted;
+                $customer->decrement('points_balance', $pointsToRemove);
+                $customer->decrement('attendance_count', 1);
+                
+                // Create a correction movement
+                PointMovement::create([
+                    'tenant_id' => $visit->tenant_id,
+                    'customer_id' => $customer->id,
+                    'type' => 'redeem',
+                    'points' => $pointsToRemove,
+                    'origin' => 'manual',
+                    'description' => 'Estorno de visita (ID: ' . $visit->id . ')'
+                ]);
+            }
+
+            $visit->update([
+                'status' => 'estornado',
+                'meta' => array_merge($visit->meta ?? [], ['reverted_at' => now(), 'reverted_by' => auth()->id()])
+            ]);
+
+            return ApiResponse::ok(null, 'Visita estornada e pontos removidos com sucesso.');
+        });
     }
 
     /**

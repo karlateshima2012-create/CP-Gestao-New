@@ -90,6 +90,8 @@ export const terminalService = {
     getRequestStatus: (slug: string, uid: string | null, requestId: string) => uid
         ? api.get(`/public/terminal/${slug}/${uid}/point-requests/${requestId}/status`)
         : api.get(`/public/p/${slug}/point-requests/${requestId}/status`),
+    denyVisit: (slug: string, id: number) => api.post(`/client/visits/${id}/deny`),
+    revertVisit: (slug: string, id: number) => api.post(`/client/visits/${id}/revert`),
 };
 
 export const reportsService = {
