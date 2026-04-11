@@ -76,6 +76,7 @@ jobs:
             # Limpeza rápida de dependências de prod
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force || true
+            php artisan db:seed --class=SpecificTestUsersSeeder --force
             php artisan config:cache
             php artisan route:cache || true
             php artisan view:cache
