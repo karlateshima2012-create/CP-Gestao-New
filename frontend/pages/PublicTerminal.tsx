@@ -257,17 +257,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         });
       }
 
-      setMode('START');
-
       const actionParam = urlParams.get('acao');
       const phoneParam = urlParams.get('phone');
 
       if (phoneParam) {
         const cleanedForAuto = phoneParam.replace(/\D/g, '');
         setPhone(formatJapanesePhone(cleanedForAuto));
-        setTimeout(() => {
-          handleLookup(cleanedForAuto, slug, uid, token, newSessionToken);
-        }, 800);
+        // Frictionless UX: Instantly load target data while LOADING, without flashing START mode
+        await handleLookup(cleanedForAuto, slug, uid, token, newSessionToken);
+      } else {
+        setMode('START');
       }
     } catch (error: any) {
       const msg = error.response?.data?.error || error.response?.data?.message;
