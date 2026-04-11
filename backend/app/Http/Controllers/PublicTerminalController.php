@@ -187,43 +187,47 @@ class PublicTerminalController extends Controller
 
     public function lookup(Request $request, $slug, $uid = null)
     {
-        $request->validate(['phone' => 'required|string', 'token' => 'nullable|string']);
-        [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
-        
-        if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
-            return ApiResponse::error('Sessão expirada. Por favor, recarregue a página.', 'SESSION_REQUIRED', 403);
-        }
-        
-        $phone = PhoneHelper::normalize($request->phone);
-        $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('phone', $phone)->first();
+        try {
+            $request->validate(['phone' => 'required|string', 'token' => 'nullable|string']);
+            [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
+            
+            if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
+                return ApiResponse::error('Sessão expirada. Por favor, recarregue a página.', 'SESSION_REQUIRED', 403);
+            }
+            
+            $phone = PhoneHelper::normalize($request->phone);
+            $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('phone', $phone)->first();
 
-        if (!$customer) {
-            return ApiResponse::ok(['customer_exists' => false, 'points_balance' => 0]);
-        }
+            if (!$customer) {
+                return ApiResponse::ok(['customer_exists' => false, 'points_balance' => 0]);
+            }
 
-        $balance = $customer->points_balance;
-        $goal = $tenant->points_goal;
-        
-        // Load loyalty settings for custom goals/levels if any
-        $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenant->id)->first();
-        if ($loyalty && is_array($loyalty->levels_config) && isset($loyalty->levels_config[0])) {
-             $goal = (int)($loyalty->levels_config[0]['goal'] ?? $goal);
-        }
+            $balance = $customer->points_balance;
+            $goal = $tenant->points_goal;
+            
+            $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenant->id)->first();
+            if ($loyalty && is_array($loyalty->levels_config) && isset($loyalty->levels_config[0])) {
+                $goal = (int)($loyalty->levels_config[0]['goal'] ?? $goal);
+            }
 
-        return ApiResponse::ok([
-            'customer_exists' => true,
-            'id' => $customer->id,
-            'name' => $customer->name,
-            'points_balance' => $balance,
-            'points_goal' => $goal,
-            'remaining' => max(0, $goal - $balance),
-            'loyalty_level_name' => $customer->loyalty_level_name,
-            'foto_perfil_url' => $customer->photo_url_full,
-            'reward_name' => $tenant->reward_text,
-            'history' => PointMovement::where('customer_id', $customer->id)->latest()->limit(5)->get()->map(fn($m) => [
-                'amount' => $m->points, 'type' => $m->type, 'date' => $m->created_at->format('d/m/Y')
-            ])
-        ]);
+            return ApiResponse::ok([
+                'customer_exists' => true,
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'points_balance' => $balance,
+                'points_goal' => $goal,
+                'remaining' => max(0, $goal - $balance),
+                'loyalty_level_name' => $customer->loyalty_level_name,
+                'foto_perfil_url' => $customer->photo_url_full,
+                'reward_name' => $tenant->reward_text,
+                'history' => PointMovement::where('customer_id', $customer->id)->latest()->limit(5)->get()->map(fn($m) => [
+                    'amount' => $m->points, 'type' => $m->type, 'date' => $m->created_at ? $m->created_at->format('d/m/Y') : 'N/A'
+                ])
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("LOOKUP_ERROR: " . $e->getMessage() . " at " . $e->getLine());
+            return response()->json(['message' => 'Sys: ' . $e->getMessage()], 500);
+        }
     }
 
     public function earn(Request $request, $slug, $uid = null)
