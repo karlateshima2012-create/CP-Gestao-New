@@ -155,10 +155,11 @@ export const VisitRecordsTab: React.FC = () => {
 
     const getOriginIcon = (origin: string) => {
         switch (origin) {
-            case 'nfc': return <Smartphone className="w-3 h-3" />;
-            case 'qr': return <Globe className="w-3 h-3" />;
-            case 'manual': return <UserCheck className="w-3 h-3" />;
-            default: return <Activity className="w-3 h-3" />;
+            case 'nfc': return <Smartphone className="w-3 h-3 text-blue-500" />;
+            case 'qr': return <Globe className="w-3 h-3 text-emerald-500" />;
+            case 'terminal': return <Globe className="w-3 h-3 text-amber-500" />;
+            case 'manual': return <UserCheck className="w-3 h-3 text-slate-400" />;
+            default: return <Activity className="w-3 h-3 text-slate-400" />;
         }
     };
 
@@ -353,7 +354,10 @@ export const VisitRecordsTab: React.FC = () => {
                                             <div className="flex flex-col items-center">
                                                 <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-600 dark:text-gray-400">
                                                     {getOriginIcon(v.origin)}
-                                                    {v.origin === 'nfc' || v.origin === 'qr' ? (v.device?.name || 'TOTEM') : 'Dashboard'}
+                                                    {v.origin === 'nfc' ? 'NFC / CARTÃO' : 
+                                                     v.origin === 'qr' ? 'QR CODE' : 
+                                                     v.origin === 'terminal' ? 'TOTEM / TERMINAL' : 
+                                                     'Dashboard'}
                                                 </div>
                                                 {v.meta?.reason && (
                                                     <span className="text-[9px] text-gray-400 font-medium italic mt-0.5 line-clamp-1 max-w-[120px]" title={v.meta.reason}>
