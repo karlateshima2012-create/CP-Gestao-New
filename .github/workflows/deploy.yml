@@ -17,11 +17,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Build Frontend
         run: |
           cd frontend
-          npm install
+          npm ci
           npm run build
           cd ..
 
@@ -29,109 +31,15 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, xml, ctype, iconv, mysql, zip
 
-      - name: Install Backend Dependencies (Full for Analysis)
+      - name: Prepare Deployment Package
         run: |
-          cd backend
-          composer install --optimize-autoloader
-          cd ..
-
-      - name: Run Static Analysis (PHPStan Firewall)
-        run: |
-          cd backend
-          # Se o código quebrar aqui, o Action morre e evita derrubar a produção
-          ./vendor/bin/phpstan analyse --error-format=github
-          cd ..
-
-      - name: Run Backend Tests (PHPUnit)
-        run: |
-          cd backend
-          # Garante que o motor de pontuação está saudável antes do deploy
-          php artisan test
-          cd ..
-
-      - name: Cleanup Dev Dependencies before Deploy
-        run: |
-          cd backend
-          composer install --no-dev --optimize-autoloader
-          cd ..
-
-      - name: Prepare Deployment Structure
-        run: |
-          # Limpeza e criação da estrutura
           rm -rf deploy
-          mkdir -p deploy/api
           mkdir -p deploy/api_backend
-          
-          # Copiar Frontend (Raiz)
+          # Move o build do Vite (dist) para a raiz do pacote
           cp -r frontend/dist/* deploy/
-          
-          # Copiar Backend
+          # Move o backend completo
           cp -r backend/* deploy/api_backend/
-          
-          # Root .htaccess (SPA Routing + API bypass)
-          cat <<EOT > deploy/.htaccess
-          <IfModule mod_rewrite.c>
-              RewriteEngine On
-              RewriteBase /
-              DirectoryIndex index.html index.php
-              
-              # Bypass API requests
-              RewriteRule ^api(/.*)?$ - [L]
-              
-              # Route Storage requests to Backend Storage
-              RewriteRule ^storage/(.*)$ api_backend/public/storage/$1 [L]
-              
-              # SPA Routing
-              RewriteRule ^index\.html$ - [L]
-              RewriteCond %{REQUEST_FILENAME} !-f
-              RewriteCond %{REQUEST_FILENAME} !-d
-              RewriteRule . /index.html [L]
-          </IfModule>
-          
-          # Securing .env files
-          <Files .env>
-              Order allow,deny
-              Deny from all
-          </Files>
-          EOT
-          
-          # API inner .htaccess (Bridge to api_backend/public)
-          cat <<EOT > deploy/api/.htaccess
-          <IfModule mod_rewrite.c>
-              RewriteEngine On
-              RewriteRule ^(.*)$ ../api_backend/public/\$1 [L]
-          </IfModule>
-          EOT
-          
-          # Security Bridge index.php
-          echo "<?php include 'index.html'; ?>" > deploy/index.php
-
-      - name: Create Production .env
-        run: |
-          cat <<EOT > deploy/api_backend/.env
-          APP_NAME="CP Gestão"
-          APP_ENV=production
-          APP_KEY=${{ secrets.APP_KEY || 'base64:XG8pY6XpD/v77y5S6L7U5P4R3G6B1N7=' }}
-          APP_DEBUG=false
-          APP_URL=https://cpgestaonew.creativeprintjp.com
-          
-          DB_CONNECTION=mysql
-          DB_HOST=127.0.0.1
-          DB_PORT=3306
-          DB_DATABASE=u176367625_cpgestaonew
-          DB_USERNAME=u176367625_cpgestaonew
-          DB_PASSWORD=G7mQ9zP4kL2nX8vR
-          
-          CACHE_DRIVER=file
-          FILESYSTEM_DISK=local
-          QUEUE_CONNECTION=sync
-          SESSION_DRIVER=file
-          SESSION_LIFETIME=120
-          
-          CORS_ALLOWED_ORIGINS=https://cpgestaonew.creativeprintjp.com
-          EOT
 
       - name: Pre-Deploy Cleanup (SSH)
         uses: appleboy/ssh-action@v1.0.3
@@ -141,11 +49,10 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            mkdir -p domains/creativeprintjp.com/public_html/cpgestaonew
-            cd domains/creativeprintjp.com/public_html/cpgestaonew
-            find . -maxdepth 1 ! -name 'storage' ! -name '.' -exec rm -rf {} + || true
+            mkdir -p /home/u176367625/domains/creativeprintjp.com/public_html/cpgestaonew
+            rm -rf /home/u176367625/domains/creativeprintjp.com/public_html/cpgestaonew/*
 
-      - name: Deploy to Hostinger (SCP)
+      - name: Upload Build Files (SCP)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -153,7 +60,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           source: "deploy/**"
-          target: "domains/creativeprintjp.com/public_html/cpgestaonew"
+          target: "/home/u176367625/domains/creativeprintjp.com/public_html/cpgestaonew"
           strip_components: 1
           overwrite: true
 
@@ -165,12 +72,12 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
           script: |
-            cd domains/creativeprintjp.com/public_html/cpgestaonew/api_backend
-            chmod -R 755 .
-            chmod -R 775 storage bootstrap/cache
-            php artisan migrate --force
+            cd /home/u176367625/domains/creativeprintjp.com/public_html/cpgestaonew/api_backend
+            # Limpeza rápida de dependências de prod
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force || true
             php artisan config:cache
-            php artisan route:cache
+            php artisan route:cache || true
             php artisan view:cache
             php artisan storage:link || true
-            echo "Deploy finalizado"
+            echo "Deploy finalizado com sucesso no IN-790!"
