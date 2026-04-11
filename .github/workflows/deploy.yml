@@ -33,11 +33,41 @@ jobs:
       - name: Prepare Package
         run: |
           rm -rf deploy
+          mkdir -p deploy/api
           mkdir -p deploy/api_backend
+          
+          # Copia Frontend
           cp -r frontend/dist/* deploy/
+          
+          # Copia Backend
           cp -r backend/* deploy/api_backend/
           
-          # Create .env fresh
+          # Root .htaccess (SPA + API Bypass)
+          cat <<EOT > deploy/.htaccess
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteBase /
+              
+              # Bypass API
+              RewriteRule ^api(/.*)?$ - [L]
+              
+              # SPA Routing
+              RewriteRule ^index\.html$ - [L]
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteRule . /index.html [L]
+          </IfModule>
+          EOT
+          
+          # API Bridge .htaccess
+          cat <<EOT > deploy/api/.htaccess
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteRule ^(.*)$ ../api_backend/public/\$1 [L]
+          </IfModule>
+          EOT
+          
+          # Create .env
           cat <<EOT > deploy/api_backend/.env
           APP_NAME="CP Gestão"
           APP_ENV=production
@@ -63,7 +93,6 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 65002 }}
-          command_timeout: 200m
           timeout: 120s
           script: |
             mkdir -p /home/u176367625/domains/creativeprintjp.com/public_html/cpgestaonew
@@ -81,13 +110,13 @@ jobs:
           target: "/home/u176367625/domains/creativeprintjp.com/public_html/cpgestaonew"
           strip_components: 1
 
-      - name: Post-Deploy (Resilient)
+      - name: Post-Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ secrets.SSH_PORT || 65002 || 65002 }}
+          port: ${{ secrets.SSH_PORT || 65002 }}
           timeout: 120s
           script: |
             cd /home/u176367625/domains/creativeprintjp.com/public_html/cpgestaonew/api_backend
@@ -98,4 +127,4 @@ jobs:
             php artisan config:cache
             php artisan storage:link || true
             chmod -R 775 storage bootstrap/cache
-            echo "Deploy Concluido com Sucesso!"
+            echo "Sistema Restaurado!"

@@ -344,7 +344,8 @@ const App: React.FC = () => {
         fetchAccountSettings();
       }
     } catch (error: any) {
-      setLoginError(error.response?.data?.error || 'Acesso negado. Verifique seu e-mail e senha.');
+      const technicalError = error.response?.data?.message || error.message || 'Erro desconhecido';
+      setLoginError(`Erro: ${technicalError}`);
     } finally {
       setIsLoading(false);
     }
