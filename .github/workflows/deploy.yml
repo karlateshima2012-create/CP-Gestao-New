@@ -22,7 +22,7 @@ jobs:
         run: |
           cd frontend
           npm install
-          npm run build
+          VITE_API_URL=https://cpgestaonew.creativeprintjp.com/api npm run build
           cd ..
 
       - name: Setup PHP
