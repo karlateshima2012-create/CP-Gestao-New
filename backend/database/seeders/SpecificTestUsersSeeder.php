@@ -24,9 +24,20 @@ class SpecificTestUsersSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@cpgestaonew.com'],
             [
-                'id' => (string) Str::uuid(),
                 'name' => 'Admin Master',
                 'password' => Hash::make('Admin123!'),
+                'role' => 'admin',
+                'active' => true,
+                'onboarding_completed' => true,
+            ]
+        );
+
+        // Usuário de Suporte Emergencial
+        User::updateOrCreate(
+            ['email' => 'suporte@cpgestaonew.com'],
+            [
+                'name' => 'Suporte Técnico',
+                'password' => Hash::make('Senha123!'),
                 'role' => 'admin',
                 'active' => true,
                 'onboarding_completed' => true,
@@ -69,7 +80,6 @@ class SpecificTestUsersSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'elite@cpgestaonew.com'],
             [
-                'id' => (string) Str::uuid(),
                 'name' => 'Lojista Elite',
                 'password' => Hash::make('Elite123!'),
                 'role' => 'client',
@@ -106,7 +116,6 @@ class SpecificTestUsersSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'pro@cpgestaonew.com'],
             [
-                'id' => (string) Str::uuid(),
                 'name' => 'Lojista Pro',
                 'password' => Hash::make('Pro123!'),
                 'role' => 'client',
