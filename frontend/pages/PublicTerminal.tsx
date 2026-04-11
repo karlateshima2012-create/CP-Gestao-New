@@ -134,6 +134,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     goal: 10
   });
 
+  const isTerminalMode = window.location.pathname.includes('/terminal') || !!(deviceUid || qrToken);
+
   useEffect(() => {
     console.log("CP Gestao Version: 2.7.2 - Digital Ready");
     const urlParams = new URLSearchParams(window.location.search);
@@ -555,7 +557,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       // Força um redirecionamento físico para a URL pública para "queimar" o link do terminal no histórico do cliente
       // Passamos o telefone via query string para auto-login sem atrito (Frictionless UX)
       const cleanPhoneNumber = phone.replace(/\D/g, '');
-      window.location.href = `/p/${tenantSlug}?phone=${encodeURIComponent(cleanPhoneNumber)}`;
+      window.location.replace(`/p/${tenantSlug}?phone=${encodeURIComponent(cleanPhoneNumber)}`);
     } else {
       setMode('RESULT_CLIENT');
     }
@@ -575,8 +577,6 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
   if (mode === 'LOADING') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold animate-pulse">CARREGANDO TERMINAL...</p></div>;
   if (mode === 'INVALID_DEVICE') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold">{errorMsg || 'DISPOSITIVO INVÁLIDO'}</p></div>;
-
-  const isTerminalMode = window.location.pathname.includes('/terminal') || !!(deviceUid || qrToken);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-sans selection:bg-slate-900 selection:text-white pb-20 overflow-x-hidden flex flex-col items-center">
