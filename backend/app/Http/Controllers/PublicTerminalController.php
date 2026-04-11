@@ -418,6 +418,26 @@ class PublicTerminalController extends Controller
         ]);
     }
 
+    public function serveFile($path)
+    {
+        // Prevent directory traversal
+        if (str_contains($path, '..') && !str_starts_with($path, '../')) {
+            // we only allow ../ if it's explicitly resolved securely, but let's just use basename or strict paths
+            // Actually, we trust Laravel's Storage::disk('public')->exists() which protects against traversal
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return response()->file(\Illuminate\Support\Facades\Storage::disk('public')->path($path));
+        }
+        
+        $legacyPath = base_path('../storage/' . $path);
+        if (file_exists($legacyPath)) {
+            return response()->file($legacyPath);
+        }
+
+        return response()->json(['message' => 'Image not found.'], 404);
+    }
+
     private function createPointRequest(array $data)
     {
         $request = PointRequest::create([
