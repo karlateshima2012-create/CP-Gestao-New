@@ -18,7 +18,8 @@ import {
   ExternalLink,
   Moon,
   Sun,
-  ShieldCheck
+  ShieldCheck,
+  UserCircle
 } from 'lucide-react';
 import api from '../../services/api';
 import { DevicesTab } from './DevicesTab';
