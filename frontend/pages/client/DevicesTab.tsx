@@ -170,40 +170,30 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantSlug }) => {
                                                         </label>
                                                     </div>
 
-                                                    {/* Row 2: REORGANIZADO EM UMA LINHA SÓ (Responsável + Chat ID + Botão Compacto) */}
+                                                    {/* Row 2: REORGANIZADO (Chat ID + Botão) */}
                                                     <div className="flex flex-col sm:flex-row items-center gap-3">
-                                                        {/* Campo Responsável (Agora maior) */}
+                                                        {/* Campo Chat ID */}
                                                         <div className="w-full sm:flex-1">
                                                             <Input 
-                                                                placeholder="RESPONSÁVEL"
-                                                                value={device.responsible_name || ''}
-                                                                onChange={e => handleUpdateLocal(device.id, 'responsible_name', e.target.value)}
-                                                                onBlur={e => handleSaveDevice(device.id, { responsible_name: e.target.value })}
-                                                                className="h-8 w-full bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-lg px-3 text-[10px] font-black text-slate-700 dark:text-slate-200 shadow-sm placeholder:text-slate-300 focus:ring-1 focus:ring-primary-500/20"
-                                                            />
-                                                        </div>
-                                                        
-                                                        {/* Campo Chat ID (Agora menor) */}
-                                                        <div className="w-full sm:w-32">
-                                                            <Input 
-                                                                placeholder="CHAT ID"
+                                                                placeholder="COLE SEU CHAT ID AQUI"
                                                                 value={device.telegram_chat_id || ''}
                                                                 onChange={e => handleUpdateLocal(device.id, 'telegram_chat_id', e.target.value)}
                                                                 onBlur={e => handleSaveDevice(device.id, { telegram_chat_id: e.target.value })}
-                                                                className="h-8 w-full bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-lg px-3 text-[10px] font-bold text-slate-700 dark:text-slate-200 shadow-sm placeholder:text-center placeholder:text-slate-300 focus:ring-1 focus:ring-primary-500/10"
+                                                                className="h-9 w-full bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-lg px-4 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm placeholder:text-slate-300 focus:ring-1 focus:ring-primary-500/10"
                                                             />
                                                         </div>
-
-                                                        {/* Botão Compacto do Passo 1 */}
+                                                        
+                                                        {/* Botão Pegar Chat ID */}
                                                         <a 
                                                             href="https://t.me/cpgestao_fidelidade_bot" 
                                                             target="_blank" 
                                                             rel="noreferrer"
-                                                            className="h-8 px-3 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white flex items-center justify-center rounded-lg font-black text-[8px] uppercase tracking-widest transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                                                            className="h-9 px-6 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white flex items-center justify-center rounded-lg font-black text-[10px] uppercase tracking-widest transition-all shadow-md active:scale-95 whitespace-nowrap"
                                                         >
                                                             PEGAR CHAT ID
                                                         </a>
                                                     </div>
+  
                                                 </div>
 
                                                 {/* Card Novo: BLOQUEIO DE SEGURANÇA */}
