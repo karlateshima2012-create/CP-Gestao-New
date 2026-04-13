@@ -62,6 +62,21 @@ Este documento registra a implementação do sistema antifraude avançado para o
 
 ---
 
+## 🛡️ REGRAS DE NEGÓCIO DE SEGURANÇA (NOVO)
+
+Além da validação técnica, o sistema aplica travas funcionais para impedir fraudes de saldo:
+
+1.  **Regra de Teto (Meta Rigorosa):**
+    *   **Objetivo:** Impedir que clientes acumulem pontos além do que o prêmio permite.
+    *   **Automático:** O sistema realiza o "cravamento" automático. Se faltar 1 ponto para a meta e o scan valer 2, o sistema concede apenas 1.
+    *   **Manual:** Qualquer tentativa manual de ultrapassar a meta é bloqueada com erro 422 e a mensagem oficial de teto.
+
+2.  **Trava de Redenção Pendente:**
+    *   Uma vez atingida a meta, o cliente entra em estado de `Reward Pending`.
+    *   Nenhuma nova pontuação é permitida (nem automática, nem manual) até que o ciclo seja reiniciado pela entrega física do prêmio.
+
+---
+
 ## 🧪 RESULTADO DOS TESTES (LOG)
 
 ```text
