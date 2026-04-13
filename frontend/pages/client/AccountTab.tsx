@@ -153,6 +153,16 @@ Valor: ${pack.price}`;
     }
   };
 
+  const handleRestartOnboarding = async () => {
+    try {
+      // We'll call the backend to set onboarding_completed to false
+      await api.patch('/client/settings', { onboarding_completed: false });
+      window.location.reload(); // Reload to trigger the check in App.tsx
+    } catch (error) {
+      console.error('Error restarting onboarding:', error);
+    }
+  };
+
   return (
     <div className="space-y-12 animate-fade-in pb-20 max-w-5xl mx-auto">
       <div className="hidden md:block">
@@ -453,6 +463,13 @@ Valor: ${pack.price}`;
                     className="px-4 h-7 bg-slate-500 hover:bg-slate-600 text-white font-black uppercase text-[9px] tracking-[0.1em] rounded-lg transition-all border-none shadow-sm shadow-slate-500/10"
                  >
                    FALAR COM SUPORTE
+                 </button>
+
+                 <button 
+                    onClick={handleRestartOnboarding}
+                    className="px-6 h-10 bg-[#E5157A] hover:bg-[#E5157A]/90 text-white font-black uppercase text-[10px] tracking-[0.1em] rounded-xl transition-all border-none shadow-xl shadow-pink-500/20 mt-4 animate-pulse flex items-center justify-center gap-2"
+                 >
+                   🪄 REINICIAR TOUR DE ONBOARDING
                  </button>
               </div>
           </footer>
