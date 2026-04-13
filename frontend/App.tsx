@@ -154,6 +154,25 @@ const App: React.FC = () => {
     }
   };
 
+  const showBrowserNotification = (count: number) => {
+    if (!("Notification" in window)) return;
+    
+    if (Notification.permission === "granted") {
+      new Notification("CP Gestão - Nova Solicitação", {
+        body: `Você tem ${count} nova(s) solicitação(ões) de pontos pendente(s).`,
+        icon: "/logo192.png" // Fallback to a common icon name or system default
+      });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission();
+    }
+  };
+
+  useEffect(() => {
+    if (authRole === 'client' && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, [authRole]);
+
   useEffect(() => {
     const root = window.document.documentElement;
     if (darkMode) root.classList.add('dark');
@@ -184,6 +203,11 @@ const App: React.FC = () => {
             setShowOnboarding(true);
           }
           fetchAccountSettings();
+          
+          // Request notification permission if not already handled
+          if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+          }
         }
       }).catch((err) => {
         if (err.response?.status === 403) {
@@ -259,8 +283,11 @@ const App: React.FC = () => {
       const res = await api.get('/client/visits');
       const newCount = res.data.pending_count;
 
-      if (shouldNotify && newCount > pendingRequestsCount && accountSettings?.telegram_sound_points) {
-        playNotificationSound();
+      if (shouldNotify && newCount > pendingRequestsCount) {
+        if (accountSettings?.telegram_sound_points) {
+          playNotificationSound();
+        }
+        showBrowserNotification(newCount);
       }
 
       setPendingRequestsCount(newCount);

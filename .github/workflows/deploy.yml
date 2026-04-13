@@ -94,6 +94,9 @@ jobs:
           MAIL_ENCRYPTION=${{ secrets.MAIL_ENCRYPTION || 'ssl' }}
           MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS || 'suporte@creativeprintjp.com' }}
           MAIL_FROM_NAME="Suporte Creative Print"
+
+          # Telegram Config
+          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
           EOT
 
       - name: Upload (Resilient)
