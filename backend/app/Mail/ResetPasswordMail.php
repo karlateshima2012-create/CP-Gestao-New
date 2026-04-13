@@ -30,7 +30,7 @@ class ResetPasswordMail extends Mailable
     {
         return new Envelope(
             from: new Address('suporte@creativeprintjp.com', 'Suporte Creative Print'),
-            subject: 'Recuperação de Senha - CP Gestão',
+            subject: '🔑 [Suporte Creative Print] Recuperação de Senha',
         );
     }
 

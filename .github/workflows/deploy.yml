@@ -122,9 +122,13 @@ jobs:
             composer install --no-dev --optimize-autoloader
             php artisan config:clear
             php artisan cache:clear
+            php artisan view:clear
+            php artisan route:clear
             php artisan migrate --force
             php artisan db:seed --class=SpecificTestUsersSeeder --force
             php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
             php artisan storage:link || true
             chmod -R 775 storage bootstrap/cache
-            echo "Sistema Restaurado!"
+            echo "Sistema Restaurado e Limpo!"
