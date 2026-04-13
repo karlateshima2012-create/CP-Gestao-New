@@ -280,7 +280,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               <div key={i} className="group p-6 bg-white dark:bg-slate-900/40 rounded-[24px] border border-slate-100 dark:border-slate-800 hover:shadow-md transition-all duration-300">
                 <div className="flex items-center gap-4 mb-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-${s.color}-500/10 text-${s.color}-600 dark:text-${s.color}-400`}>
-                    <Star className="w-5 h-5 fill-current" />
+                    {s.type === 'new_registration' ? <Sparkles className="w-5 h-5 fill-current" /> : <Star className="w-5 h-5 fill-current" />}
                   </div>
                   <p className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{s.title}</p>
                 </div>

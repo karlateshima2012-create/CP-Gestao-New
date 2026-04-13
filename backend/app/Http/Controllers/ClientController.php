@@ -738,6 +738,16 @@ class ClientController extends Controller
 
             $suggestions = [];
             
+            $newCustomers24h = Customer::where('created_at', '>=', now()->subDay())->count();
+            if ($newCustomers24h > 0) {
+                $suggestions[] = [
+                    'type' => 'new_registration',
+                    'title' => '✨ Novos Clientes',
+                    'text' => "{$newCustomers24h} novos clientes se cadastraram nas últimas 24h",
+                    'color' => 'blue'
+                ];
+            }
+
             if ($metGoalCount > 0) {
                 $suggestions[] = [
                     'type' => 'success',
