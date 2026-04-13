@@ -183,7 +183,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                         Solicitações de Pontos
                         {pendingCount > 0 && (
                             <span className="bg-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg animate-pulse tracking-widest uppercase">
-                                {pendingCount} {tenantPlan === 'Elite' ? 'SOLICITAÇÕES' : 'PENDENTES'}
+                                {pendingCount} {tenantPlan?.toLowerCase() === 'elite' ? 'SOLICITAÇÕES' : 'PENDENTES'}
                             </span>
                         )}
                     </h1>
@@ -217,7 +217,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                         <option value="negado">Negado</option>
                     </select>
 
-                    {pendingCount > 0 && tenantPlan !== 'Elite' && (
+                    {pendingCount > 0 && tenantPlan?.toLowerCase() !== 'elite' && (
                         <Button
                             onClick={handleApproveAll}
                             className="h-11 px-8 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-sky-500/20 transition-all hover:scale-105 active:scale-95"
@@ -310,7 +310,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                                          {/* 2. Ações */}
                                          <td className="px-4 py-5 min-w-[200px]">
                                               <div className="flex items-center justify-center gap-2">
-                                                  {v.status === 'pendente' && tenantPlan !== 'Elite' ? (
+                                                  {v.status === 'pendente' && tenantPlan?.toLowerCase() !== 'elite' ? (
                                                       <>
                                                           <button
                                                               onClick={() => handleAction(v.id, 'deny')}
@@ -343,7 +343,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                                                                  {v.status === 'aprovado' ? '✅ APROVADO' : v.status === 'pendente' ? '⏳ PROCESSANDO' : '❌ NEGADO'}
                                                              </span>
 
-                                                             {(v.status === 'aprovado' || (v.status === 'pendente' && tenantPlan === 'Elite')) && (
+                                                             {(v.status === 'aprovado' || (v.status === 'pendente' && tenantPlan?.toLowerCase() === 'elite')) && (
                                                                  <button
                                                                      onClick={() => {
                                                                          setModal({

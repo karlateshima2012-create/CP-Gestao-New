@@ -320,11 +320,14 @@ const App: React.FC = () => {
         refreshAllData();
       }
       
-      // Se entrou na aba de visitas, marca como lidas
+      // Se entrou na aba de visitas, marca como lidas após um pequeno delay para o lojista visualizar
       if (clientTab === 'visits') {
-        api.post('/client/visits/mark-as-seen').then(() => {
-          setPendingRequestsCount(0);
-        }).catch(err => console.error('Error marking as seen:', err));
+        const timer = setTimeout(() => {
+          api.post('/client/visits/mark-as-seen').then(() => {
+            setPendingRequestsCount(0);
+          }).catch(err => console.error('Error marking as seen:', err));
+        }, 10000); // 10 segundos de delay
+        return () => clearTimeout(timer);
       }
     }
   }, [clientTab, authRole]);
