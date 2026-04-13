@@ -470,7 +470,7 @@ Valor: ${pack.price}`;
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
                 © 2026 Creative Print. Todos os direitos reservados.
               </p>
-              <div className="flex flex-col items-center gap-4">
+               <div className="flex flex-col items-center gap-4">
                  <button 
                    onClick={() => setShowTermsModal(true)}
                    className="text-[9px] font-black text-[#38B6FF] hover:text-[#38B6FF]/70 uppercase tracking-widest transition-all underline underline-offset-2"
@@ -483,13 +483,6 @@ Valor: ${pack.price}`;
                     className="px-4 h-8 bg-slate-500 hover:bg-slate-600 text-white font-black uppercase text-[9px] tracking-[0.1em] rounded-lg transition-all border-none shadow-sm shadow-slate-500/10"
                  >
                    FALAR COM SUPORTE
-                 </button>
-
-                 <button 
-                    onClick={handleRestartOnboarding}
-                    className="px-5 h-8 bg-slate-400 hover:bg-slate-500 text-white font-black uppercase text-[9px] tracking-[0.1em] rounded-lg transition-all border-none shadow-sm shadow-slate-400/10"
-                 >
-                   🪄 REINICIAR TOUR DE ONBOARDING
                  </button>
               </div>
           </footer>
