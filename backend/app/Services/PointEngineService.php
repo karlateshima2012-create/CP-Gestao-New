@@ -53,9 +53,13 @@ class PointEngineService
 
             $tenant->verifyAndNotifyLimit();
 
+            $pointsToAdd = (int)($data['points'] ?? 1); // We know it's a new customer being created during an earn process
+            $escName = TelegramService::escapeMarkdownV2($customer->name);
             $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-            $newMessage = "🆕 <b>Novo Cliente (Pontuação Balcão)</b>\n"
-                        . "📞 <b>Telefone:</b> {$escPhone}";
+            $newMessage = "✨ *Novo Cliente (Terminal)*\n"
+                        . "👤 *Nome:* {$escName}\n"
+                        . "📞 *Tel:* {$escPhone}\n"
+                        . "💰 *Bônus:* +{$pointsToAdd} pts";
             
             \App\Jobs\SendTelegramNotificationJob::dispatch(
                 $tenant->id, 
