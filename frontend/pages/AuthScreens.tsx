@@ -119,28 +119,53 @@ export const ResetPasswordScreen: React.FC<AuthPageProps & { token: string }> = 
         );
     }
 
+    if (isSuccess) {
+        return (
+            <div className="text-center space-y-6">
+                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto">
+                    <CheckCircle className="w-10 h-10 text-green-500" />
+                </div>
+                <div>
+                    <h2 className="text-2xl font-bold">Senha Redefinida!</h2>
+                    <p className="text-gray-500 mt-2">Sua nova senha foi salva com sucesso.</p>
+                </div>
+                <Button className="w-full bg-[#25aae1] text-white" onClick={onBack}>Fazer LogIn Agora</Button>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
-            <div className="space-y-2">
-                <h2 className="text-2xl font-bold">Nova Senha</h2>
-                <p className="text-gray-500 text-sm">Defina sua nova senha de acesso.</p>
+            <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+                    <Key className="w-8 h-8 text-blue-500" />
+                </div>
+                <div>
+                    <h2 className="text-2xl font-bold">Redefinir Senha</h2>
+                    <p className="text-sm text-gray-500">Defina sua nova senha pessoal para recuperar o acesso.</p>
+                </div>
             </div>
+
             <div className="space-y-4">
                 <Input
-                    label="E-mail"
-                    type="email"
-                    autoComplete="email"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck="false"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    label="Nova Senha"
+                    type="password"
+                    placeholder="Mínimo 8 caracteres, 1 maiúscula, 1 número"
+                    minLength={8}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
-                <Input label="Nova Senha" type="password" placeholder="Mínimo 8 caracteres, 1 maiúscula e 1 número" minLength={8} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
-                <Input label="Confirmar Nova Senha" type="password" placeholder="Repita a nova senha" minLength={8} value={formData.password_confirmation} onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })} />
+                <Input
+                    label="Confirmar Nova Senha"
+                    type="password"
+                    placeholder="Repita a nova senha"
+                    minLength={8}
+                    value={formData.password_confirmation}
+                    onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
+                />
             </div>
-            <Button className="w-full bg-[#25aae1] text-white" onClick={handleSubmit} disabled={isLoading}>
-                {isLoading ? 'Salvando...' : 'Redefinir Senha'}
+            <Button className="w-full h-14 bg-[#25aae1] text-white font-black rounded-2xl flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] transition-all" onClick={handleSubmit} disabled={isLoading}>
+                {isLoading ? 'Salvando...' : 'Redefinir Senha e Entrar'} <ArrowRight className="w-5 h-5 text-white" />
             </Button>
         </div>
     );

@@ -29,7 +29,7 @@ class ResetPasswordMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            from: new Address('suporte@creativeprintjp.com', 'CP Gestão'),
+            from: new Address('suporte@creativeprintjp.com', 'suporte@creativeprintjp.com'),
             subject: 'Recuperação de Senha - CP Gestão',
         );
     }
