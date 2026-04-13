@@ -273,11 +273,11 @@ Valor: ${pack.price}`;
                 </div>
 
                 {/* Lado Direito: Configuração */}
-                <div className="flex items-center justify-between pl-6 w-full">
+                <div className="flex items-center justify-between pl-6 w-full gap-4">
                   <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none shrink-0">
                     ID PARA NOTIFICAÇÕES
                   </h4>
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-2 items-center ml-auto">
                     <Input 
                       id="onboarding-telegram-chatid"
                       placeholder="COLE SEU CHAT ID"
