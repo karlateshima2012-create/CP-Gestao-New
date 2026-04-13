@@ -4,7 +4,11 @@ import { Button, StatusModal, Badge } from '../../components/ui';
 import { Visit } from '../../types';
 import api from '../../services/api';
 
-export const VisitRecordsTab: React.FC = () => {
+interface VisitRecordsTabProps {
+    tenantPlan?: 'Classic' | 'Pro' | 'Elite' | string;
+}
+
+export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) => {
     const [visits, setVisits] = useState<Visit[]>([]);
     const [pagination, setPagination] = useState({
         current_page: 1,
@@ -99,7 +103,7 @@ export const VisitRecordsTab: React.FC = () => {
         };
     }, [pagination.current_page, visits.length, isLoading]);
 
-    const handleAction = async (id: string, action: 'approve' | 'deny') => {
+    const handleAction = async (id: string, action: 'approve' | 'deny' | 'revert') => {
         try {
             await api.post(`/client/visits/${id}/${action}`);
             fetchVisits(pagination.current_page);
@@ -302,40 +306,63 @@ export const VisitRecordsTab: React.FC = () => {
 
                                         {/* 2. Ações */}
                                         <td className="px-4 py-5 min-w-[200px]">
-                                            <div className="flex items-center justify-center gap-2">
-                                                {v.status === 'pendente' ? (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleAction(v.id, 'deny')}
-                                                            className="p-2.5 h-11 w-11 rounded-lg border border-gray-100 dark:border-gray-800 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm flex items-center justify-center"
-                                                            title="Negar"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAction(v.id, 'approve')}
-                                                            className="px-4 h-11 rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none"
-                                                        >
-                                                            <CheckCircle2 className="w-4 h-4" /> Aprovar
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <div className="flex items-center gap-2">
-                                                        {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && (
-                                                            <button
-                                                                onClick={() => handleRedeemReward(v.customer_id)}
-                                                                className="px-6 min-h-[44px] rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none animate-pulse-soft"
-                                                            >
-                                                                <Trophy className="w-4 h-4 fill-white/20" /> PREMIAR!
-                                                            </button>
-                                                        )}
-                                                        <span className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${v.status === 'aprovado' ? 'bg-[#38B6FF]/10 text-[#38B6FF]' : 'bg-red-50 text-red-600 dark:bg-red-500/10'}`}>
-                                                            {v.status === 'aprovado' ? '✅ APROVADO' : '❌ NEGADO'}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
+                                             <div className="flex items-center justify-center gap-2">
+                                                 {v.status === 'pendente' ? (
+                                                     <>
+                                                         <button
+                                                             onClick={() => handleAction(v.id, 'deny')}
+                                                             className="px-4 h-11 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm flex items-center justify-center text-[10px] font-black uppercase tracking-widest gap-2"
+                                                             title="Recusar"
+                                                         >
+                                                             <Trash2 className="w-4 h-4" /> Recusar
+                                                         </button>
+                                                         <button
+                                                             onClick={() => handleAction(v.id, 'approve')}
+                                                             className="px-4 h-11 rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none"
+                                                         >
+                                                             <CheckCircle2 className="w-4 h-4" /> Aprovar
+                                                         </button>
+                                                     </>
+                                                 ) : (
+                                                     <div className="flex items-center gap-2">
+                                                         {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && (
+                                                             <button
+                                                                 onClick={() => handleRedeemReward(v.customer_id)}
+                                                                 className="px-6 min-h-[44px] rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none animate-pulse-soft"
+                                                             >
+                                                                 <Trophy className="w-4 h-4 fill-white/20" /> PREMIAR!
+                                                             </button>
+                                                         )}
+                                                         
+                                                         <div className="flex items-center gap-1">
+                                                            <span className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${v.status === 'aprovado' ? 'bg-[#38B6FF]/10 text-[#38B6FF]' : 'bg-red-50 text-red-600 dark:bg-red-500/10'}`}>
+                                                                {v.status === 'aprovado' ? '✅ APROVADO' : '❌ NEGADO'}
+                                                            </span>
+
+                                                            {v.status === 'aprovado' && tenantPlan === 'Elite' && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setModal({
+                                                                            isOpen: true,
+                                                                            title: 'Segurança: Cancelar Ponto?',
+                                                                            message: 'Deseja realmente cancelar este ponto? O saldo do cliente será estornado.',
+                                                                            type: 'warning',
+                                                                            confirmLabel: 'SIM, CANCELAR',
+                                                                            cancelLabel: 'MANTER',
+                                                                            onConfirm: () => handleAction(v.id, 'revert')
+                                                                        });
+                                                                    }}
+                                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                                    title="Cancelar/Estornar Ponto"
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                         </div>
+                                                     </div>
+                                                 )}
+                                             </div>
+                                         </td>
 
                                         {/* 3. Horário */}
                                         <td className="px-3 py-5 text-center">

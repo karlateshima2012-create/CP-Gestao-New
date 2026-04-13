@@ -222,7 +222,7 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
         />
       )}
       {activeTab === 'loyalty' && <LoyaltyTab contacts={contacts} tenantPlan={tenantPlan} />}
-      {activeTab === 'visits' && <VisitRecordsTab />}
+      {activeTab === 'visits' && <VisitRecordsTab tenantPlan={tenantPlan} />}
       {activeTab === 'clients' && (
         <ClientsTab contacts={contacts} onEdit={(c) => { setSelectedContact(c); onChangeTab('new'); }} onDelete={handleDelete} onNew={() => { setSelectedContact(null); onChangeTab('new'); }} onRefresh={onRefresh} />
       )}
