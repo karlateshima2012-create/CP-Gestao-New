@@ -27,6 +27,7 @@ class Visit extends Model
         'approved_by',
         'approved_at',
         'meta',
+        'is_seen',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class Visit extends Model
         'approved_at' => 'datetime',
         'points_granted' => 'integer',
         'meta' => 'array',
+        'is_seen' => 'boolean',
     ];
 
     protected $appends = ['foto_perfil_full', 'customer_photo_url'];

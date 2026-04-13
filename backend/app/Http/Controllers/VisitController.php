@@ -52,7 +52,14 @@ class VisitController extends Controller
             }
 
             $isElite = strtolower(auth()->user()->tenant?->plan ?? '') === 'elite';
-            $pendingCount = $isElite ? 0 : Visit::where('tenant_id', $tenantId)->where('status', 'pendente')->count();
+            
+            // Se for Elite, contamos apenas os não vistos
+            // Se for Pro, contamos os pendentes (que por definição são não vistos se usarmos a nova coluna corretamente)
+            if ($isElite) {
+                $pendingCount = Visit::where('tenant_id', $tenantId)->where('is_seen', false)->count();
+            } else {
+                $pendingCount = Visit::where('tenant_id', $tenantId)->where('status', 'pendente')->count();
+            }
 
             $visits = $query->orderBy('visit_at', 'desc')->paginate(20);
 
@@ -65,6 +72,20 @@ class VisitController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return ApiResponse::error('Erro ao listar visitas: ' . $e->getMessage(), 'VISIT_LIST_ERROR', 500);
+        }
+    }
+
+    /**
+     * Mark all visits as seen for the tenant.
+     */
+    public function markAsSeen(Request $request)
+    {
+        try {
+            $tenantId = auth()->user()->tenant_id;
+            Visit::where('tenant_id', $tenantId)->where('is_seen', false)->update(['is_seen' => true]);
+            return ApiResponse::ok(null, 'Visitas marcadas como lidas.');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Erro ao marcar visitas como lidas.', 'MARK_SEEN_ERROR', 500);
         }
     }
 
@@ -87,7 +108,8 @@ class VisitController extends Controller
             $visit->update([
                 'status' => 'aprovado',
                 'approved_by' => auth()->id(),
-                'approved_at' => now()
+                'approved_at' => now(),
+                'is_seen' => true,
             ]);
 
             $this->syncTelegramStatus($visit, 'approved');
@@ -180,7 +202,8 @@ class VisitController extends Controller
                 $visit->update([
                     'status' => 'aprovado',
                     'approved_by' => auth()->id(),
-                    'approved_at' => now()
+                    'approved_at' => now(),
+                    'is_seen' => true,
                 ]);
 
                 $this->syncTelegramStatus($visit, 'approved');
@@ -240,6 +263,7 @@ class VisitController extends Controller
                     'meta' => ['reason' => $request->reason],
                     'approved_by' => auth()->id(),
                     'approved_at' => now(),
+                    'is_seen' => true,
                 ]);
             } catch (\Exception $e) {
                 \Log::error("CRITICAL: Manual Visit Create Failed, applying minimal fallback: " . $e->getMessage());
@@ -251,6 +275,7 @@ class VisitController extends Controller
                     'customer_phone' => $customer->phone,
                     'visit_at' => now(),
                     'points_granted' => (int)$request->points,
+                    'is_seen' => true,
                 ]);
             }
 

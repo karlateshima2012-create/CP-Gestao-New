@@ -185,7 +185,8 @@ class PointEngineService
                 'plan_type' => $tenant->plan,
                 'status' => 'reward_pending',
                 'points_granted' => 0,
-                'device_id' => $device ? $device->id : null
+                'device_id' => $device ? $device->id : null,
+                'is_seen' => false
             ]);
 
             $customerNameEscaped = \App\Services\TelegramService::escapeMarkdownV2($customer->name);
@@ -242,6 +243,7 @@ class PointEngineService
             'status' => $status,
             'points_granted' => $pointsToAdd,
             'approved_at' => $approvedAt,
+            'is_seen' => false,
         ];
 
         try {
@@ -319,5 +321,67 @@ class PointEngineService
             'auto_approved' => $canAutoApprove,
             'is_reward_ready' => ($newBalance >= $currentGoal && $canAutoApprove)
         ]);
+    }
+
+    /**
+     * Process a reward redemption from Terminal/Portal.
+     */
+    public function processRedeem($tenant, $device, $customer, $token)
+    {
+        $isElite = strtolower($tenant->plan) === 'elite';
+        
+        $status = $isElite ? 'aprovado' : 'pendente';
+        $approvedAt = $isElite ? now() : null;
+
+        $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
+        $currentLevel = $customer->loyalty_level ?? 1;
+        $lvlIdx = max(0, (int)$currentLevel - 1);
+        $currentGoal = 10;
+        if ($loyalty && is_array($loyalty->levels_config) && isset($loyalty->levels_config[$lvlIdx])) {
+            $currentGoal = (int)($loyalty->levels_config[$lvlIdx]['goal'] ?? 10);
+        }
+
+        return DB::transaction(function () use ($tenant, $device, $customer, $status, $approvedAt, $currentGoal, $isElite) {
+            $visit = Visit::create([
+                'tenant_id' => $tenant->id,
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'customer_phone' => $customer->phone,
+                'customer_company' => $customer->company_name,
+                'foto_perfil_url' => $customer->foto_perfil_url,
+                'visit_at' => now(),
+                'origin' => $device ? $device->type : 'terminal',
+                'plan_type' => $tenant->plan,
+                'status' => $status,
+                'points_granted' => 1, // Redemptions usually count as a new visit with 1 point in the new level
+                'approved_at' => $approvedAt,
+                'is_seen' => false,
+                'meta' => [
+                    'is_redemption' => true,
+                    'goal' => $currentGoal
+                ]
+            ]);
+
+            if ($isElite) {
+                // Apply redemption logic immediately
+                $this->pointRequestService->applyPoints($visit);
+            }
+
+            // Telegram Notification
+            $customerNameEscaped = \App\Services\TelegramService::escapeMarkdownV2($customer->name);
+            $msg = $isElite 
+                ? "🎁 <b>RESGATE REALIZADO (Elite)</b>\n"
+                  . "O cliente <b>{$customerNameEscaped}</b> acabou de resgatar o prêmio e subiu de nível\!"
+                : "🎁 <b>SOLICITAÇÃO DE RESGATE</b>\n"
+                  . "O cliente <b>{$customerNameEscaped}</b> solicitou o resgate do prêmio\. Aguardando sua aprovação\.";
+
+            \App\Jobs\SendTelegramNotificationJob::dispatch($tenant->id, $msg, 'visit');
+
+            return ApiResponse::ok([
+                'status' => $status,
+                'message' => $isElite ? 'Resgate realizado com sucesso!' : 'Solicitação de resgate enviada! Aguarde a aprovação do lojista.',
+                'auto_approved' => $isElite
+            ]);
+        });
     }
 }

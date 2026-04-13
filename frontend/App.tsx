@@ -288,8 +288,17 @@ const App: React.FC = () => {
 
   // Re-fetch when switching to dashboard or clients tab to ensure fresh data
   useEffect(() => {
-    if (authRole === 'client' && (clientTab === 'dashboard' || clientTab === 'clients' || clientTab === 'visits')) {
-      refreshAllData();
+    if (authRole === 'client') {
+      if (clientTab === 'dashboard' || clientTab === 'clients' || clientTab === 'visits') {
+        refreshAllData();
+      }
+      
+      // Se entrou na aba de visitas, marca como lidas
+      if (clientTab === 'visits') {
+        api.post('/client/visits/mark-as-seen').then(() => {
+          setPendingRequestsCount(0);
+        }).catch(err => console.error('Error marking as seen:', err));
+      }
     }
   }, [clientTab, authRole]);
 

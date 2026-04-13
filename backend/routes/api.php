@@ -101,6 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/visits/{id}/revert', [\App\Http\Controllers\VisitController::class, 'revert']);
         Route::post('/visits/approve-all', [\App\Http\Controllers\VisitController::class, 'approveAll']);
         Route::post('/visits/manual', [\App\Http\Controllers\VisitController::class, 'storeManual']);
+        Route::post('/visits/mark-as-seen', [\App\Http\Controllers\VisitController::class, 'markAsSeen']);
         // Reports & Insights
         Route::get('/reports/insights', [\App\Http\Controllers\ReportController::class, 'getInsights']);
         Route::get('/reports/export', [\App\Http\Controllers\ReportController::class, 'getExportData']);
