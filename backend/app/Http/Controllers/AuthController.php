@@ -127,13 +127,7 @@ class AuthController extends Controller
         );
 
         // Generate dynamic link for frontend
-        $frontendUrl = config('app.frontend_url');
-        if (!$frontendUrl) {
-            // Se não estiver no config, detectamos o domínio atual automaticamente
-            $scheme = $request->getScheme();
-            $host = $request->getHost();
-            $frontendUrl = "{$scheme}://{$host}";
-        }
+        $frontendUrl = config('app.url') ?: config('app.frontend_url');
         
         $resetUrl = rtrim($frontendUrl, '/') . "/?reset_token={$token}&email=" . urlencode($request->email);
 
