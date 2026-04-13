@@ -183,7 +183,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                         Solicitações de Pontos
                         {pendingCount > 0 && (
                             <span className="bg-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg animate-pulse tracking-widest uppercase">
-                                {pendingCount} PENDENTES
+                                {pendingCount} {tenantPlan === 'Elite' ? 'SOLICITAÇÕES' : 'PENDENTES'}
                             </span>
                         )}
                     </h1>
@@ -285,6 +285,9 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                                                 <div className="flex flex-col">
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm font-bold text-gray-900 dark:text-white capitalize">{v.customer_name}</span>
+                                                        {v.is_seen === false && (
+                                                            <span className="bg-[#38B6FF] text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm animate-bounce-slow">NOVO</span>
+                                                        )}
                                                         {v.customer && (
                                                             <Badge color={v.customer.loyaltyLevel === 4 ? 'diamond' : v.customer.loyaltyLevel === 3 ? 'gold' : v.customer.loyaltyLevel === 2 ? 'silver' : 'bronze'}>
                                                                 {v.customer.loyalty_level_name || (

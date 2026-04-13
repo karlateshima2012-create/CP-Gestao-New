@@ -149,5 +149,6 @@ export interface Visit {
     reason?: string;
     [key: string]: any;
   };
+  is_seen?: boolean;
   customer?: Contact;
 }
