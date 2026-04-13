@@ -473,7 +473,7 @@ const App: React.FC = () => {
           )}
 
           {authView === 'forgot-password' && (
-            <ForgotPasswordScreen onBack={() => setAuthView('login')} />
+            <ForgotPasswordScreen onBack={() => setAuthView('login')} email={loginForm.email} />
           )}
 
           {authView === 'first-access' && (

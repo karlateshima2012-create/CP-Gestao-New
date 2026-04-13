@@ -9,8 +9,8 @@ interface AuthPageProps {
     onSuccess?: () => void;
 }
 
-export const ForgotPasswordScreen: React.FC<AuthPageProps> = ({ onBack }) => {
-    const [email, setEmail] = useState('');
+export const ForgotPasswordScreen: React.FC<AuthPageProps> = ({ onBack, email: initialEmail }) => {
+    const [email, setEmail] = useState(initialEmail || '');
     const [isSent, setIsSent] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -28,6 +28,13 @@ export const ForgotPasswordScreen: React.FC<AuthPageProps> = ({ onBack }) => {
     };
 
     if (isSent) {
+        const maskEmail = (val: string) => {
+            const [user, domain] = val.split('@');
+            if (!domain) return val;
+            if (user.length <= 2) return `${user.charAt(0)}***@${domain}`;
+            return `${user.charAt(0)}${'*'.repeat(user.length - 2)}${user.charAt(user.length - 1)}@${domain}`;
+        };
+
         return (
             <div className="text-center space-y-6">
                 <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto">
@@ -35,7 +42,8 @@ export const ForgotPasswordScreen: React.FC<AuthPageProps> = ({ onBack }) => {
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold">Verifique seu E-mail</h2>
-                    <p className="text-gray-500 mt-2">Enviamos as instruções para <strong className="text-gray-900">{email.trim().replace(/\.+$/, '')}</strong></p>
+                    <p className="text-gray-500 mt-2">Enviamos as instruções para <strong className="text-gray-900">{maskEmail(email.trim().replace(/\.+$/, ''))}</strong></p>
+                    <p className="text-[10px] text-gray-400 mt-3 font-medium uppercase tracking-widest">Se este e-mail estiver correto, você receberá o link em instantes.</p>
                 </div>
                 <Button variant="secondary" className="w-full" onClick={onBack}>Voltar ao Login</Button>
             </div>
