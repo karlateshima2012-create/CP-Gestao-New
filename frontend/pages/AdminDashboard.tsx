@@ -934,26 +934,27 @@ export const AdminDashboard: React.FC = () => {
                                    <code className="flex-1 text-[10px] sm:text-[11px] font-mono font-bold text-slate-500 truncate p-2 sm:p-0">
                                      {window.location.origin}/terminal/{editingTenant.slug}/{device.nfc_uid}
                                    </code>
-                                  <button
-                                    onClick={() => {
-                                      const text = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
-                                      copyToClipboard(text);
-                                      setCopiedId(device.id);
-                                      setTimeout(() => setCopiedId(null), 2000);
-                                    }}
-                                    className="px-4 py-2.5 bg-[#38B6FF] text-white rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-md active:scale-95 whitespace-nowrap"
-                                  >
-                                    COPIAR LINK
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteDevice(device.id)}
-                                    className="p-2.5 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                               </div>
-                               {copiedId === device.id && <p className="absolute -top-6 right-24 text-[8px] font-black text-emerald-500 uppercase animate-bounce">Copiado!</p>}
-                             </div>
+                                   <div className="flex items-center gap-2 px-2 pb-2 sm:p-0">
+                                     <button
+                                       onClick={() => {
+                                         const text = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
+                                         copyToClipboard(text);
+                                         setCopiedId(device.id);
+                                         setTimeout(() => setCopiedId(null), 2000);
+                                       }}
+                                       className="flex-1 sm:flex-none px-4 py-2.5 bg-[#38B6FF] text-white rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-md active:scale-95 whitespace-nowrap"
+                                     >
+                                       COPIAR LINK
+                                     </button>
+                                     <button
+                                       onClick={() => handleDeleteDevice(device.id)}
+                                       className="p-2.5 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                     >
+                                       <Trash2 className="w-4 h-4" />
+                                     </button>
+                                   </div>
+                                 </div>
+                                {copiedId === device.id && <p className="absolute -top-6 right-2 sm:right-24 text-[8px] font-black text-emerald-500 uppercase animate-bounce">Copiado!</p>}                             </div>
                            </div>
                         ))}
                       </div>
