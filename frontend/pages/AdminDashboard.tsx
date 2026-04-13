@@ -575,13 +575,19 @@ export const AdminDashboard: React.FC = () => {
                   {filteredTenants.map((tenant) => {
                     const limit = tenant.total_contact_limit || PLAN_LIMITS[tenant.plan] || 2000;
                     const usage = (tenant.customers_count || 0) / limit;
-                    const isExpired = tenant.plan_expires_at && new Date(tenant.plan_expires_at) < new Date();
+                    
+                    // Cálculo de vencimento
+                    const now = new Date();
+                    const expiryDate = tenant.plan_expires_at ? new Date(tenant.plan_expires_at) : null;
+                    const isExpired = expiryDate && expiryDate < now;
+                    const diffDays = expiryDate ? Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+                    const isNearExpiration = diffDays !== null && diffDays >= 0 && diffDays <= 10;
 
                     return (
-                      <tr key={tenant.id} className="odd:bg-white even:bg-slate-50/50 dark:odd:bg-slate-900 dark:even:bg-slate-800/20 hover:bg-[#38B6FF]/5 transition-colors group">
+                      <tr key={tenant.id} className={`odd:bg-white even:bg-slate-50/50 dark:odd:bg-slate-900 dark:even:bg-slate-800/20 hover:bg-[#38B6FF]/5 transition-colors group relative border-l-4 ${isExpired ? 'border-l-rose-500 bg-rose-50/10' : isNearExpiration ? 'border-l-amber-500 bg-amber-50/5' : usage > 0.9 ? 'border-l-orange-500' : 'border-l-transparent'}`}>
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
-                            <div className={`w-3 h-3 rounded-full shadow-sm ring-4 ring-offset-2 ring-offset-white ring-transparent ${isExpired ? 'bg-red-500 animate-pulse ring-red-100' : usage > 0.9 ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                            <div className={`w-3 h-3 rounded-full shadow-sm ring-4 ring-offset-2 ring-offset-white ring-transparent ${isExpired ? 'bg-rose-500 animate-pulse ring-red-100' : isNearExpiration ? 'bg-amber-500 ring-amber-100' : usage > 0.9 ? 'bg-orange-500' : 'bg-emerald-500'}`} />
                             <div className="flex flex-col">
                               <div className="font-extrabold text-slate-900 dark:text-white text-base tracking-tight">{tenant.name}</div>
                               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate max-w-[150px]">{tenant.slug}</div>
@@ -612,13 +618,13 @@ export const AdminDashboard: React.FC = () => {
                                 {tenant.plan === PlanType.UNLIMITED ? 'ELITE' : 'PRO'}
                                 {tenant.extra_contacts_quota ? <Badge color="orange" className="ml-2 text-[8px] px-1 py-0 shadow-sm">+{(tenant.extra_contacts_quota / 1000).toFixed(0)}K</Badge> : null}
                               </span>
-                              <span className={tenant.extra_contacts_quota ? 'text-[#38B6FF] font-black' : usage > 0.9 ? 'text-rose-500' : 'text-slate-900'}>
-                                {usage > 1 ? 'TRANSBORDADO' : `${Math.round(usage * 100)}%`}
+                              <span className={tenant.extra_contacts_quota ? 'text-[#38B6FF] font-black' : usage > 0.95 ? 'text-rose-600 font-extrabold' : usage > 0.8 ? 'text-amber-500' : 'text-slate-900'}>
+                                {usage > 1 ? 'ESGOTADO' : usage > 0.95 ? 'CRÍTICO' : `${Math.round(usage * 100)}%`}
                               </span>
                             </div>
                             <div className="w-full h-2 bg-slate-100 dark:bg-gray-800 rounded-full overflow-hidden border border-slate-200/50 shadow-inner">
                               <div
-                                className={`h-full transition-all duration-700 ${usage > 0.9 ? 'bg-rose-500' : usage > 0.8 ? 'bg-orange-500' : 'bg-[#38B6FF]'}`}
+                                className={`h-full transition-all duration-700 ${usage > 0.95 ? 'bg-rose-600' : usage > 0.8 ? 'bg-amber-500' : 'bg-[#38B6FF]'}`}
                                 style={{ width: `${Math.min(100, usage * 100)}%` }}
                               />
                             </div>
@@ -630,12 +636,16 @@ export const AdminDashboard: React.FC = () => {
                           {tenant.plan_expires_at ? (
                             <div className="flex flex-col">
                                <div className="flex items-center gap-2">
-                                  <Calendar className={`w-3.5 h-3.5 ${isExpired ? 'text-rose-500' : 'text-slate-400'}`} />
-                                  <span className={`text-[11px] font-black uppercase tracking-tight ${isExpired ? 'text-rose-600' : 'text-slate-600'}`}>
+                                  <Calendar className={`w-3.5 h-3.5 ${isExpired ? 'text-rose-500' : isNearExpiration ? 'text-amber-500' : 'text-slate-400'}`} />
+                                  <span className={`text-[11px] font-black uppercase tracking-tight ${isExpired ? 'text-rose-600' : isNearExpiration ? 'text-amber-600' : 'text-slate-600'}`}>
                                     {formatDateDisplay(tenant.plan_expires_at)}
                                   </span>
                                </div>
-                               {isExpired && <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest mt-1">Plano Expirado</span>}
+                               {isExpired ? (
+                                 <span className="bg-rose-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest mt-1 text-center">Expirado</span>
+                               ) : isNearExpiration ? (
+                                 <span className="bg-amber-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest mt-1 text-center animate-pulse">Renovar Agora</span>
+                               ) : null}
                             </div>
                           ) : (
                             <span className="text-xs text-slate-300 font-bold uppercase tracking-widest">Vitalício</span>
