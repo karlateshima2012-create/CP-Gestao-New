@@ -13,14 +13,16 @@ Para evitar que clientes mal-intencionados abusem do sistema (como ler o mesmo Q
    - **Comportamento para Meta Atingida:** Se o cliente bater a meta e consultar o terminal em menos de 12h, a mensagem exibida será: *"🎉 Meta Atingida! Seu prêmio estará esperando na sua próxima visita!"*.
    - **Liberação de Resgate (> 12h):** Após transcorrida a visita de 12 horas, se o cliente consultar o saldo ou tentar pontuar, a mensagem mudará para: *"🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar e subir para o próximo nível."*
    - No estado de resgate pendente (> 12h), o sistema dispara um alerta ao lojista (Telegram/Dashboard) solicitando a entrega do prêmio.
-   - **REGRA DE TETO:** O saldo do cliente **NUNCA** ultrapassa a meta. Ao atingir o valor exato configurado, o sistema bloqueia qualquer nova pontuação automática ou manual até que o ciclo seja reiniciado após a entrega do prêmio.
+   - **REGRA DE TETO (NOVO):** O saldo do cliente **NUNCA** ultrapassa a meta do nível atual. 
+      - **Ajuste Manual:** O sistema impede qualquer adição manual que resulte em um saldo maior que a meta, exibindo o erro: *"A meta de pontos do nível atual do sistema é X. Não é permitido ultrapassar este limite."*
+      - **Pontuação Automática (Scan):** Se um cliente tem 9 pontos e a meta é 10, mesmo que a leitura do QR Code valha 2 pontos, o sistema creditará apenas **1 ponto**, travando o saldo na meta exata de 10.
 
 2. **Cooldown Auto-Checkin (Pelo Totem):**
    - Se o dispositivo opera no modo `auto_checkin`, verifica-se o intervalo mínimo parametrizado pelo *PlanService* respectivo da Loja.
    - *Mensagem de Erro/Retorno:* HTTP 429 - `CHECKIN_COOLDOWN` - "Check-in já realizado hoje!"
 
 3. **Trava de Meta Atingida (Reward Pending):**
-   - Quando o saldo de pontos *já for maior ou igual à meta estipulada*, o motor **impede** o registro de novos ganhos de pontos.
+   - Quando o saldo de pontos *já for igual à meta estipulada*, o motor **impede** o registro de novos ganhos de pontos.
    - **Fluxo de Mensagens (Modelo A):**
       - *Antes de 12h:* "🎉 Meta Atingida! Resgate na próxima visita."
       - *Após 12h:* "🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar."
