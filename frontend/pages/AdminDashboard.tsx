@@ -930,10 +930,10 @@ export const AdminDashboard: React.FC = () => {
                              </div>
 
                              <div className="w-full relative">
-                               <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-2 pl-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-inner">
-                                  <code className="flex-1 text-[11px] font-mono font-bold text-slate-500 truncate">
-                                    {window.location.origin}/terminal/{editingTenant.slug}/{device.nfc_uid}
-                                  </code>
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-slate-900 p-2 sm:pl-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-inner overflow-hidden">
+                                   <code className="flex-1 text-[10px] sm:text-[11px] font-mono font-bold text-slate-500 truncate p-2 sm:p-0">
+                                     {window.location.origin}/terminal/{editingTenant.slug}/{device.nfc_uid}
+                                   </code>
                                   <button
                                     onClick={() => {
                                       const text = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
@@ -973,14 +973,14 @@ export const AdminDashboard: React.FC = () => {
                       </h4>
                       <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest max-w-md">Use este link para enviar aos clientes via WhatsApp ou publicar em suas redes sociais para o registro do fidelidade.</p>
                       
-                      <div className="mt-8 flex items-center gap-4 bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner">
-                        <code className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate flex-1">{window.location.origin}/p/{editingTenant.slug}</code>
+                      <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-slate-50 dark:bg-slate-800 p-4 sm:p-2 sm:pl-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner overflow-hidden">
+                        <code className="text-[11px] sm:text-sm font-bold text-slate-700 dark:text-slate-200 truncate flex-1 mb-2 sm:mb-0">{window.location.origin}/p/{editingTenant.slug}</code>
                         <button
                           onClick={() => {
                             const link = `${window.location.origin}/p/${editingTenant.slug}`;
                             copyToClipboard(link);
                           }}
-                          className="px-6 py-3 bg-[#38B6FF] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
+                          className="px-6 py-4 sm:py-3 bg-[#38B6FF] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95 whitespace-nowrap"
                         >
                           Copiar Link da Loja
                         </button>
