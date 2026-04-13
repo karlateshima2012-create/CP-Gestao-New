@@ -977,15 +977,6 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
             <Button onClick={handleViewBalance} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-2xl font-black uppercase gap-3 shadow-lg transition-transform active:scale-95"><Gift className="w-5 h-5" /> VER MEU SALDO</Button>
             
-            {approvedData.auto_approved && (
-              <button 
-                onClick={() => approvedData?.request_id && handleRevertVisit(approvedData.request_id)}
-                disabled={loading}
-                className="text-slate-300 hover:text-red-400 font-bold uppercase text-[10px] tracking-widest mt-6 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
-              >
-                <X className="w-3 h-3" /> ESTORNAR PONTO (SEGURANÇA)
-              </button>
-            )}
           </div>
         )}
       </div>
