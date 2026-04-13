@@ -366,14 +366,23 @@ Valor: ${pack.price}`;
           <Card className="p-10 border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-slate-100 dark:bg-slate-800/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
             
-            <div className="relative z-10 flex items-center gap-3 mb-10 pb-6 border-b border-slate-100 dark:border-slate-800">
-               <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
-                  <UserCircle className="w-5 h-5" />
+            <div className="relative z-10 flex items-center justify-between mb-10 pb-6 border-b border-slate-100 dark:border-slate-800">
+               <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
+                     <UserCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">GERENCIAR</span>
+                     <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mt-1">MINHA CONTA</h2>
+                  </div>
                </div>
-               <div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">GERENCIAR</span>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mt-1">MINHA CONTA</h2>
-               </div>
+               
+               <button 
+                  onClick={handleRestartOnboarding}
+                  className="px-4 h-8 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase text-[9px] tracking-[0.1em] rounded-lg transition-all border border-slate-200 dark:border-slate-700 flex items-center gap-2 shadow-sm active:scale-95"
+               >
+                  🪄 REINICIAR TOUR
+               </button>
             </div>
 
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
