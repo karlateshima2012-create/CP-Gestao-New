@@ -256,6 +256,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                      <div className="px-4 py-3 bg-white dark:bg-gray-900 space-y-1.5">
                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Prêmio deste Nível</label>
                         <input
+                           id="onboarding-loyalty-reward"
                            type="text"
                            placeholder="Ex: Desconto, brinde..."
                            value={level.reward}
@@ -280,6 +281,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                                  <div className="space-y-1">
                                     <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{idx === 0 ? 'Meta Geral' : 'Meta p/ Alcançar'}</label>
                                     <input type="number" value={level.goal}
+                                       id={idx === 0 ? "onboarding-loyalty-goal" : undefined}
                                        onChange={e => updateLevel(idx, 'goal', parseInt(e.target.value) || 0)}
                                        className="w-full h-9 px-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-lg font-bold text-sm outline-none focus:ring-2 focus:ring-primary-500/20"
                                     />

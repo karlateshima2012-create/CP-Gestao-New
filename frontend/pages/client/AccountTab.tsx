@@ -268,6 +268,7 @@ Valor: ${pack.price}`;
                   </h4>
                   <div className="flex gap-2 items-center">
                     <Input 
+                      id="onboarding-telegram-chatid"
                       placeholder="CHAT ID AQUI"
                       value={telegramSettings.chat_id}
                       onChange={e => setTelegramSettings({...telegramSettings, chat_id: e.target.value})}

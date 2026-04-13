@@ -3,7 +3,7 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { ClientCRM } from './pages/ClientCRM';
 import { PublicTerminal } from './pages/PublicTerminal';
 import { ForgotPasswordScreen, ResetPasswordScreen, FirstAccessChangeScreen } from './pages/AuthScreens';
-import { OnboardingModal } from './pages/OnboardingModal';
+import { ProfessionalOnboarding } from './components/ProfessionalOnboarding';
 import {
   LayoutDashboard,
   Users,
@@ -722,9 +722,10 @@ const App: React.FC = () => {
       </main>
 
       {showOnboarding && (
-        <OnboardingModal
+        <ProfessionalOnboarding
           onComplete={handleCompleteOnboarding}
           onChangeTab={(tab) => setClientTab(tab as any)}
+          activeTab={clientTab}
         />
       )}
     </div>
