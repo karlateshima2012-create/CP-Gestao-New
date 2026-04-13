@@ -217,7 +217,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                         <option value="negado">Negado</option>
                     </select>
 
-                    {pendingCount > 0 && (
+                    {pendingCount > 0 && tenantPlan !== 'Elite' && (
                         <Button
                             onClick={handleApproveAll}
                             className="h-11 px-8 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-sky-500/20 transition-all hover:scale-105 active:scale-95"
@@ -304,65 +304,66 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                                             </div>
                                         </td>
 
-                                        {/* 2. Ações */}
-                                        <td className="px-4 py-5 min-w-[200px]">
-                                             <div className="flex items-center justify-center gap-2">
-                                                 {v.status === 'pendente' ? (
-                                                     <>
-                                                         <button
-                                                             onClick={() => handleAction(v.id, 'deny')}
-                                                             className="px-4 h-11 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm flex items-center justify-center text-[10px] font-black uppercase tracking-widest gap-2"
-                                                             title="Recusar"
-                                                         >
-                                                             <Trash2 className="w-4 h-4" /> Recusar
-                                                         </button>
-                                                         <button
-                                                             onClick={() => handleAction(v.id, 'approve')}
-                                                             className="px-4 h-11 rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none"
-                                                         >
-                                                             <CheckCircle2 className="w-4 h-4" /> Aprovar
-                                                         </button>
-                                                     </>
-                                                 ) : (
-                                                     <div className="flex items-center gap-2">
-                                                         {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && (
-                                                             <button
-                                                                 onClick={() => handleRedeemReward(v.customer_id)}
-                                                                 className="px-6 min-h-[44px] rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none animate-pulse-soft"
-                                                             >
-                                                                 <Trophy className="w-4 h-4 fill-white/20" /> PREMIAR!
-                                                             </button>
-                                                         )}
-                                                         
-                                                         <div className="flex items-center gap-1">
-                                                            <span className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${v.status === 'aprovado' ? 'bg-[#38B6FF]/10 text-[#38B6FF]' : 'bg-red-50 text-red-600 dark:bg-red-500/10'}`}>
-                                                                {v.status === 'aprovado' ? '✅ APROVADO' : '❌ NEGADO'}
-                                                            </span>
+                                         {/* 2. Ações */}
+                                         <td className="px-4 py-5 min-w-[200px]">
+                                              <div className="flex items-center justify-center gap-2">
+                                                  {v.status === 'pendente' && tenantPlan !== 'Elite' ? (
+                                                      <>
+                                                          <button
+                                                              onClick={() => handleAction(v.id, 'deny')}
+                                                              className="px-4 h-11 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm flex items-center justify-center text-[10px] font-black uppercase tracking-widest gap-2"
+                                                              title="Recusar"
+                                                          >
+                                                              <Trash2 className="w-4 h-4" /> Recusar
+                                                          </button>
+                                                          <button
+                                                              onClick={() => handleAction(v.id, 'approve')}
+                                                              className="px-4 h-11 rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none"
+                                                          >
+                                                              <CheckCircle2 className="w-4 h-4" /> Aprovar
+                                                          </button>
+                                                      </>
+                                                  ) : (
+                                                      <div className="flex items-center gap-2">
+                                                          {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && (
+                                                              <button
+                                                                  onClick={() => handleRedeemReward(v.customer_id)}
+                                                                  className="px-6 min-h-[44px] rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none animate-pulse-soft"
+                                                                title="Meta atingida! Clique para entregar o prêmio"
+                                                              >
+                                                                  <Trophy className="w-4 h-4 fill-white/20" /> PREMIAR!
+                                                              </button>
+                                                          )}
+                                                          
+                                                          <div className="flex items-center gap-1">
+                                                             <span className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${v.status === 'aprovado' ? 'bg-[#38B6FF]/10 text-[#38B6FF]' : v.status === 'pendente' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600 dark:bg-red-500/10'}`}>
+                                                                 {v.status === 'aprovado' ? '✅ APROVADO' : v.status === 'pendente' ? '⏳ PROCESSANDO' : '❌ NEGADO'}
+                                                             </span>
 
-                                                            {v.status === 'aprovado' && tenantPlan === 'Elite' && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setModal({
-                                                                            isOpen: true,
-                                                                            title: 'Segurança: Cancelar Ponto?',
-                                                                            message: 'Deseja realmente cancelar este ponto? O saldo do cliente será estornado.',
-                                                                            type: 'warning',
-                                                                            confirmLabel: 'SIM, CANCELAR',
-                                                                            cancelLabel: 'MANTER',
-                                                                            onConfirm: () => handleAction(v.id, 'revert')
-                                                                        });
-                                                                    }}
-                                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                                    title="Cancelar/Estornar Ponto"
-                                                                >
-                                                                    <X className="w-4 h-4" />
-                                                                </button>
-                                                            )}
-                                                         </div>
-                                                     </div>
-                                                 )}
-                                             </div>
-                                         </td>
+                                                             {(v.status === 'aprovado' || (v.status === 'pendente' && tenantPlan === 'Elite')) && (
+                                                                 <button
+                                                                     onClick={() => {
+                                                                         setModal({
+                                                                             isOpen: true,
+                                                                             title: 'Segurança: Cancelar Ponto?',
+                                                                             message: 'Deseja realmente cancelar este ponto? O saldo do cliente será estornado.',
+                                                                             type: 'warning',
+                                                                             confirmLabel: 'SIM, CANCELAR',
+                                                                             cancelLabel: 'MANTER',
+                                                                             onConfirm: () => handleAction(v.id, 'revert')
+                                                                         });
+                                                                     }}
+                                                                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                                     title="Cancelar/Estornar Ponto"
+                                                                 >
+                                                                     <X className="w-4 h-4" />
+                                                                 </button>
+                                                             )}
+                                                          </div>
+                                                      </div>
+                                                  )}
+                                              </div>
+                                          </td>
 
                                         {/* 3. Horário */}
                                         <td className="px-3 py-5 text-center">

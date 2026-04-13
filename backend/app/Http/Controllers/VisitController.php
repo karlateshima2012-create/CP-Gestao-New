@@ -51,7 +51,8 @@ class VisitController extends Controller
                 });
             }
 
-            $pendingCount = Visit::where('tenant_id', $tenantId)->where('status', 'pendente')->count();
+            $isElite = strtolower(auth()->user()->tenant?->plan ?? '') === 'elite';
+            $pendingCount = $isElite ? 0 : Visit::where('tenant_id', $tenantId)->where('status', 'pendente')->count();
 
             $visits = $query->orderBy('visit_at', 'desc')->paginate(20);
 
