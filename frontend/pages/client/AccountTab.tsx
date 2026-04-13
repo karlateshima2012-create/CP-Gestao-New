@@ -280,10 +280,10 @@ Valor: ${pack.price}`;
                   <div className="flex gap-2 items-center">
                     <Input 
                       id="onboarding-telegram-chatid"
-                      placeholder="CHAT ID AQUI"
+                      placeholder="COLE SEU CHAT ID"
                       value={telegramSettings.chat_id}
                       onChange={e => setTelegramSettings({...telegramSettings, chat_id: e.target.value})}
-                      className="h-8 text-[9px] font-bold bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-lg px-2 w-24 outline-none shadow-sm placeholder:text-slate-300"
+                      className="h-10 text-[11px] font-black bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-lg px-3 w-36 outline-none shadow-sm placeholder:text-slate-300"
                     />
                     <a 
                       href="https://t.me/cpgestao_fidelidade_bot" 

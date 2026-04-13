@@ -174,12 +174,13 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantSlug }) => {
                                                     <div className="flex flex-col sm:flex-row items-center gap-3">
                                                         {/* Campo Chat ID */}
                                                         <div className="w-full sm:flex-1">
-                                                            <Input 
+                                                            <input 
+                                                                type="text"
                                                                 placeholder="COLE SEU CHAT ID AQUI"
                                                                 value={device.telegram_chat_id || ''}
                                                                 onChange={e => handleUpdateLocal(device.id, 'telegram_chat_id', e.target.value)}
                                                                 onBlur={e => handleSaveDevice(device.id, { telegram_chat_id: e.target.value })}
-                                                                className="h-9 w-full bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-lg px-4 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm placeholder:text-slate-300 focus:ring-1 focus:ring-primary-500/10"
+                                                                className="h-10 w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg px-4 text-[11px] font-black text-slate-700 dark:text-slate-200 shadow-sm placeholder:text-slate-300 focus:ring-2 focus:ring-[#38B6FF]/20 outline-none transition-all"
                                                             />
                                                         </div>
                                                         
@@ -188,7 +189,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantSlug }) => {
                                                             href="https://t.me/cpgestao_fidelidade_bot" 
                                                             target="_blank" 
                                                             rel="noreferrer"
-                                                            className="h-9 px-6 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white flex items-center justify-center rounded-lg font-black text-[10px] uppercase tracking-widest transition-all shadow-md active:scale-95 whitespace-nowrap"
+                                                            className="h-10 px-6 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white flex items-center justify-center rounded-lg font-black text-[10px] uppercase tracking-widest transition-all shadow-md active:scale-95 whitespace-nowrap"
                                                         >
                                                             PEGAR CHAT ID
                                                         </a>
@@ -225,34 +226,34 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantSlug }) => {
                                             </div>
                                         </div>
 
-                                        {/* Coluna da Direita: QR Code Preview */}
-                                        <div className="shrink-0 flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800/20 p-6 rounded-xl border border-slate-100 dark:border-slate-800 self-stretch justify-center min-w-[210px]">
-                                            <div className="p-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800">
-                                                <div className="p-2 bg-white rounded-lg">
-                                                    <img 
-                                                        src={qrImageUrl}
-                                                        alt="QR Code Totem"
-                                                        className="w-28 h-28 sm:w-32 sm:h-32"
-                                                    />
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="w-full space-y-2">
-                                                <Button 
-                                                    onClick={() => handlePrint(device)}
-                                                    className="w-full h-10 bg-[#38B6FF] hover:bg-blue-600 text-white rounded-lg font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-blue-500/10 flex items-center justify-center gap-3 border-none transition-all active:scale-95"
-                                                >
-                                                    🖨️ IMPRIMIR QR CODE
-                                                </Button>
-                                                <Button 
-                                                    onClick={() => handleDownload(device)}
-                                                    className="w-full h-10 bg-slate-500 hover:bg-slate-600 text-white rounded-lg font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 border-none transition-all active:scale-95"
-                                                >
-                                                    <Download className="w-4 h-4" />
-                                                    BAIXAR IMAGEM
-                                                </Button>
-                                            </div>
-                                        </div>
+                                         {/* Coluna da Direita: QR Code Preview (Largura controlada) */}
+                                         <div className="shrink-0 flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800/20 p-6 rounded-xl border border-slate-100 dark:border-slate-800 self-stretch justify-center w-full md:w-[240px] md:max-w-[240px]">
+                                             <div className="p-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800">
+                                                 <div className="p-2 bg-white rounded-lg">
+                                                     <img 
+                                                         src={qrImageUrl}
+                                                         alt="QR Code Totem"
+                                                         className="w-28 h-28 sm:w-32 sm:h-32"
+                                                     />
+                                                 </div>
+                                             </div>
+                                             
+                                             <div className="w-full space-y-2">
+                                                 <Button 
+                                                     onClick={() => handlePrint(device)}
+                                                     className="w-full h-10 bg-[#38B6FF] hover:bg-blue-600 text-white rounded-lg font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-blue-500/10 flex items-center justify-center gap-3 border-none transition-all active:scale-95"
+                                                 >
+                                                     🖨️ IMPRIMIR QR CODE
+                                                 </Button>
+                                                 <Button 
+                                                     onClick={() => handleDownload(device)}
+                                                     className="w-full h-10 bg-slate-500 hover:bg-slate-600 text-white rounded-lg font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 border-none transition-all active:scale-95"
+                                                 >
+                                                     <Download className="w-4 h-4" />
+                                                     BAIXAR IMAGEM
+                                                 </Button>
+                                             </div>
+                                         </div>
                                     </div>
                                 </div>
                             );
