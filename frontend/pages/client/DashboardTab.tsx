@@ -21,7 +21,9 @@ import {
   Zap,
   QrCode,
   Share2,
-  Download
+  Download,
+  Sparkles,
+  Info
 } from 'lucide-react';
 import { Contact, PlanType } from '../../types';
 import api, { reportsService } from '../../services/api';
