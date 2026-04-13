@@ -135,6 +135,27 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ tenantSlug, onRefr
     }
   };
 
+  const handleDownload = async () => {
+    if (!tenantSlug) return;
+    const qrUrl = `${window.location.origin}/terminal/${tenantSlug}`;
+    const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(qrUrl)}`;
+    
+    try {
+      const response = await fetch(qrImg);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `QR_CODE_${tenantSlug}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao baixar QR code:', error);
+    }
+  };
+
   const dashboardUrl = `${window.location.origin}/p/${tenantSlug}`;
 
   return (
@@ -186,7 +207,7 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ tenantSlug, onRefr
           
           <div className="flex items-center gap-4 relative z-10">
             <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
-              <Monitor className="w-7 h-7" />
+              <Download className="w-7 h-7" />
             </div>
             <div>
               <h3 className="text-lg font-black uppercase tracking-tight">Placa do Caixa (Física)</h3>
@@ -198,14 +219,22 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ tenantSlug, onRefr
             <p className="text-sm text-slate-300 font-medium leading-relaxed">
               Esta é a única imagem que deve ser impressa e colada no balcão. Ela contém o link seguro para pontuação via terminal.
             </p>
-            <Button 
-              className="w-full h-14 bg-white text-slate-900 hover:bg-slate-100 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl flex items-center justify-center gap-3 transition-all"
-              onClick={() => {
-                window.open(`${window.location.origin}/terminal/${tenantSlug}`, '_blank');
-              }}
-            >
-              🖨️ IMPRIMIR QR CODE
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                className="flex-1 h-12 bg-white text-slate-900 hover:bg-slate-100 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl flex items-center justify-center gap-3 transition-all"
+                onClick={() => {
+                  window.open(`${window.location.origin}/terminal/${tenantSlug}`, '_blank');
+                }}
+              >
+                🖨️ IMPRIMIR
+              </Button>
+              <Button 
+                className="flex-1 h-12 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 transition-all border border-white/20"
+                onClick={handleDownload}
+              >
+                <Download className="w-4 h-4" /> SALVAR IMAGEM
+              </Button>
+            </div>
           </div>
         </Card>
       </div>

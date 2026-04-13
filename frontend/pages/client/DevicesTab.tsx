@@ -94,6 +94,26 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantSlug }) => {
         }
     };
 
+    const handleDownload = async (device: any) => {
+        const qrUrl = `${window.location.origin}/terminal/${tenantSlug}?device=${device.nfc_uid}`;
+        const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(qrUrl)}`;
+        
+        try {
+            const response = await fetch(qrImg);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `QR_CODE_${device.name.replace(/\s+/g, '_')}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Erro ao baixar QR code:', error);
+        }
+    };
+
     return (
         <div className="animate-fade-in pb-12 w-full max-w-5xl mx-auto">
             <div className="space-y-6">
@@ -216,7 +236,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantSlug }) => {
                                         </div>
 
                                         {/* Coluna da Direita: QR Code Preview */}
-                                        <div className="shrink-0 flex flex-col items-center gap-5 bg-slate-50 dark:bg-slate-800/20 p-6 rounded-xl border border-slate-100 dark:border-slate-800 self-stretch justify-center min-w-[210px]">
+                                        <div className="shrink-0 flex flex-col items-center gap-3 bg-slate-50 dark:bg-slate-800/20 p-6 rounded-xl border border-slate-100 dark:border-slate-800 self-stretch justify-center min-w-[210px]">
                                             <div className="p-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800">
                                                 <div className="p-2 bg-white rounded-lg">
                                                     <img 
@@ -227,13 +247,19 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantSlug }) => {
                                                 </div>
                                             </div>
                                             
-                                            <div className="w-full">
+                                            <div className="w-full space-y-2">
                                                 <Button 
                                                     onClick={() => handlePrint(device)}
-                                                    className="w-full h-11 bg-slate-500 hover:bg-slate-600 text-white rounded-lg font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-slate-500/10 flex items-center justify-center gap-3 border-none transition-all active:scale-95"
+                                                    className="w-full h-10 bg-[#38B6FF] hover:bg-blue-600 text-white rounded-lg font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-blue-500/10 flex items-center justify-center gap-3 border-none transition-all active:scale-95"
+                                                >
+                                                    🖨️ IMPRIMIR QR CODE
+                                                </Button>
+                                                <Button 
+                                                    onClick={() => handleDownload(device)}
+                                                    className="w-full h-10 bg-slate-500 hover:bg-slate-600 text-white rounded-lg font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 border-none transition-all active:scale-95"
                                                 >
                                                     <Download className="w-4 h-4" />
-                                                    IMPRIMIR QR CODE
+                                                    BAIXAR IMAGEM
                                                 </Button>
                                             </div>
                                         </div>
