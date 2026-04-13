@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recuperação de Senha</title>
 </head>
-<body style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; margin: 0; padding: 0;">
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 20px;">
+<body style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #ffffff; margin: 0; padding: 0;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; padding: 40px 20px;">
         <tr>
             <td align="center">
-                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px; overflow: hidden;">
                     <!-- Header -->
                     <tr>
                         <td style="padding: 40px 40px 20px 40px; text-align: center;">
-                            <div style="display: inline-block; padding: 16px 24px; background-color: #f1f5f9; border-radius: 16px; border: 1px solid #e2e8f0;">
-                                <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: 0.1em; text-transform: uppercase;">CP GESTÃO</h1>
-                                <p style="margin: 4px 0 0 0; font-size: 8px; font-weight: 800; color: #64748b; letter-spacing: 0.3em; text-transform: uppercase;">Creative Print</p>
+                            <div style="display: inline-block; padding: 16px 24px; background-color: #ffffff; border-radius: 16px; border: 2px solid #38B6FF;">
+                                <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #000000; letter-spacing: 0.1em; text-transform: uppercase;">CP GESTÃO</h1>
+                                <p style="margin: 4px 0 0 0; font-size: 8px; font-weight: 800; color: #38B6FF; letter-spacing: 0.3em; text-transform: uppercase;">Creative Print</p>
                             </div>
                         </td>
                     </tr>
@@ -23,7 +23,7 @@
                     <!-- Body -->
                     <tr>
                         <td style="padding: 20px 40px 40px 40px;">
-                            <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 800; color: #0f172a; text-align: center;">Recuperação de Senha</h2>
+                            <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 800; color: #000000; text-align: center;">Recuperação de Senha</h2>
                             <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 24px; color: #475569; text-align: center;">
                                 Você está recebendo este e-mail porque recebemos uma solicitação de redefinição de senha para sua conta no sistema <strong>CP Gestão</strong>.
                             </p>
@@ -67,7 +67,7 @@
                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin-top: 24px;">
                     <tr>
                         <td style="text-align: center;">
-                            <p style="margin: 0; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.2em;">
+                            <p style="margin: 0; font-size: 11px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.2em;">
                                 © 2026 Creative Print. Todos os direitos reservados.
                             </p>
                         </td>
