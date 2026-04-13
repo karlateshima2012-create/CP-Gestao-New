@@ -7,7 +7,7 @@ use App\Services\TelegramService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
-class SendTelegramVisitNotification implements ShouldQueue
+class SendTelegramVisitNotification
 {
     use InteractsWithQueue;
 
@@ -64,7 +64,7 @@ class SendTelegramVisitNotification implements ShouldQueue
             
             $replyMarkup = null;
 
-            \App\Jobs\SendTelegramNotificationJob::dispatch(
+            \App\Jobs\SendTelegramNotificationJob::dispatchSync(
                 $tenant->id, 
                 $caption, 
                 'points', 

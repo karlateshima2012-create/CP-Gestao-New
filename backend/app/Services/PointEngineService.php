@@ -61,7 +61,7 @@ class PointEngineService
                         . "📞 *Tel:* {$escPhone}\n"
                         . "💰 *Bônus:* +{$pointsToAdd} pts";
             
-            \App\Jobs\SendTelegramNotificationJob::dispatch(
+            \App\Jobs\SendTelegramNotificationJob::dispatchSync(
                 $tenant->id, 
                 $newMessage, 
                 'registration'
@@ -206,7 +206,7 @@ class PointEngineService
                 ]
             ];
 
-            \App\Jobs\SendTelegramNotificationJob::dispatch($tenant->id, $msg, 'visit', null, $markup);
+            \App\Jobs\SendTelegramNotificationJob::dispatchSync($tenant->id, $msg, 'visit', null, $markup);
 
             $rewardName = "o prêmio";
             if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
@@ -379,7 +379,7 @@ class PointEngineService
                 : "🎁 <b>SOLICITAÇÃO DE RESGATE</b>\n"
                   . "O cliente <b>{$customerNameEscaped}</b> solicitou o resgate do prêmio\. Aguardando sua aprovação\.";
 
-            \App\Jobs\SendTelegramNotificationJob::dispatch($tenant->id, $msg, 'visit');
+            \App\Jobs\SendTelegramNotificationJob::dispatchSync($tenant->id, $msg, 'visit');
 
             return ApiResponse::ok([
                 'status' => $status,
