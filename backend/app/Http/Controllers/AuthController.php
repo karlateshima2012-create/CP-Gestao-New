@@ -20,13 +20,17 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $throttleKey = Str::lower($request->email) . '|' . $request->ip();
+        $email = Str::lower($request->email);
+        $throttleKey = "login_attempt:{$email}|" . $request->ip();
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            
+            \Log::info("Login blocked for {$email} at IP {$request->ip()}. Retrying in {$seconds}s.");
+
             return response()->json([
                 'ok' => false,
-                'message' => "Muitas tentativas falhas. Tente novamente em {$seconds} segundos.",
+                'message' => "Muitas tentativas falhas. Sua conta foi temporariamente bloqueada por segurança. Tente novamente em {$seconds} segundos.",
                 'retry_after' => $seconds
             ], 429);
         }
@@ -34,22 +38,24 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->with('tenant')->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60); // Lock for 60s after 5 failures
+            // Incrementa falhas e define o tempo de bloqueio para 60 segundos
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
             
             $attempts = \Illuminate\Support\Facades\RateLimiter::attempts($throttleKey);
+            \Log::warning("Failed login attempt #{$attempts} for {$email} from IP {$request->ip()}");
             
             // Notificação após 3 falhas
             if ($attempts === 3 && $user) {
                 try {
                     Mail::to($user->email)->send(new LoginSecurityAlertMail($user->email, $request->ip()));
-                    \Log::warning("Security Alert: 3 failed login attempts for {$user->email}");
+                    \Log::info("Security alert email sent to {$user->email}");
                 } catch (\Exception $e) {
                     \Log::error("Failed to send security alert: " . $e->getMessage());
                 }
             }
 
             throw ValidationException::withMessages([
-                'email' => ['Credenciais incorretas.'],
+                'email' => ["E-mail ou senha incorretos. Tentativa {$attempts} de 3 antes do bloqueio."],
             ]);
         }
 
