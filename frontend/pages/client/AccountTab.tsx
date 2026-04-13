@@ -362,9 +362,19 @@ Valor: ${pack.price}`;
 
         {/* MINHA CONTA */}
         <section>
-          <Card className="p-10 border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900 rounded-xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+          <Card className="p-10 border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-100 dark:bg-slate-800/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
             
+            <div className="relative z-10 flex items-center gap-3 mb-10 pb-6 border-b border-slate-100 dark:border-slate-800">
+               <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
+                  <UserCircle className="w-5 h-5" />
+               </div>
+               <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">GERENCIAR</span>
+                  <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mt-1">MINHA CONTA</h2>
+               </div>
+            </div>
+
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
               <div className="lg:col-span-5 space-y-6">
                 <div className="space-y-1">
@@ -460,14 +470,14 @@ Valor: ${pack.price}`;
                  
                  <button 
                     onClick={() => window.open('https://wa.me/819011886491?text=Olá!%20Preciso%20de%20suporte%20com%20o%20CP%20Gestão.', '_blank')}
-                    className="px-4 h-7 bg-slate-500 hover:bg-slate-600 text-white font-black uppercase text-[9px] tracking-[0.1em] rounded-lg transition-all border-none shadow-sm shadow-slate-500/10"
+                    className="px-4 h-8 bg-slate-500 hover:bg-slate-600 text-white font-black uppercase text-[9px] tracking-[0.1em] rounded-lg transition-all border-none shadow-sm shadow-slate-500/10"
                  >
                    FALAR COM SUPORTE
                  </button>
 
                  <button 
                     onClick={handleRestartOnboarding}
-                    className="px-6 h-10 bg-[#E5157A] hover:bg-[#E5157A]/90 text-white font-black uppercase text-[10px] tracking-[0.1em] rounded-xl transition-all border-none shadow-xl shadow-pink-500/20 mt-4 animate-pulse flex items-center justify-center gap-2"
+                    className="px-5 h-8 bg-slate-400 hover:bg-slate-500 text-white font-black uppercase text-[9px] tracking-[0.1em] rounded-lg transition-all border-none shadow-sm shadow-slate-400/10"
                  >
                    🪄 REINICIAR TOUR DE ONBOARDING
                  </button>
