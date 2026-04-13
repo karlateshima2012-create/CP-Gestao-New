@@ -228,6 +228,24 @@ class ClientController extends Controller
 
         $oldPoints = $customer->points_balance;
         
+        if ($request->has('points_balance')) {
+            $newPoints = (int)$request->points_balance;
+            
+            // Get current goal to validate
+            $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $customer->tenant_id)->first();
+            $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+            $currentLevel = $customer->loyalty_level ?? 1;
+            $goal = $customer->tenant->points_goal;
+            $lvlIdx = max(0, (int)$currentLevel - 1);
+            if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx]) && isset($levelsConfig[$lvlIdx]['goal'])) {
+                $goal = (int) $levelsConfig[$lvlIdx]['goal'];
+            }
+
+            if ($newPoints > $goal) {
+                return ApiResponse::error("A meta de pontos do nível atual do sistema é {$goal}\. Não é permitido ultrapassar este limite\.", 'POINT_LIMIT_EXCEEDED', 422);
+            }
+        }
+
         $data = $request->except(['phone', 'photo', 'foto_perfil_url']);
         $customer->fill($data);
         $customer->last_activity_at = now();

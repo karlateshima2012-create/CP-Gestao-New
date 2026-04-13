@@ -204,6 +204,21 @@ class VisitController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $customer = Customer::where('tenant_id', $tenantId)->findOrFail($request->customer_id);
 
+        // TRAVA DE SEGURANÇA: Validar se pontos excedem a meta do nível atual
+        $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenantId)->first();
+        $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+        $currentLevel = $customer->loyalty_level ?? 1;
+        $goal = auth()->user()->tenant?->points_goal ?? 10;
+        $lvlIdx = max(0, (int)$currentLevel - 1);
+        if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx]) && isset($levelsConfig[$lvlIdx]['goal'])) {
+            $goal = (int) $levelsConfig[$lvlIdx]['goal'];
+        }
+
+        $newBalance = $customer->points_balance + (int)$request->points;
+        if ($request->points > 0 && $newBalance > $goal) {
+            return ApiResponse::error("A meta de pontos do nível atual do sistema é {$goal}\. Não é permitido ultrapassar este limite\.", 'POINT_LIMIT_EXCEEDED', 422);
+        }
+
         return DB::transaction(function () use ($request, $tenantId, $customer) {
             $service = new PointRequestService();
             

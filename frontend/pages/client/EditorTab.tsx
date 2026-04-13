@@ -798,15 +798,43 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                      {actionModal === 'visit' ? 'Pontos da Visita' : 'Quantidade de Pontos'}
-                    </label>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                        {actionModal === 'visit' ? 'Pontos da Visita' : 'Quantidade de Pontos'}
+                      </label>
+                      {loyaltySettings && (
+                        <span className="text-[10px] font-black text-primary-500 uppercase bg-primary-50 dark:bg-primary-900/30 px-2 py-1 rounded-md tracking-tighter shadow-sm border border-primary-100 dark:border-primary-800">
+                          Meta do Nível: {(loyaltySettings.levels_config?.[Math.max(0, (formData.loyaltyLevel || 1) - 1)]?.goal || loyaltySettings.points_goal || 10)}
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="number"
                       value={actionData.points}
                       onChange={e => setActionData(p => ({ ...p, points: parseInt(e.target.value) || 0 }))}
-                      className="w-full h-14 px-6 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-2xl font-black text-gray-900 dark:text-white outline-none focus:ring-4 focus:ring-primary-500/10 transition-all"
+                      className="w-full h-14 px-6 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-2xl font-black text-gray-900 dark:text-white outline-none focus:ring-4 focus:ring-primary-500/10 transition-all shadow-inner"
                     />
+
+                    {/* Alerta de Travagem Preventiva */}
+                    {loyaltySettings && (
+                      (() => {
+                        const currentGoal = parseInt(loyaltySettings.levels_config?.[Math.max(0, (formData.loyaltyLevel || 1) - 1)]?.goal || loyaltySettings.points_goal || 10);
+                        const pointsToAdd = actionModal === 'remove' ? -Math.abs(actionData.points) : actionData.points;
+                        const willExceed = (actionModal === 'add' || actionModal === 'visit') && ((formData.pointsBalance || 0) + pointsToAdd > currentGoal);
+                        
+                        if (willExceed) {
+                          return (
+                            <div className="p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30 rounded-xl mt-3 animate-in fade-in slide-in-from-top-2">
+                              <p className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-tight flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 shrink-0" />
+                                O saldo ultrapassará a meta do nível ({currentGoal})!
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Motivo (Opcional)</label>

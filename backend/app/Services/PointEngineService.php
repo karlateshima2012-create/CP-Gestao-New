@@ -163,7 +163,6 @@ class PointEngineService
             }
         }
 
-        $currentGoal = $tenant->points_goal;
         if (is_array($levelsConfig)) {
             $lvlIdx = max(0, (int)$currentLevel - 1);
             if (isset($levelsConfig[$lvlIdx]) && isset($levelsConfig[$lvlIdx]['goal'])) {
@@ -171,7 +170,11 @@ class PointEngineService
             }
         }
 
-        if ($customer->points_balance >= $currentGoal) {
+        // TRAVA DE SEGURANÇA: Não permite ultrapassar a meta
+        $remainingToGoal = max(0, $currentGoal - $customer->points_balance);
+        $pointsToAdd = min($pointsToAdd, $remainingToGoal);
+
+        if ($customer->points_balance >= $currentGoal || $pointsToAdd <= 0) {
             $visit = \App\Models\Visit::create([
                 'tenant_id' => $tenant->id,
                 'customer_id' => $customer->id,
