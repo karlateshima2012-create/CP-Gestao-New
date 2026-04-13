@@ -498,9 +498,15 @@ class ClientController extends Controller
             'cover_url' => 'sometimes|nullable|string',
             'rules_text' => 'sometimes|nullable|string',
             'reward_text' => 'sometimes|nullable|string',
+            'onboarding_completed' => 'sometimes|boolean',
         ]);
 
         try {
+            if ($request->has('onboarding_completed')) {
+                $user = $request->user();
+                $user->update(['onboarding_completed' => $request->boolean('onboarding_completed')]);
+            }
+
             $tenantUpdate = [];
             if ($request->has('description')) {
                 $tenantUpdate['description'] = $request->description;
