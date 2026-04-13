@@ -300,16 +300,18 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
               <Button
                 onClick={() => generateDownload('csv')}
                 isLoading={loadingExport}
-                className="flex-1 h-14 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 flex items-center justify-center gap-3 transition-all border-none"
+                size="lg"
+                className="flex-1 h-16 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white rounded-2xl text-[13px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 flex items-center justify-center gap-3 transition-all border-none"
               >
-                <FileCode className="w-5 h-5" /> EXPORTAR EM CSV
+                <FileCode className="w-6 h-6" /> EXPORTAR EM CSV
               </Button>
               <Button
                 onClick={() => generateDownload('xls')}
                 isLoading={loadingExport}
-                className="flex-1 h-14 bg-slate-500 hover:bg-slate-600 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-500/10 flex items-center justify-center gap-3 transition-all border-none"
+                size="lg"
+                className="flex-1 h-16 bg-slate-500 hover:bg-slate-600 text-white rounded-2xl text-[13px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-500/10 flex items-center justify-center gap-3 transition-all border-none"
               >
-                <FileSpreadsheet className="w-5 h-5" /> EXPORTAR EM EXCEL
+                <FileSpreadsheet className="w-6 h-6" /> EXPORTAR EM EXCEL
               </Button>
             </div>
           </Card>
