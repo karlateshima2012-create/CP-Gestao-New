@@ -87,12 +87,12 @@ jobs:
 
           # Email Config
           MAIL_MAILER=smtp
-          MAIL_HOST=${{ secrets.MAIL_HOST || 'smtp.gmail.com' }}
+          MAIL_HOST=${{ secrets.MAIL_HOST || 'smtp.hostinger.com' }}
           MAIL_PORT=${{ secrets.MAIL_PORT || '465' }}
           MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           MAIL_ENCRYPTION=${{ secrets.MAIL_ENCRYPTION || 'ssl' }}
-          MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS || 'contato@creativeprintjp.com' }}
+          MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS || 'suporte@creativeprintjp.com' }}
           MAIL_FROM_NAME="CP Gestão"
           EOT
 
