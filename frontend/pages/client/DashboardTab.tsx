@@ -256,7 +256,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                 <div className="pt-2">
                   <p className="text-[11px] font-semibold text-slate-400 leading-tight mb-4">Acompanhe o volume de clientes e o passivo de pontos circulantes em tempo real.</p>
                   <Button
-                    onClick={() => onChangeTab('contacts')}
+                    onClick={() => onChangeTab('clients')}
                     variant="outline"
                     className="h-10 w-full rounded-lg font-black uppercase text-[10px] tracking-widest border-slate-200 hover:bg-slate-50 transition-all"
                   >
