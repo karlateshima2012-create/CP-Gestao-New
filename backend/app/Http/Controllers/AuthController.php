@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordMail;
+use App\Mail\LoginSecurityAlertMail;
 
 class AuthController extends Controller
 {
@@ -19,13 +20,40 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        $throttleKey = Str::lower($request->email) . '|' . $request->ip();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            return response()->json([
+                'ok' => false,
+                'message' => "Muitas tentativas falhas. Tente novamente em {$seconds} segundos.",
+                'retry_after' => $seconds
+            ], 429);
+        }
+
         $user = User::where('email', $request->email)->with('tenant')->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60); // Lock for 60s after 5 failures
+            
+            $attempts = \Illuminate\Support\Facades\RateLimiter::attempts($throttleKey);
+            
+            // Notificação após 3 falhas
+            if ($attempts === 3 && $user) {
+                try {
+                    Mail::to($user->email)->send(new LoginSecurityAlertMail($user->email, $request->ip()));
+                    \Log::warning("Security Alert: 3 failed login attempts for {$user->email}");
+                } catch (\Exception $e) {
+                    \Log::error("Failed to send security alert: " . $e->getMessage());
+                }
+            }
+
             throw ValidationException::withMessages([
                 'email' => ['Credenciais incorretas.'],
             ]);
         }
+
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
