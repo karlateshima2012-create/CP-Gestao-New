@@ -197,11 +197,12 @@ export const AdminDashboard: React.FC = () => {
         totems_count: 2,
         plan_expires_at: ''
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Tenant creation error:', error);
       setStatusModal({
         isOpen: true,
         title: 'Erro',
-        message: 'Não foi possível criar a loja. Verifique os dados e tente novamente.',
+        message: error.response?.data?.message || 'Não foi possível criar a loja. Verifique os dados e tente novamente.',
         type: 'error'
       });
     } finally {

@@ -109,13 +109,24 @@ class TenantController extends Controller
                     }
                 }
 
-                // Initial PIN: Random 4 digits
-                $pin = str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
+                // Initialize Tenant Settings
                 $settings = new TenantSetting();
                 $settings->tenant_id = $tenant->id;
-                $settings->pin = $pin;
-                $settings->pin_hash = Hash::make($pin);
                 $settings->save();
+
+                // Initialize Loyalty Settings (Critical for Point Engine)
+                \App\Models\LoyaltySetting::create([
+                    'tenant_id' => $tenant->id,
+                    'levels_config' => [
+                        [
+                            'level' => 1,
+                            'name' => 'Bronze',
+                            'goal' => 10,
+                            'points_per_signup' => 1,
+                            'reward' => 'Prêmio Bronze'
+                        ]
+                    ]
+                ]);
 
                 // Populate default tags for the new tenant
                 \App\Jobs\PopulateDefaultTagsJob::dispatch($tenant->id);
@@ -142,7 +153,7 @@ class TenantController extends Controller
             });
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Tenant Creation Failed: " . $e->getMessage());
-            return ApiResponse::error('Erro ao criar novo CRM: ' . $e->getMessage(), 500);
+            return ApiResponse::error('Erro ao criar novo CRM: ' . $e->getMessage(), 'ERROR', 500);
         }
     }
 
@@ -198,7 +209,7 @@ class TenantController extends Controller
                         ->exists();
                     
                     if ($emailTaken) {
-                        return ApiResponse::error('Este e-mail já está sendo utilizado por outro administrador ou loja.', 422);
+                        return ApiResponse::error('Este e-mail já está sendo utilizado por outro administrador ou loja.', 'VALIDATION_ERROR', 422);
                     }
                 }
 
@@ -238,26 +249,19 @@ class TenantController extends Controller
                 'tenant_id' => $id,
                 'trace' => $e->getTraceAsString()
             ]);
-            return ApiResponse::error('Não foi possível atualizar os dados. Por favor, tente novamente ou contate o suporte.', 500);
+            return ApiResponse::error('Não foi possível atualizar os dados. Por favor, tente novamente ou contate o suporte.', 'ERROR', 500);
         }
     }
 
     public function resetPin(Request $request, $id)
     {
-        $pin = $request->pin ?: str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        
-        TenantSetting::updateOrCreate(
-            ['tenant_id' => $id],
-            [
-                'pin' => $pin,
-                'pin_hash' => Hash::make($pin)
-            ]
-        );
-
+        // PINs are now obsolete as of April 2026 update, but we return a fake success 
+        // to avoid breaking the UI for legacy admins until UI is fully updated.
         return ApiResponse::ok([
-            'temp_pin' => $pin
-        ], 'PIN atualizado com sucesso');
+            'temp_pin' => '0000'
+        ], 'Sistema de PIN descontinuado (Acesso via Senha)');
     }
+
 
     public function destroy($id)
     {
