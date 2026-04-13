@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Queue\SerializesModels;
 
 class ResetPasswordMail extends Mailable
@@ -28,7 +29,8 @@ class ResetPasswordMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Recuperação de Senha - CPgestao',
+            from: new Address('suporte@creativeprintjp.com', 'CP Gestão'),
+            subject: 'Recuperação de Senha - CP Gestão',
         );
     }
 

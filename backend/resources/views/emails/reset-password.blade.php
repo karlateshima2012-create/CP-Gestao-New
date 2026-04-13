@@ -13,9 +13,9 @@
                     <!-- Header -->
                     <tr>
                         <td style="padding: 40px 40px 20px 40px; text-align: center;">
-                            <div style="display: inline-block; padding: 12px; background-color: #f1f5f9; border-radius: 12px;">
-                                <img src="https://cpgestaonew.creativeprintjp.com/logo-email.png" alt="CP Gestão" style="height: 48px; width: auto; display: block;" onerror="this.style.display='none'">
-                                <h1 style="margin: 0; font-size: 24px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em;">CP GESTÃO</h1>
+                            <div style="display: inline-block; padding: 16px 24px; background-color: #f1f5f9; border-radius: 16px; border: 1px solid #e2e8f0;">
+                                <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: 0.1em; text-transform: uppercase;">CP GESTÃO</h1>
+                                <p style="margin: 4px 0 0 0; font-size: 8px; font-weight: 800; color: #64748b; letter-spacing: 0.3em; text-transform: uppercase;">Creative Print</p>
                             </div>
                         </td>
                     </tr>
