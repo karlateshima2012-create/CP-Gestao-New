@@ -347,13 +347,10 @@ class PublicTerminalController extends Controller
             // Log activity to Telegram
             try {
                 $source = $device ? "Terminal" : "Web Portal";
-                $escName = TelegramService::escapeMarkdownV2($customer->name);
-                $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-                
-                $msg = "✨ *Novo Cliente ({$source})*\n"
-                     . "👤 *Nome:* {$escName}\n"
-                     . "📞 *Tel:* {$escPhone}\n"
-                     . "💰 *Bônus:* +{$pointsToAdd} pts";
+                $msg = "✨ <b>Novo Cliente ({$source})</b>\n"
+                     . "👤 <b>Nome:</b> {$customer->name}\n"
+                     . "📞 <b>Tel:</b> {$customer->phone}\n"
+                     . "💰 <b>Bônus:</b> +{$pointsToAdd} pts";
 
                 $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $msg, 'registration');
             } catch (\Exception $te) {
