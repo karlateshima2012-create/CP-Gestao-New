@@ -207,7 +207,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
          </Card>
 
          {/* ── CARD: Trava de Segurança (Exclusivo PRO) ── */}
-         {tenantPlan === 'pro' && (
+         {(tenantPlan || '').toLowerCase() === 'pro' && (
             <Card className="border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
                <div className="px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/50">
