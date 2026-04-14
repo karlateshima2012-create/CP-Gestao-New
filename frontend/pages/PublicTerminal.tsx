@@ -863,13 +863,38 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <div className="pt-2 border-t border-slate-50 dark:border-slate-700/50">
                   <p className="text-sm font-bold text-slate-600 dark:text-slate-400 italic text-center">
-                    {foundCustomer.remaining <= 0 
-                      ? "Meta Atingida! 🎁" 
+                    {foundCustomer.remaining <= 0
+                      ? "🎉 Meta Atingida! Resgate seu prêmio na próxima visita."
                       : `Faltam ${foundCustomer.remaining} pontos para: ${foundCustomer.reward_name || 'o prêmio'}`}
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* ── Banner de Ponto Pendente (Plano PRO apenas) ── */}
+            {foundCustomer.plan === 'pro' && (foundCustomer.pending_visits ?? 0) > 0 && (
+              <div className="w-full animate-fade-in">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-700 rounded-2xl p-5 flex items-start gap-4">
+                  <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-xl">⏳</span>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-black text-amber-800 dark:text-amber-300 uppercase tracking-wide">
+                      Ponto Pendente
+                    </p>
+                    <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 leading-relaxed">
+                      {foundCustomer.will_reach_goal_if_approved
+                        ? <>
+                            Você tem {foundCustomer.pending_visits} solicitação aguardando aprovação.<br />
+                            Assim que seu ponto for aprovado, você atingirá sua meta! 🎉
+                          </>
+                        : `Você tem ${foundCustomer.pending_visits} solicitação aguardando aprovação. Seu saldo será atualizado em breve.`
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="w-full px-4 -mt-2 mb-2">
               <Button

@@ -24,7 +24,7 @@ Para evitar que clientes mal-intencionados abusem do sistema (como ler o mesmo Q
 3. **Trava de Meta Atingida (Reward Pending):**
    - Quando o saldo de pontos *já for igual à meta estipulada*, o motor **impede** o registro de novos ganhos de pontos.
    - **Fluxo de Mensagens (Modelo A):**
-      - *Antes de 12h:* "🎉 Meta Atingida! Resgate na próxima visita."
+      - *Antes de 12h:* "🎉 Meta Atingida! Resgate seu prêmio na próxima visita."
       - *Após 12h:* "🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar."
    - **Trava de Redenção:** O cliente não volta a pontuar até que o prêmio seja resgatado (via Telegram ou Dashboard).
 
@@ -52,6 +52,32 @@ Para evitar que clientes mal-intencionados abusem do sistema (como ler o mesmo Q
      - **Regra de 11 Dígitos:** O número resultante deve conter exatamente **11 dígitos numéricos**.
      - **Prefixos Obrigatórios:** Os três primeiros dígitos devem ser obrigatoriamente **070, 080 ou 090**.
    - Se o número for inválido, o sistema impede o prosseguimento e exibe o alerta: *"Número Inválido: Por favor, verifique se o número está correto."*
+
+---
+
+## 🟡 1.A Notificações de Ponto Pendente — PLANO PRO EXCLUSIVO
+
+No Plano PRO, os pontos só entram no saldo do cliente após aprovação manual do lojista. Para que o cliente entenda seu estado atual, o sistema exibe **avisos contextuais na tela de saldo** (`/p/`) conforme o cenário:
+
+### Cenário A — Ponto pendente (sem atingir meta)
+> *Ex: cliente com 2 pts solicita, meta é 10. Ponto ainda não aprovado.*
+
+> ⏳ **Ponto Pendente** — Você tem 1 solicitação aguardando aprovação. Seu saldo será atualizado em breve.
+
+### Cenário B — Ponto pendente que vai atingir a meta
+> *Ex: cliente com 9 pts solicita, meta é 10. Ponto ainda não aprovado.*
+
+> ⏳ **Ponto Pendente** — Você tem 1 solicitação aguardando aprovação. Assim que seu ponto for aprovado, você atingirá sua meta! 🎉
+
+### Cenário C — Meta atingida (após aprovação do lojista)
+- *Antes de 12h:* "🎉 Meta Atingida! Resgate seu prêmio na próxima visita."
+- *Após 12h:* "🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar."
+
+**Regras técnicas:**
+- O aviso só aparece para clientes do **Plano PRO** (não aparece no Elite).
+- A meta considerada é sempre a meta do **nível atual do cliente** (não fixo no nível 1).
+- O endpoint `/lookup` retorna: `pending_visits`, `pending_points`, `will_reach_goal_if_approved` e `plan`.
+- O polling automático a cada 5s atualiza o banner quando o lojista aprovar.
 
 ---
 

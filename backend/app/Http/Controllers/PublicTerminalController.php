@@ -202,27 +202,57 @@ class PublicTerminalController extends Controller
                 return ApiResponse::ok(['customer_exists' => false, 'points_balance' => 0]);
             }
 
-            $balance = $customer->points_balance;
-            $goal = $tenant->points_goal;
-            
-            $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenant->id)->first();
-            if ($loyalty && is_array($loyalty->levels_config) && isset($loyalty->levels_config[0])) {
-                $goal = (int)($loyalty->levels_config[0]['goal'] ?? $goal);
+            $balance      = $customer->points_balance;
+            $currentLevel = (int)($customer->loyalty_level ?? 1);
+            $lvlIdx       = max(0, $currentLevel - 1);
+            $goal         = $tenant->points_goal;
+            $rewardName   = $tenant->reward_text;
+
+            $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
+            if ($loyalty && is_array($loyalty->levels_config) && isset($loyalty->levels_config[$lvlIdx])) {
+                $goal       = (int)($loyalty->levels_config[$lvlIdx]['goal']       ?? $goal);
+                $rewardName = $loyalty->levels_config[$lvlIdx]['reward']             ?? $rewardName;
             }
 
+            // ── Plano PRO: calcular visitas pendentes deste cliente ───────────
+            $isPro          = strtolower($tenant->plan) === 'pro';
+            $pendingVisits  = 0;
+            $pendingPoints  = 0;
+            $willReachGoal  = false;
+
+            if ($isPro) {
+                $pending = \App\Models\Visit::withoutGlobalScopes()
+                    ->where('customer_id', $customer->id)
+                    ->where('tenant_id',   $tenant->id)
+                    ->whereIn('status', ['pendente', 'pending'])
+                    ->where('points_granted', '>', 0)
+                    ->get();
+
+                $pendingVisits = $pending->count();
+                $pendingPoints = $pending->sum('points_granted');
+                $willReachGoal = ($pendingVisits > 0) && (($balance + $pendingPoints) >= $goal);
+            }
+            // ─────────────────────────────────────────────────────────────────
+
             return ApiResponse::ok([
-                'customer_exists' => true,
-                'id' => $customer->id,
-                'name' => $customer->name,
-                'points_balance' => $balance,
-                'points_goal' => $goal,
-                'remaining' => max(0, $goal - $balance),
-                'loyalty_level_name' => $customer->loyalty_level_name,
-                'foto_perfil_url' => $customer->photo_url_full,
-                'reward_name' => $tenant->reward_text,
+                'customer_exists'           => true,
+                'id'                        => $customer->id,
+                'name'                      => $customer->name,
+                'plan'                      => $tenant->plan,
+                'points_balance'            => $balance,
+                'points_goal'               => $goal,
+                'remaining'                 => max(0, $goal - $balance),
+                'loyalty_level'             => $currentLevel,
+                'loyalty_level_name'        => $customer->loyalty_level_name,
+                'foto_perfil_url'           => $customer->photo_url_full,
+                'reward_name'               => $rewardName,
+                // Campos de ponto pendente (Plano PRO)
+                'pending_visits'            => $pendingVisits,
+                'pending_points'            => $pendingPoints,
+                'will_reach_goal_if_approved' => $willReachGoal,
                 'history' => PointMovement::where('customer_id', $customer->id)->latest()->limit(5)->get()->map(fn($m) => [
                     'amount' => $m->points, 'type' => $m->type, 'date' => $m->created_at ? $m->created_at->format('d/m/Y') : 'N/A'
-                ])
+                ]),
             ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("LOOKUP_ERROR: " . $e->getMessage() . " at " . $e->getLine());
