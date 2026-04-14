@@ -144,6 +144,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     if (token) setQrToken(token);
   }, []);
 
+  // ── Auto-transition for Level Up ──────────────────────────────────
+  useEffect(() => {
+    if (mode === 'LEVEL_UP') {
+      const timer = setTimeout(() => {
+        setMode('RESULT_CLIENT');
+      }, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [mode]);
+
   // Polling for Approval & Balance Updates
   useEffect(() => {
     let interval: any;
@@ -297,7 +307,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         if (isTerminalMode) {
           handleEarn(undefined, targetPhone);
-        } else if (res.data.show_level_up) {
+        } else if (res.data.level_up) {
           setMode('LEVEL_UP');
         } else {
           setMode('RESULT_CLIENT');

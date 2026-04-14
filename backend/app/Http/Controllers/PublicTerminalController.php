@@ -232,7 +232,18 @@ class PublicTerminalController extends Controller
                 $pendingPoints = $pending->sum('points_granted');
                 $willReachGoal = ($pendingVisits > 0) && (($balance + $pendingPoints) >= $goal);
             }
-            // ─────────────────────────────────────────────────────────────────
+            // ── Level Up Announcement ───────────────────────────────────────
+            $levelUpAnnouncement = null;
+            $prefs = $customer->preferences ?? [];
+            if (isset($prefs['pending_level_up_announcement']) && $prefs['pending_level_up_announcement']) {
+                $levelUpAnnouncement = [
+                    'title' => "Parabéns, {$customer->name}!",
+                    'message' => "Você conquistou o nível: " . $customer->loyalty_level_name,
+                    'description' => "Seus benefícios foram atualizados! Agora você ganha pontos mais rápido."
+                ];
+                unset($prefs['pending_level_up_announcement']);
+                $customer->update(['preferences' => $prefs]);
+            }
 
             return ApiResponse::ok([
                 'customer_exists'           => true,
@@ -250,6 +261,7 @@ class PublicTerminalController extends Controller
                 'pending_visits'            => $pendingVisits,
                 'pending_points'            => $pendingPoints,
                 'will_reach_goal_if_approved' => $willReachGoal,
+                'level_up'                  => $levelUpAnnouncement,
                 'history' => PointMovement::where('customer_id', $customer->id)->latest()->limit(5)->get()->map(fn($m) => [
                     'amount' => $m->points, 'type' => $m->type, 'date' => $m->created_at ? $m->created_at->format('d/m/Y') : 'N/A'
                 ]),
