@@ -84,22 +84,22 @@ class TelegramWebhookController extends Controller
         $originalText = trim($originalText);
 
         if (strpos($data, 'approve_visit:') === 0) {
-            $visitId = str_replace('approve_visit:', '', $data);
+            $visitId = trim(str_replace('approve_visit:', '', $data));
             return $this->processVisit($visitId, 'approved', $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
         }
 
         if (strpos($data, 'reject_visit:') === 0) {
-            $visitId = str_replace('reject_visit:', '', $data);
+            $visitId = trim(str_replace('reject_visit:', '', $data));
             return $this->processVisit($visitId, 'denied', $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
         }
 
         if (strpos($data, 'approve_request:') === 0) {
-            $requestId = str_replace('approve_request:', '', $data);
+            $requestId = trim(str_replace('approve_request:', '', $data));
             return $this->processRequest($requestId, 'approved', $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
         }
 
         if (strpos($data, 'reject_request:') === 0) {
-            $requestId = str_replace('reject_request:', '', $data);
+            $requestId = trim(str_replace('reject_request:', '', $data));
             return $this->processRequest($requestId, 'denied', $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
         }
 
@@ -130,8 +130,15 @@ class TelegramWebhookController extends Controller
 
         $visit = \App\Models\Visit::withoutGlobalScopes()->find($visitId);
 
+        // Fallback: If not found in visits, search in point_requests (legacy/hybrid support)
         if (!$visit) {
-            \Illuminate\Support\Facades\Log::warning('TelegramWebhook: Visit NOT FOUND', ['visit_id' => $visitId]);
+            \Illuminate\Support\Facades\Log::info('TelegramWebhook: Visit not found in visits table, checking point_requests', ['id' => $visitId]);
+            $request = \App\Models\PointRequest::withoutGlobalScopes()->find($visitId);
+            if ($request) {
+                return $this->processRequest($visitId, $action, $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
+            }
+
+            \Illuminate\Support\Facades\Log::warning('TelegramWebhook: Record NOT FOUND in any table', ['id' => $visitId]);
             $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Visita não encontrada.", true);
             return response()->json(['status' => 'not_found']);
         }
