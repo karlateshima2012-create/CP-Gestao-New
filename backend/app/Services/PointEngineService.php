@@ -84,9 +84,9 @@ class PointEngineService
             ->where('customer_id', $customer->id)
             ->where('tenant_id', $tenant->id)
             ->where(function($q) {
-                // Consider only valid approved/pending visits that are POSITIVE in points
-                // and ignore specifically the signup bonus if it was recorded as a visit.
-                $q->whereIn('status', ['pendente', 'aprovado', 'pending', 'approved', 'auto_approved'])
+                // Cooldown now ONLY applies to points already granted (approved).
+                // Pending requests do NOT trigger the cooldown, allowing customers to accumulate requests.
+                $q->whereIn('status', ['aprovado', 'approved', 'auto_approved'])
                   ->where('points_granted', '>', 0);
             })
             ->where('visit_at', '>=', now()->subSeconds($cooldownSeconds))
