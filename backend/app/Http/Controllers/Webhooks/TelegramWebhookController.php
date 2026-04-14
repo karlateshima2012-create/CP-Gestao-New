@@ -142,7 +142,7 @@ class TelegramWebhookController extends Controller
             }
 
             \Illuminate\Support\Facades\Log::error('TelegramWebhook: Record NOT FOUND in ANY table after full check', ['id' => $visitId]);
-            $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Visita não encontrada (ID: " . substr($visitId, 0, 8) . "...)", true);
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Visita não encontrada.", true);
             return response()->json(['status' => 'not_found']);
         }
 
@@ -250,7 +250,7 @@ class TelegramWebhookController extends Controller
 
         if (!$request) {
             \Illuminate\Support\Facades\Log::warning('TelegramWebhook: PointRequest NOT FOUND', ['id' => $requestId]);
-            $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Solicitação não encontrada (" . substr($requestId, 0, 8) . "...)", true);
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Solicitação não encontrada.", true);
             return response()->json(['status' => 'not_found']);
         }
 
