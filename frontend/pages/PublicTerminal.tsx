@@ -355,22 +355,55 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       if (lookupRes.data.customer_exists) {
         setFoundCustomer(lookupRes.data);
         const earnRes = await terminalService.earn(tenantSlug, deviceUid, targetPhone, undefined, qrToken, sessionToken);
-        
+        if (qrToken) setQrToken(null);
+
+        // CASO 1: Meta já atingida há mais de 12h → resgate liberado
         if (earnRes.data.is_reward_ready) {
-             setModal({
-                 isOpen: true,
-                 title: '🏆 RESGATE PENDENTE!',
-                 message: earnRes.data.message || 'Seu prêmio está liberado! Dirija-se ao caixa para resgatar.',
-                 type: 'warning'
-             });
-             setMode('START');
-             if (qrToken) setQrToken(null);
-             return;
+          setApprovedData({
+            points_balance: earnRes.data.new_balance,
+            points_goal: earnRes.data.points_goal,
+            auto_approved: false
+          });
+          setMode('AUTO_SUCCESS');
+          setRewardModal({
+            isOpen: true,
+            title: '🎁 Prêmio Esperando!',
+            message: earnRes.data.message || '🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar.',
+            points: earnRes.data.new_balance,
+            goal: earnRes.data.points_goal
+          });
+          return;
         }
 
+        // CASO 2: Acabou de bater a meta agora (dentro de 12h, is_goal_reached: true)
+        if (earnRes.data.is_goal_reached) {
+          setApprovedData({
+            points_balance: earnRes.data.new_balance,
+            points_goal: earnRes.data.points_goal,
+            auto_approved: true,
+            is_goal_reached: true
+          });
+          setFoundCustomer((prev: any) => ({
+            ...prev,
+            points_balance: earnRes.data.new_balance,
+            points_goal: earnRes.data.points_goal,
+            remaining: 0
+          }));
+          setMode('AUTO_SUCCESS');
+          setShowStars(true);
+          setTimeout(() => setShowStars(false), 1500);
+          setRewardModal({
+            isOpen: true,
+            title: '🎉 META ATINGIDA!',
+            message: earnRes.data.message || '🎉 Meta Atingida! Resgate na próxima visita.',
+            points: earnRes.data.new_balance,
+            goal: earnRes.data.points_goal
+          });
+          return;
+        }
+
+        // CASO 3: Ponto normal (meta não atingida)
         const isAuto = earnRes.data.auto_approved;
-        const reachedGoal = earnRes.data.is_reward_ready;
-        const backendMsg = earnRes.data.message;
 
         setRewardModal({
           isOpen: true,
@@ -388,7 +421,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             points_goal: earnRes.data.points_goal,
             auto_approved: true
           });
-          setFoundCustomer(prev => ({
+          setFoundCustomer((prev: any) => ({
             ...prev,
             ...earnRes.data,
             points_balance: earnRes.data.new_balance,
@@ -406,7 +439,6 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setMode(isAuto ? 'AUTO_SUCCESS' : 'WAITING_APPROVAL');
         setShowStars(true);
         setTimeout(() => setShowStars(false), 1500);
-        if (qrToken) setQrToken(null);
       } else {
         setMode('VISIT_NOT_FOUND');
       }
