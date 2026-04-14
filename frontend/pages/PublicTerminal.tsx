@@ -98,6 +98,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     postalCode: '',
     address: '',
     companyName: '',
+    instagram: '',
     photo: undefined as string | undefined
   });
 
@@ -597,6 +598,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         postal_code: customerData.postalCode,
         address: customerData.address,
         company_name: customerData.companyName,
+        instagram: customerData.instagram,
         photo: customerData.photo
       });
       const isAdmin = !!localStorage.getItem('auth_token');
@@ -633,7 +635,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const reset = () => {
     setMode('START');
     setPhone('');
-    setCustomerData({ name: '', email: '', city: '', province: '', postalCode: '', address: '', companyName: '', photo: undefined });
+    setCustomerData({ name: '', email: '', city: '', province: '', postalCode: '', address: '', companyName: '', instagram: '', photo: undefined });
     setFoundCustomer(null);
     setLoading(false);
     setQrToken(null);
@@ -978,6 +980,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Input label="Cidade *" value={customerData.city} placeholder="Cidade" onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })} required />
                 </div>
                 <Input label="Província *" value={customerData.province} placeholder="Estado" onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })} required />
+                <Input label={<>@ INSTAGRAM <span className="text-gray-400 font-medium ml-1">(OPCIONAL)</span></>} value={customerData.instagram} placeholder="ex: @seuinsta" onChange={e => setCustomerData({ ...customerData, instagram: e.target.value })} />
               </div>
               <Button type="submit" isLoading={loading} className="w-full h-20 bg-[#64748B] hover:bg-[#475569] text-white rounded-[25px] font-black uppercase shadow-xl">
                 CADASTRAR E GANHAR PONTO

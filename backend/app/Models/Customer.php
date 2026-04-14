@@ -41,6 +41,7 @@ class Customer extends Model
         'total_spent',
         'average_ticket',
         'attendance_count',
+        'instagram',
     ];
 
     /**

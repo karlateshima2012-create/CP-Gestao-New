@@ -119,6 +119,7 @@ class ClientController extends Controller
                     'province' => $request->province,
                     'postal_code' => $request->postal_code,
                     'address' => $request->address,
+                    'instagram' => $request->instagram,
                     'points_balance' => $initialPoints + $signupBonus,
                     'source' => $request->source ?? 'crm',
                     'last_activity_at' => now(),

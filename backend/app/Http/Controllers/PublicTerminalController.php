@@ -330,6 +330,7 @@ class PublicTerminalController extends Controller
                 'city' => $request->city,
                 'province' => $request->province,
                 'address' => $request->address,
+                'instagram' => $request->instagram,
                 'source' => $device ? 'terminal' : 'web_portal',
                 'last_activity_at' => now()
             ]);
