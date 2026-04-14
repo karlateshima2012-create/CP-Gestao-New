@@ -76,7 +76,10 @@ class PointEngineService
             }
         }
 
-        $cooldownHours = 12;
+        $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
+        $cooldownSeconds = $loyalty->cooldown_seconds ?? (12 * 3600);
+        $cooldownHours = round($cooldownSeconds / 3600, 1);
+        
         $recentVisit = Visit::withoutGlobalScopes()
             ->where('customer_id', $customer->id)
             ->where('tenant_id', $tenant->id)
@@ -86,7 +89,7 @@ class PointEngineService
                 $q->whereIn('status', ['pendente', 'aprovado', 'pending', 'approved', 'auto_approved'])
                   ->where('points_granted', '>', 0);
             })
-            ->where('visit_at', '>=', now()->subHours($cooldownHours))
+            ->where('visit_at', '>=', now()->subSeconds($cooldownSeconds))
             ->first();
 
         if ($recentVisit) {
@@ -112,7 +115,8 @@ class PointEngineService
                 ]);
             }
 
-            return ApiResponse::error("Aguarde {$cooldownHours}h entre visitas para pontuar novamente.", 'VISIT_COOLDOWN', 429);
+            $timeMsg = $cooldownHours < 1 ? round($cooldownSeconds / 60) . ' min' : $cooldownHours . 'h';
+            return ApiResponse::error("Aguarde {$timeMsg} entre visitas para pontuar novamente.", 'VISIT_COOLDOWN', 429);
         }
 
         if ($device && $device->mode === 'auto_checkin') {

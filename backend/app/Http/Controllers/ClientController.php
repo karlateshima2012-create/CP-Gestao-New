@@ -444,7 +444,7 @@ class ClientController extends Controller
             'regular_points_per_scan' => 'sometimes|integer|min:1|max:20',
             'signup_bonus_points' => 'sometimes|integer|min:0|max:10',
             'vip_initial_points' => 'sometimes|integer|min:0|max:10',
-            'cooldown_seconds' => 'sometimes|integer|min:0|max:3600',
+            'cooldown_seconds' => 'sometimes|integer|min:0|max:86400',
             'levels_config' => 'sometimes|nullable|array',
         ]);
 

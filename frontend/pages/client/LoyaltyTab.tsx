@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button, StatusModal } from '../../components/ui';
-import { Award, Upload, X, Image as ImageIcon, Layout } from 'lucide-react';
+import { Award, Upload, X, Image as ImageIcon, Layout, Shield } from 'lucide-react';
 import { Contact, PlanType } from '../../types';
 import api from '../../services/api';
 
@@ -35,6 +35,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
       rules_text: '',
       logo_url: null as string | null,
       cover_url: null as string | null,
+      cooldown_seconds: 43200,
       levels_config: [] as LevelConfig[]
    });
    const [isLoading, setIsLoading] = useState(false);
@@ -204,6 +205,41 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                </div>
             </div>
          </Card>
+
+         {/* ── CARD: Trava de Segurança (Exclusivo PRO) ── */}
+         {tenantPlan === 'pro' && (
+            <Card className="border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
+               <div className="px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/50">
+                     <Shield className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                  </div>
+                  <div>
+                     <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white uppercase">TRAVA De SEGURANACA</h2>
+                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">Escolha o tempo de trava de seguranca entre as solicitacoes de ponto</p>
+                  </div>
+               </div>
+               <div className="p-6">
+                  <div className="flex gap-4">
+                     {[
+                        { label: '10 min', value: 600 },
+                        { label: '12 horas', value: 43200 }
+                     ].map(option => (
+                        <button
+                           key={option.value}
+                           onClick={() => setLoyaltySettings(s => ({ ...s, cooldown_seconds: option.value }))}
+                           className={`flex-1 h-14 rounded-xl font-black text-xs uppercase tracking-widest transition-all border-2 ${
+                              loyaltySettings.cooldown_seconds === option.value
+                                 ? 'bg-slate-900 text-white border-slate-900'
+                                 : 'bg-white text-slate-400 border-slate-100 dark:bg-gray-800 dark:border-gray-700 hover:border-slate-200'
+                           }`}
+                        >
+                           {option.label}
+                        </button>
+                     ))}
+                  </div>
+               </div>
+            </Card>
+         )}
 
          {/* ── CARD 2: Níveis do Programa ── */}
          <Card className="border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
