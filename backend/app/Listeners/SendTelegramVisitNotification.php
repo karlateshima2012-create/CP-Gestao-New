@@ -108,6 +108,7 @@ class SendTelegramVisitNotification
                 ]
             ];
 
+            \Illuminate\Support\Facades\Log::debug("Sending Telegram PRO notification with visit ID: {$visit->id}");
             $tgRes = $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
             
             if ($tgRes && isset($tgRes['result']['message_id'])) {

@@ -121,9 +121,17 @@ class TelegramWebhookController extends Controller
      */
     private function processVisit($visitId, $action, $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery)
     {
+        \Illuminate\Support\Facades\Log::info('TelegramWebhook processVisit', [
+            'raw_callback_data' => $callbackQuery['data'] ?? 'N/A',
+            'extracted_id'      => $visitId,
+            'action'            => $action,
+            'chat_id'           => $chatId
+        ]);
+
         $visit = \App\Models\Visit::withoutGlobalScopes()->find($visitId);
 
         if (!$visit) {
+            \Illuminate\Support\Facades\Log::warning('TelegramWebhook: Visit NOT FOUND', ['visit_id' => $visitId]);
             $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Visita não encontrada.", true);
             return response()->json(['status' => 'not_found']);
         }
