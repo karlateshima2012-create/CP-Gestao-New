@@ -22,6 +22,7 @@ Mensagens exibidas nas telas do `/p/{slug}` e `/terminal/{slug}`.
 ### C. Evolução e Metas (Level Up)
 *   **Conquista de Nível:** "Parabéns, {Nome}! Você conquistou o nível: {Nível}"
 *   **Feedback:** "Seus benefícios foram atualizados! Agora você ganha pontos mais rápido."
+*   **Comportamento:** A tela de conquista (LEVEL_UP) é exibida automaticamente por **6 segundos** no primeiro acesso do cliente após subir de nível, redirecionando em seguida para a tela de saldo normal.
 *   **Barra de Progresso:**
     *   *Meta Atingida:* "Meta Atingida! 🎁"
     *   *Progresso:* "Faltam {X} pontos para: {Nome do Prêmio}"
@@ -62,4 +63,4 @@ Mensagens de "segurança" exibidas em casos de falha de rede ou configuração.
 *   **Limite de Contatos:** "🚫 Limite Atingido! O cadastro de novos clientes foi pausado."
 
 ---
-*Documentação consolidada em 11/04/2026 - CP Gestão v3.0*
+*Documentação consolidada em 14/04/2026 - CP Gestão v3.2 (Level Up Update)*

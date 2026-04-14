@@ -199,8 +199,10 @@ O componente `TelegramWebhookController` atua em forte união com a refatoraçã
 #### Lógica Externa de Resgate (`handleRedeemReward` & Controller):
 Quando acionado (via botão do dashboard no `ClientController` ou Telegram Webhook):
 1. **Validação Estrita:** Checa de novo se `points_balance >= goal` para a segurança garantida do nível.
-2. **Execução Virtual:** Um Objeto Fake Request (`mockRequest`) é montado para ser injetado passivamente no motor com metas de conversão de ponto de resgate (metadado de `is_redemption`).
-3. **Mudança de Ciclo:** A mensagem reage entregando à loja um fechamento limpo substituindo por completo pelo header final "🏆 **RECOMPENSA ENTREGUE!**" atualizando ciclo, o rank/nível do cliente e resetando ou descontando seus pontos apropriados.
+2. **Mudança de Ciclo:** O cliente sobe de nível (ou reinicia o loop).
+3. **Persistência de Celebração (Gatilho Level Up):** O sistema marca o campo `pending_level_up_announcement` nas preferências (`preferences`) do cliente no banco de dados.
+4. **Resgate Visual:** No primeiro acesso do cliente à tela de saldo após a premiação, o backend detecta o flag, envia os parabéns e **limpa o marcador** imediatamente, garantindo que a celebração ocorra apenas uma vez.
+5. **Transição Automática:** No frontend, a tela de troféu é exibida por 6 segundos antes de liberar o acesso ao saldo.
 
 ---
 
@@ -210,4 +212,4 @@ Quando acionado (via botão do dashboard no `ClientController` ou Telegram Webho
 - **Configuração Estática:** Metas e níveis do programa devem ser configurados preferencialmente antes do início do programa para garantir a integridade da jornada do cliente.
 
 ---
-*Documentação atualizada em 14/04/2026 - CPgestao-v2.5.5*
+*Documentação atualizada em 14/04/2026 - CPgestao-v2.6.0 (Level Up persistent flow)*
