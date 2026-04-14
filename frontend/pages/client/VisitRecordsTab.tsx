@@ -328,7 +328,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                                                       </>
                                                   ) : (
                                                       <div className="flex items-center gap-2">
-                                                          {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && (
+                                                          {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && visits.findIndex(visit => visit.customer_id === v.customer_id) === visits.indexOf(v) && (
                                                               <button
                                                                   onClick={() => handleRedeemReward(v.customer_id)}
                                                                   className="px-6 min-h-[44px] rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none animate-pulse-soft"
