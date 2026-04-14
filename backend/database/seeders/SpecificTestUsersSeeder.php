@@ -7,10 +7,9 @@ use Illuminate\Support\Facades\Hash;
 class SpecificTestUsersSeeder extends Seeder {
     public function run(): void {
         $users = [
-            'admin@cpgestaonew.com' => 'Admin123!',
+            'suporte@creativeprintjp.com' => 'CPgestaoCRM23%',
             'elite@cpgestaonew.com' => 'Elite123!',
             'pro@cpgestaonew.com'   => 'Pro123!',
-            'suporte@cpgestaonew.com' => 'Senha123!'
         ];
         foreach ($users as $email => $password) {
             $user = User::where('email', $email)->first();
@@ -22,7 +21,7 @@ class SpecificTestUsersSeeder extends Seeder {
                     'name' => 'User ' . $email,
                     'email' => $email,
                     'password' => Hash::make($password),
-                    'role' => ($email === 'admin@cpgestaonew.com' || $email === 'suporte@cpgestaonew.com') ? 'admin' : 'client',
+                    'role' => (str_contains($email, 'suporte')) ? 'admin' : 'client',
                     'active' => true,
                     'onboarding_completed' => true
                 ]);
