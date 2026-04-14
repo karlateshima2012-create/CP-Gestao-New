@@ -7,9 +7,10 @@ Este arquivo documenta toda a lógica do Motor de Pontuação (Point Engine), re
 ## 🔒 1. Travas e Cooldowns (Regras de Segurança)
 Para evitar que clientes mal-intencionados abusem do sistema (como ler o mesmo QR Code várias vezes ou passar no Totem repetidas vezes), existem diversas travas em vigor:
 
-1. **Cooldown de Visita Geral (12 Horas) — Inteligente:**
-   - O sistema bloqueia uma nova pontuação se o cliente tiver alguma visita registrada nas últimas **12 horas**.
-   - **Exceção de Cadastro:** Pontos de **Bônus de Cadastro** (Signup Bonus) não acionam o cooldown de 12 horas. O cliente pode se cadastrar (ganhar o bônus) e efetuar sua primeira compra no estabelecimento no mesmo dia sem ser bloqueado.
+1. **Cooldown de Visita Geral (12 Horas ou 10 Minutos) — Inteligente:**
+   - O sistema bloqueia uma nova pontuação baseada no intervalo configurado pelo lojista.
+   - **Personalização (Plano PRO):** Lojistas no Plano PRO podem alternar entre uma trava de **12 Horas** (padrão) ou **10 Minutos** (ideal para campanhas rápidas de engajamento).
+   - **Exceção de Cadastro:** Pontos de **Bônus de Cadastro** (Signup Bonus) não acionam o cooldown. O cliente pode se cadastrar e efetuar sua primeira solicitação no mesmo dia.
    - **Comportamento para Meta Atingida:** Se o cliente bater a meta e consultar o terminal em menos de 12h, a mensagem exibida será: *"🎉 Meta Atingida! Seu prêmio estará esperando na sua próxima visita!"*.
    - **Liberação de Resgate (> 12h):** Após transcorrida a visita de 12 horas, se o cliente consultar o saldo ou tentar pontuar, a mensagem mudará para: *"🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar e subir para o próximo nível."*
    - No estado de resgate pendente (> 12h), o sistema dispara um alerta ao lojista (Telegram/Dashboard) solicitando a entrega do prêmio.
@@ -68,6 +69,11 @@ No Plano PRO, os pontos só entram no saldo do cliente após aprovação manual 
 > *Ex: cliente com 9 pts solicita, meta é 10. Ponto ainda não aprovado.*
 
 > ⏳ **Ponto Pendente** — Você tem 1 solicitação aguardando aprovação. Assim que seu ponto for aprovado, você atingirá sua meta! 🎉
+
+### Regras de Acúmulo e Trava (Plano PRO)
+- **Respeito à Trava:** A trava de segurança (10 min ou 12h) é aplicada entre **cada envio** de solicitação, independentemente de a anterior estar pendente ou aprovada.
+- **Acúmulo de Pendências:** Se o tempo da trava já passou, mas o lojista ainda não aprovou a solicitação anterior, o cliente **pode** enviar uma nova solicitação.
+- **Contador Dinâmico:** O portal exibe a contagem correta de solicitações na fila: *"Você tem X solicitações aguardando aprovação"*.
 
 ### Cenário C — Meta atingida (após aprovação do lojista)
 - *Antes de 12h:* "🎉 Meta Atingida! Resgate seu prêmio na próxima visita."
@@ -203,4 +209,4 @@ Quando acionado (via botão do dashboard no `ClientController` ou Telegram Webho
 - **Configuração Estática:** Metas e níveis do programa devem ser configurados preferencialmente antes do início do programa para garantir a integridade da jornada do cliente.
 
 ---
-*Documentação atualizada em 08/04/2026 - CPgestao-v2.7.5*
+*Documentação atualizada em 14/04/2026 - CPgestao-v2.5.5*
