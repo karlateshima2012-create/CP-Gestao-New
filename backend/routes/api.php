@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.5.3', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.5.4', 'time' => now()->toDateTimeString()]);
 });
 
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
