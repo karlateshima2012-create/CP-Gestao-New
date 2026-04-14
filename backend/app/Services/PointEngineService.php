@@ -84,9 +84,9 @@ class PointEngineService
             ->where('customer_id', $customer->id)
             ->where('tenant_id', $tenant->id)
             ->where(function($q) {
-                // Cooldown now ONLY applies to points already granted (approved).
-                // Pending requests do NOT trigger the cooldown, allowing customers to accumulate requests.
-                $q->whereIn('status', ['aprovado', 'approved', 'auto_approved'])
+                // The lock is respected between ANY two requests (Pending or Approved).
+                // This prevents spam but allows accumulation if the wait time (e.g., 12h) is respected.
+                $q->whereIn('status', ['pendente', 'aprovado', 'pending', 'approved', 'auto_approved'])
                   ->where('points_granted', '>', 0);
             })
             ->where('visit_at', '>=', now()->subSeconds($cooldownSeconds))

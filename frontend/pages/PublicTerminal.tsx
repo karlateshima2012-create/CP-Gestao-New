@@ -887,10 +887,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 leading-relaxed">
                       {foundCustomer.will_reach_goal_if_approved
                         ? <>
-                            Você tem {foundCustomer.pending_visits} solicitação aguardando aprovação.<br />
+                            Você tem {foundCustomer.pending_visits} {foundCustomer.pending_visits > 1 ? 'solicitações' : 'solicitação'} aguardando aprovação.<br />
                             Assim que seu ponto for aprovado, você atingirá sua meta! 🎉
                           </>
-                        : `Você tem ${foundCustomer.pending_visits} solicitação aguardando aprovação. Seu saldo será atualizado em breve.`
+                        : `Você tem ${foundCustomer.pending_visits} ${foundCustomer.pending_visits > 1 ? 'solicitações' : 'solicitação'} aguardando aprovação. Seu saldo será atualizado em breve.`
                       }
                     </p>
                   </div>
