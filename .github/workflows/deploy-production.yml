@@ -139,6 +139,9 @@ jobs:
             # Migração do Banco de Dados (Upgrade da V2)
             php artisan migrate --force
             
+            # Garantir credenciais do Admin Master (Novo padrão)
+            php artisan db:seed --class=SpecificTestUsersSeeder --force
+            
             # Limpeza e Otimização
             php artisan config:cache
             php artisan route:cache
