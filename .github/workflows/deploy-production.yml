@@ -1,0 +1,151 @@
+name: Deploy CP Gestão v2 - Produção
+# Este workflow faz o deploy da v2 para o subdomínio PRINCIPAL
+# Inclui backup preventivo do banco de dados v1
+
+on:
+  push:
+    branches:
+      - master # Trata a master como branch de produção
+
+jobs:
+  deploy:
+    name: Deploy Produção v2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          VITE_API_URL=https://cpgestao.creativeprintjp.com/api npm run build
+          cd ..
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Prepare Package
+        run: |
+          rm -rf deploy
+          mkdir -p deploy/api
+          mkdir -p deploy/api_backend
+          
+          # Copia Frontend
+          cp -r frontend/dist/* deploy/
+          
+          # Copia Backend
+          cp -r backend/* deploy/api_backend/
+          
+          # Root .htaccess (SPA + API Bypass)
+          cat <<EOT > deploy/.htaccess
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteBase /
+              
+              # Bypass API
+              RewriteRule ^api(/.*)?$ - [L]
+              
+              # SPA Routing
+              RewriteRule ^index\.html$ - [L]
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteRule . /index.html [L]
+          </IfModule>
+          EOT
+          
+          # API Bridge .htaccess
+          cat <<EOT > deploy/api/.htaccess
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteRule ^(.*)$ ../api_backend/public/\$1 [L]
+          </IfModule>
+          EOT
+          
+          # Create .env (Usando os segredos do DB da v1)
+          cat <<EOT > deploy/api_backend/.env
+          APP_NAME="CP Gestão"
+          APP_ENV=production
+          APP_KEY=${{ secrets.PROD_APP_KEY || 'base64:XG8pY6XpD/v77y5S6L7U5P4R3G6B1N7=' }}
+          APP_DEBUG=false
+          APP_URL=https://cpgestao.creativeprintjp.com
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=${{ secrets.DB_DATABASE }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          CACHE_DRIVER=file
+          FILESYSTEM_DISK=local
+          SESSION_DRIVER=file
+          CORS_ALLOWED_ORIGINS=https://cpgestao.creativeprintjp.com
+
+          # Telegram Config
+          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN || '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4' }}
+          EOT
+
+      - name: SSH Backup & Maintenance Down
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || 65002 }}
+          script: |
+            # 1. Criar pasta de backup se não existir
+            mkdir -p ~/backups_v2_migration
+            
+            # 2. Backup Preventivo do Banco de Dados V1
+            mysqldump -h 127.0.0.1 -u ${{ secrets.DB_USERNAME }} -p'${{ secrets.DB_PASSWORD }}' ${{ secrets.DB_DATABASE }} > ~/backups_v2_migration/v1_prod_backup_$(date +%F_%H-%M-%S).sql
+            
+            # 3. Entrar em modo de manutenção no diretório de PRODUÇÃO
+            cd /home/u176367625/domains/creativeprintjp.com/public_html/cpgestao/api_backend || true
+            php artisan down || echo "Primeiro deploy ou pasta inexistente"
+
+      - name: Upload v2 Files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || 65002 }}
+          timeout: 600s
+          source: "deploy/**"
+          target: "/home/u176367625/domains/creativeprintjp.com/public_html/cpgestao"
+          overwrite: true
+          strip_components: 1
+
+      - name: Post-Deploy & Migrate
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || 65002 }}
+          timeout: 600s
+          script: |
+            cd /home/u176367625/domains/creativeprintjp.com/public_html/cpgestao/api_backend
+            
+            # Instalação limpa das dependências
+            composer install --no-dev --optimize-autoloader
+            
+            # Migração do Banco de Dados (Upgrade da V2)
+            php artisan migrate --force
+            
+            # Limpeza e Otimização
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan storage:link || true
+            chmod -R 775 storage bootstrap/cache
+            
+            # 4. Sair do modo de manutenção
+            php artisan up
+            echo "Deploy Produção v2 Finalizado com Sucesso!"
