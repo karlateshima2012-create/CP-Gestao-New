@@ -270,7 +270,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                                     </td>
                                 </tr>
                             ) : (
-                                visits.map((v) => (
+                                visits.map((v, index) => (
                                     <tr key={v.id} className="group hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
                                         {/* 1. Cliente */}
                                         <td className="px-4 sm:px-6 py-5">
@@ -328,7 +328,7 @@ export const VisitRecordsTab: React.FC<VisitRecordsTabProps> = ({ tenantPlan }) 
                                                       </>
                                                   ) : (
                                                       <div className="flex items-center gap-2">
-                                                          {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && visits.findIndex(visit => visit.customer_id === v.customer_id) === visits.indexOf(v) && (
+                                                          {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && visits.findIndex(visit => visit.customer_id === v.customer_id) === index && (
                                                               <button
                                                                   onClick={() => handleRedeemReward(v.customer_id)}
                                                                   className="px-6 min-h-[44px] rounded-lg bg-[#38B6FF] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#38B6FF]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none animate-pulse-soft"
