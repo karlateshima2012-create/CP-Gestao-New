@@ -225,56 +225,64 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                            label: '10 Minutos', 
                            value: 600, 
                            tag: 'MODO CAMPANHA',
-                           desc: 'Ideal para ações no Instagram ou eventos. Permite que o cliente acumule solicitações rápidas.' 
+                           desc: 'Ideal para campanhas ou eventos. Permite solicitações rápidas.' 
                         },
                         { 
                            label: '12 Horas', 
                            value: 43200, 
                            tag: 'MODO SEGURANÇA',
-                           desc: 'Recomendado para o uso diário. Garante que o cliente registre apenas uma visita por período.' 
+                           desc: 'Uso diário. Garante uma visita por período.' 
                         }
                      ].map(option => (
                         <div
                            key={option.value}
                            onClick={() => setLoyaltySettings(s => ({ ...s, cooldown_seconds: option.value }))}
-                           className={`relative p-5 rounded-2xl cursor-pointer transition-all border-2 flex flex-col gap-3 group ${
+                           className={`relative p-5 rounded-3xl cursor-pointer transition-all border-2 flex flex-col gap-3 group ${
                               loyaltySettings.cooldown_seconds === option.value
-                                 ? 'bg-slate-900 border-slate-900 shadow-lg shadow-slate-900/10'
-                                 : 'bg-gray-50 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 hover:border-slate-200 dark:hover:border-slate-700'
+                                 ? 'bg-[#38B6FF] border-[#38B6FF] shadow-lg shadow-blue-500/20'
+                                 : 'bg-white dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-900/40'
                            }`}
                         >
                            <div className="flex justify-between items-start">
-                              <span className={`text-[9px] font-black px-2 py-1 rounded-md tracking-widest ${
+                              <span className={`text-[9px] font-black px-2 py-1 rounded-lg tracking-widest ${
                                  loyaltySettings.cooldown_seconds === option.value
-                                    ? 'bg-slate-800 text-slate-400'
-                                    : 'bg-white dark:bg-gray-700 text-slate-400 dark:text-slate-500 shadow-sm'
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-slate-100 dark:bg-gray-700 text-slate-400 dark:text-slate-500'
                               }`}>
                                  {option.tag}
                               </span>
-                              {loyaltySettings.cooldown_seconds === option.value && (
-                                 <div className="w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/30">
-                                    <Shield className="w-2.5 h-2.5 text-white fill-white" />
-                                 </div>
-                              )}
+                              
+                              {/* Bolinha de Seleção (Radio Button) */}
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                 loyaltySettings.cooldown_seconds === option.value
+                                    ? 'bg-white border-white'
+                                    : 'bg-transparent border-gray-200 dark:border-gray-700'
+                              }`}>
+                                 {loyaltySettings.cooldown_seconds === option.value && (
+                                    <div className="w-2.5 h-2.5 bg-[#38B6FF] rounded-full" />
+                                 )}
+                              </div>
                            </div>
                            
-                           <div>
-                              <h3 className={`text-lg font-black tracking-tight ${
+                           <div className="mt-1">
+                              <h3 className={`text-xl font-black tracking-tight ${
                                  loyaltySettings.cooldown_seconds === option.value ? 'text-white' : 'text-slate-900 dark:text-slate-200'
                               }`}>
                                  {option.label}
                               </h3>
-                              <p className={`text-xs font-medium leading-relaxed mt-1 ${
-                                 loyaltySettings.cooldown_seconds === option.value ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'
+                              <p className={`text-xs font-bold leading-snug mt-1 ${
+                                 loyaltySettings.cooldown_seconds === option.value ? 'text-white/90' : 'text-slate-500 dark:text-slate-400'
                               }`}>
                                  {option.desc}
                               </p>
                            </div>
 
-                           {/* Indicador visual de seleção (barra lateral) */}
-                           <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full transition-all ${
-                              loyaltySettings.cooldown_seconds === option.value ? 'bg-primary-500 scale-y-100' : 'bg-transparent scale-y-0'
-                           }`} />
+                           {/* Ícone de fundo sutil */}
+                           <div className={`absolute -right-2 -bottom-2 opacity-10 transition-transform duration-500 ${
+                              loyaltySettings.cooldown_seconds === option.value ? 'scale-150 rotate-12' : 'scale-0'
+                           }`}>
+                              <Shield className="w-24 h-24 text-white" />
+                           </div>
                         </div>
                      ))}
                   </div>
