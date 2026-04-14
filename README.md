@@ -63,6 +63,6 @@ Plataforma de CRM e Fidelidade com suporte a multi-tenancy, cartões Premium (VI
 
 - **Multi-tenancy:** Isolamento total de dados por `tenant_id`.
 - **Cartões Premium:** Geração automática de números únicos e vínculo com clientes.
-- **Segurança Avançada:** Proteção contra fraude via cooldown e motor de regras.
+- **Segurança Avançada:** Cooldown inteligente (12h padrão / 10min exclusivo Plano PRO).
 - **Dashboard KPI:** Métricas essenciais de crescimento e retenção.
 - **Deploy Automático:** Pipeline GitHub Actions configurado para Hostinger.

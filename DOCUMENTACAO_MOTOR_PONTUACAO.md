@@ -9,7 +9,8 @@ Para evitar que clientes mal-intencionados abusem do sistema (como ler o mesmo Q
 
 1. **Cooldown de Visita Geral (12 Horas ou 10 Minutos) — Inteligente:**
    - O sistema bloqueia uma nova pontuação baseada no intervalo configurado pelo lojista.
-   - **Personalização (Plano PRO):** Lojistas no Plano PRO podem alternar entre uma trava de **12 Horas** (padrão) ou **10 Minutos** (ideal para campanhas rápidas de engajamento).
+   - **Exclusividade do Plano PRO:** Apenas lojistas no Plano PRO podem alternar entre uma trava de **12 Horas** (padrão) ou **10 Minutos** (Campanha).
+   - **Restrição de Outros Planos:** Planos Free/Elite são travados no cooldown fixo de **12 Horas**, mesmo que haja tentativa de alteração nas configurações.
    - **Exceção de Cadastro:** Pontos de **Bônus de Cadastro** (Signup Bonus) não acionam o cooldown. O cliente pode se cadastrar e efetuar sua primeira solicitação no mesmo dia.
    - **Comportamento para Meta Atingida:** Se o cliente bater a meta e consultar o terminal em menos de 12h, a mensagem exibida será: *"🎉 Meta Atingida! Seu prêmio estará esperando na sua próxima visita!"*.
    - **Liberação de Resgate (> 12h):** Após transcorrida a visita de 12 horas, se o cliente consultar o saldo ou tentar pontuar, a mensagem mudará para: *"🎁 Você tem um prêmio esperando! Informe ao atendente para resgatar e subir para o próximo nível."*

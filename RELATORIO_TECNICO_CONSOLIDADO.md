@@ -9,11 +9,11 @@ Este relatório detalha as melhorias de arquitetura, segurança e monitoramento 
 ## 1. Arquitetura SaaS Multi-Tenant
 O sistema opera em uma estrutura Multi-Tenant isolada por `tenant_id`.
 - **Isolamento de Dados:** Garantido via Trait `BelongsToTenant` em todos os modelos críticos (`Customer`, `PointRequest`, `Visit`, `Device`).
-- **Escalabilidade:** Implementado controle rígido de limites por plano direto no faturamento, garantindo que o hardware suporte a carga sem vazamento de performance entre lojistas.
+- **Escalabilidade:**   **Bloqueio de Fraude por Cooldown:** A trava inteligente (12h padrão / 10min exclusivo Plano PRO) está devidamente validada por `tenant_id` e `customer_id`.
 
 ## 2. Segurança do Motor de Pontuação
 O motor foi blindado contra fraudes em `PointEngineService.php`:
-- **Trava de 12 Horas:** Impede check-ins duplicados ou abusos de funcionários/clientes em um curto período.
+- **Cooldown Inteligente:** 12 horas padrão (ou 10 minutos exclusivo Plano PRO). Impede check-ins duplicados ou abusos.
 - **Interlock de Recompensa:** O sistema bloqueia automaticamente novas pontuações se o cliente atingir a meta, forçando o resgate físico do prêmio antes de reiniciar o ciclo.
 
 - **Monitoramento em Tempo Real**: Polling de 30s implementado na Dashboard para novos check-ins.

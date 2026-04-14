@@ -77,7 +77,13 @@ class PointEngineService
         }
 
         $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
-        $cooldownSeconds = $loyalty->cooldown_seconds ?? (12 * 3600);
+        
+        // Enforce 12h cooldown for non-PRO plans, regardless of DB setting.
+        $isPro = (strtolower($tenant->plan ?? '') === 'pro');
+        $cooldownSeconds = ($isPro && isset($loyalty->cooldown_seconds)) 
+            ? $loyalty->cooldown_seconds 
+            : (12 * 3600);
+            
         $cooldownHours = round($cooldownSeconds / 3600, 1);
         
         $recentVisit = Visit::withoutGlobalScopes()
