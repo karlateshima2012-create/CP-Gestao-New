@@ -24,21 +24,34 @@ class PointRequestService
             if ($isRedemption) {
                 $goal = $meta['goal'] ?? 0;
 
-                // Determine new level — logically looping on the LAST available level
+                // Determine new level — logically skipping inactive levels
                 $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $request->tenant_id)->first();
                 $levelsConfig = $loyalty ? ($loyalty->levels_config ?? []) : [];
-                $currentLevel = (int)($customer->loyalty_level ?? 1);
-                $totalLevels  = is_array($levelsConfig) ? count($levelsConfig) : 0;
+                $currentLevelIdx = (int)($customer->loyalty_level ?? 1) - 1;
+                $totalLevels = count($levelsConfig);
 
-                // Loop logic:
-                // If there are no levels configured (fallback), use Level 1.
-                // If currentLevel is at or beyond totalLevels, loop on the LAST one.
-                if ($totalLevels === 0) {
-                    $nextLevel = 1;
-                } elseif ($currentLevel >= $totalLevels) {
-                    $nextLevel = $totalLevels; // Stay/Loop on the final level
+                $nextLevel = $currentLevelIdx + 1; // Default next candidate
+
+                // If we have levels, find the next one that is ACTIVE
+                if ($totalLevels > 0) {
+                    $foundNext = false;
+                    for ($i = $currentLevelIdx + 1; $i < $totalLevels; $i++) {
+                        if (isset($levelsConfig[$i]['active']) && $levelsConfig[$i]['active'] === true) {
+                            $nextLevel = $i + 1;
+                            $foundNext = true;
+                            break;
+                        }
+                    }
+
+                    // If NO active level found ahead, either loop back to first active or stay at last active
+                    // Rule: Stay at the current level or loop on the final one if no more actives exist.
+                    if (!$foundNext) {
+                        // If current level was already at/past total, stay there.
+                        // Otherwise, we keep the last candidate or just stay at current.
+                        $nextLevel = min($currentLevelIdx + 1, $totalLevels);
+                    }
                 } else {
-                    $nextLevel = $currentLevel + 1;
+                    $nextLevel = 1; // Fallback
                 }
 
                 // Update customer state
