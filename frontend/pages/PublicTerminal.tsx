@@ -176,14 +176,14 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       interval = setInterval(async () => {
         try {
           const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken, sessionToken);
-          if (res.data && res.data.points_balance !== foundCustomer.points_balance) {
-            console.log("Real-time balance update detected!");
-            setFoundCustomer(res.data);
+          if (res.data) {
+            // Sempre atualiza: saldo, visitas pendentes, flags PRO, e demais campos
+            setFoundCustomer((prev: any) => ({ ...prev, ...res.data }));
           }
         } catch (error) {
           // Silent fail for background polling
         }
-      }, 5000); // Check every 5s for balance changes
+      }, 5000); // Check every 5s
     }
 
     return () => clearInterval(interval);
@@ -872,7 +872,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
 
             {/* ── Banner de Ponto Pendente (Plano PRO apenas) ── */}
-            {foundCustomer.plan === 'pro' && (foundCustomer.pending_visits ?? 0) > 0 && (
+            {(foundCustomer.plan ?? '').toLowerCase() === 'pro' && (foundCustomer.pending_visits ?? 0) > 0 && (
               <div className="w-full animate-fade-in">
                 <div className="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-700 rounded-2xl p-5 flex items-start gap-4">
                   <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
