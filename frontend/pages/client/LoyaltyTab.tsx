@@ -214,27 +214,68 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                      <Shield className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                   </div>
                   <div>
-                     <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white uppercase">TRAVA De SEGURANACA</h2>
-                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">Escolha o tempo de trava de seguranca entre as solicitacoes de ponto</p>
+                     <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white uppercase leading-none">TRAVA De SEGURANACA</h2>
+                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Tempo mínimo de espera entre solicitações de ponto</p>
                   </div>
                </div>
                <div className="p-6">
-                  <div className="flex gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {[
-                        { label: '10 min', value: 600 },
-                        { label: '12 horas', value: 43200 }
+                        { 
+                           label: '10 Minutos', 
+                           value: 600, 
+                           tag: 'MODO CAMPANHA',
+                           desc: 'Ideal para ações no Instagram ou eventos. Permite que o cliente acumule solicitações rápidas.' 
+                        },
+                        { 
+                           label: '12 Horas', 
+                           value: 43200, 
+                           tag: 'MODO SEGURANÇA',
+                           desc: 'Recomendado para o uso diário. Garante que o cliente registre apenas uma visita por período.' 
+                        }
                      ].map(option => (
-                        <button
+                        <div
                            key={option.value}
                            onClick={() => setLoyaltySettings(s => ({ ...s, cooldown_seconds: option.value }))}
-                           className={`flex-1 h-14 rounded-xl font-black text-xs uppercase tracking-widest transition-all border-2 ${
+                           className={`relative p-5 rounded-2xl cursor-pointer transition-all border-2 flex flex-col gap-3 group ${
                               loyaltySettings.cooldown_seconds === option.value
-                                 ? 'bg-slate-900 text-white border-slate-900'
-                                 : 'bg-white text-slate-400 border-slate-100 dark:bg-gray-800 dark:border-gray-700 hover:border-slate-200'
+                                 ? 'bg-slate-900 border-slate-900 shadow-lg shadow-slate-900/10'
+                                 : 'bg-gray-50 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 hover:border-slate-200 dark:hover:border-slate-700'
                            }`}
                         >
-                           {option.label}
-                        </button>
+                           <div className="flex justify-between items-start">
+                              <span className={`text-[9px] font-black px-2 py-1 rounded-md tracking-widest ${
+                                 loyaltySettings.cooldown_seconds === option.value
+                                    ? 'bg-slate-800 text-slate-400'
+                                    : 'bg-white dark:bg-gray-700 text-slate-400 dark:text-slate-500 shadow-sm'
+                              }`}>
+                                 {option.tag}
+                              </span>
+                              {loyaltySettings.cooldown_seconds === option.value && (
+                                 <div className="w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/30">
+                                    <Shield className="w-2.5 h-2.5 text-white fill-white" />
+                                 </div>
+                              )}
+                           </div>
+                           
+                           <div>
+                              <h3 className={`text-lg font-black tracking-tight ${
+                                 loyaltySettings.cooldown_seconds === option.value ? 'text-white' : 'text-slate-900 dark:text-slate-200'
+                              }`}>
+                                 {option.label}
+                              </h3>
+                              <p className={`text-xs font-medium leading-relaxed mt-1 ${
+                                 loyaltySettings.cooldown_seconds === option.value ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'
+                              }`}>
+                                 {option.desc}
+                              </p>
+                           </div>
+
+                           {/* Indicador visual de seleção (barra lateral) */}
+                           <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full transition-all ${
+                              loyaltySettings.cooldown_seconds === option.value ? 'bg-primary-500 scale-y-100' : 'bg-transparent scale-y-0'
+                           }`} />
+                        </div>
                      ))}
                   </div>
                </div>
