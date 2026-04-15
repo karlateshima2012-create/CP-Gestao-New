@@ -69,37 +69,36 @@ jobs:
           </IfModule>
           EOT
           
-          # Create .env — SEM indentação nas linhas para não corromper o arquivo
-          cat > deploy/api_backend/.env << ENVEOF
-APP_NAME="CP Gestão"
-APP_ENV=production
-APP_KEY=${{ secrets.PROD_APP_KEY }}
-APP_DEBUG=false
-APP_URL=https://cpgestao.creativeprintjp.com
-FRONTEND_URL=https://cpgestao.creativeprintjp.com
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=${{ secrets.DB_DATABASE }}
-DB_USERNAME=${{ secrets.DB_USERNAME }}
-DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-CACHE_DRIVER=file
-FILESYSTEM_DISK=local
-SESSION_DRIVER=file
-QUEUE_CONNECTION=sync
-CORS_ALLOWED_ORIGINS=https://cpgestao.creativeprintjp.com
-SANCTUM_STATEFUL_DOMAINS=cpgestao.creativeprintjp.com
-SESSION_DOMAIN=.creativeprintjp.com
-MAIL_MAILER=smtp
-MAIL_HOST=${{ secrets.MAIL_HOST }}
-MAIL_PORT=${{ secrets.MAIL_PORT }}
-MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-MAIL_ENCRYPTION=${{ secrets.MAIL_ENCRYPTION }}
-MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}
-MAIL_FROM_NAME="CP Gestão"
-TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-ENVEOF
+          # Create .env usando echo (compatible com GitHub Actions YAML)
+          ENV_FILE="deploy/api_backend/.env"
+          echo 'APP_NAME="CP Gestão"' > $ENV_FILE
+          echo "APP_ENV=production" >> $ENV_FILE
+          echo "APP_KEY=${{ secrets.PROD_APP_KEY }}" >> $ENV_FILE
+          echo "APP_DEBUG=false" >> $ENV_FILE
+          echo "APP_URL=https://cpgestao.creativeprintjp.com" >> $ENV_FILE
+          echo "FRONTEND_URL=https://cpgestao.creativeprintjp.com" >> $ENV_FILE
+          echo "DB_CONNECTION=mysql" >> $ENV_FILE
+          echo "DB_HOST=127.0.0.1" >> $ENV_FILE
+          echo "DB_PORT=3306" >> $ENV_FILE
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> $ENV_FILE
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $ENV_FILE
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $ENV_FILE
+          echo "CACHE_DRIVER=file" >> $ENV_FILE
+          echo "FILESYSTEM_DISK=local" >> $ENV_FILE
+          echo "SESSION_DRIVER=file" >> $ENV_FILE
+          echo "QUEUE_CONNECTION=sync" >> $ENV_FILE
+          echo "CORS_ALLOWED_ORIGINS=https://cpgestao.creativeprintjp.com" >> $ENV_FILE
+          echo "SANCTUM_STATEFUL_DOMAINS=cpgestao.creativeprintjp.com" >> $ENV_FILE
+          echo "SESSION_DOMAIN=.creativeprintjp.com" >> $ENV_FILE
+          echo "MAIL_MAILER=smtp" >> $ENV_FILE
+          echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> $ENV_FILE
+          echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> $ENV_FILE
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> $ENV_FILE
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> $ENV_FILE
+          echo "MAIL_ENCRYPTION=${{ secrets.MAIL_ENCRYPTION }}" >> $ENV_FILE
+          echo "MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}" >> $ENV_FILE
+          echo 'MAIL_FROM_NAME="CP Gestão"' >> $ENV_FILE
+          echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $ENV_FILE
 
 
       - name: SSH Backup & Maintenance Down

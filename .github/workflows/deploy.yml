@@ -1,10 +1,7 @@
-name: Deploy to Hostinger
+name: Deploy to Hostinger (DESATIVADO - V2 usa deploy-production.yml)
 
 on:
-  push:
-    branches:
-      - master
-      - main
+  workflow_dispatch: # Apenas manual, nunca automático
 
 jobs:
   deploy:
