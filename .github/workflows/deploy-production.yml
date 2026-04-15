@@ -73,7 +73,7 @@ jobs:
           ENV_FILE="deploy/api_backend/.env"
           echo 'APP_NAME="CP Gestão"' > $ENV_FILE
           echo "APP_ENV=production" >> $ENV_FILE
-          echo "APP_KEY=${{ secrets.PROD_APP_KEY }}" >> $ENV_FILE
+          echo "APP_KEY=${{ secrets.APP_KEY }}" >> $ENV_FILE
           echo "APP_DEBUG=false" >> $ENV_FILE
           echo "APP_URL=https://cpgestao.creativeprintjp.com" >> $ENV_FILE
           echo "FRONTEND_URL=https://cpgestao.creativeprintjp.com" >> $ENV_FILE
@@ -145,6 +145,12 @@ jobs:
             
             # Instalação limpa das dependências
             composer install --no-dev --optimize-autoloader
+            
+            # Garantir APP_KEY válida (gera nova se estiver vazia)
+            if grep -q 'APP_KEY=$' .env || grep -q 'APP_KEY=""' .env; then
+              php artisan key:generate --force
+              echo "APP_KEY gerada automaticamente."
+            fi
             
             # Migração do Banco de Dados (Upgrade da V2)
             php artisan migrate --force
