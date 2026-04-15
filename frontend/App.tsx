@@ -549,7 +549,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-white dark:bg-slate-950 overflow-hidden font-sans">
+    <div className="flex h-[100dvh] bg-white dark:bg-slate-950 overflow-hidden font-sans">
 
 
       {authRole !== 'admin' && (
@@ -595,7 +595,7 @@ const App: React.FC = () => {
           </div>
         </aside>
       )}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc] dark:bg-gray-950">
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#f8fafc] dark:bg-gray-950">
         <header className="flex-shrink-0 h-20 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-6 z-10 transition-colors">
           <div className="flex items-center gap-4">
             {authRole === 'admin' ? (
@@ -690,9 +690,9 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Navigation Mobile - PERSISTENTE NA BASE (SEM SOBREPOSIÇÃO) */}
+        {/* Bottom Navigation Mobile - PERSISTENTE NA BASE */}
         {authRole === 'client' && !blockedReason && (
-          <nav className="md:hidden flex-shrink-0 h-20 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-around px-2 z-[60] pb-safe shadow-[0_-4px_16px_rgba(33,150,243,0.05)]">
+          <nav className="md:hidden flex-shrink-0 h-20 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-around px-2 z-[60] pb-2 shadow-[0_-4px_16px_rgba(33,150,243,0.05)]">
             {/* Visão Geral */}
             <button 
               onClick={() => setClientTab('dashboard')}
@@ -744,11 +744,7 @@ const App: React.FC = () => {
 
             {/* Sair */}
             <button 
-              onClick={() => {
-                localStorage.removeItem('token');
-                setAuthRole(null);
-                window.location.reload();
-              }}
+              onClick={handleLogout}
               className="flex flex-col items-center gap-1 w-[19%] transition-all text-slate-400 hover:text-red-500"
             >
               <div className="p-2 rounded-2xl transition-all">
