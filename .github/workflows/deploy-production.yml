@@ -69,27 +69,38 @@ jobs:
           </IfModule>
           EOT
           
-          # Create .env (Usando os segredos do DB da v1)
-          cat <<EOT > deploy/api_backend/.env
-          APP_NAME="CP Gestão"
-          APP_ENV=production
-          APP_KEY=${{ secrets.PROD_APP_KEY || 'base64:XG8pY6XpD/v77y5S6L7U5P4R3G6B1N7=' }}
-          APP_DEBUG=false
-          APP_URL=https://cpgestao.creativeprintjp.com
-          DB_CONNECTION=mysql
-          DB_HOST=127.0.0.1
-          DB_PORT=3306
-          DB_DATABASE=${{ secrets.DB_DATABASE }}
-          DB_USERNAME=${{ secrets.DB_USERNAME }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          CACHE_DRIVER=file
-          FILESYSTEM_DISK=local
-          SESSION_DRIVER=file
-          CORS_ALLOWED_ORIGINS=https://cpgestao.creativeprintjp.com
+          # Create .env — SEM indentação nas linhas para não corromper o arquivo
+          cat > deploy/api_backend/.env << ENVEOF
+APP_NAME="CP Gestão"
+APP_ENV=production
+APP_KEY=${{ secrets.PROD_APP_KEY }}
+APP_DEBUG=false
+APP_URL=https://cpgestao.creativeprintjp.com
+FRONTEND_URL=https://cpgestao.creativeprintjp.com
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=${{ secrets.DB_DATABASE }}
+DB_USERNAME=${{ secrets.DB_USERNAME }}
+DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
+CORS_ALLOWED_ORIGINS=https://cpgestao.creativeprintjp.com
+SANCTUM_STATEFUL_DOMAINS=cpgestao.creativeprintjp.com
+SESSION_DOMAIN=.creativeprintjp.com
+MAIL_MAILER=smtp
+MAIL_HOST=${{ secrets.MAIL_HOST }}
+MAIL_PORT=${{ secrets.MAIL_PORT }}
+MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+MAIL_ENCRYPTION=${{ secrets.MAIL_ENCRYPTION }}
+MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}
+MAIL_FROM_NAME="CP Gestão"
+TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+ENVEOF
 
-          # Telegram Config
-          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN || '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4' }}
-          EOT
 
       - name: SSH Backup & Maintenance Down
         uses: appleboy/ssh-action@v1.0.3
