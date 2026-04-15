@@ -50,7 +50,7 @@ jobs:
           echo 'APP_NAME="CP Gestao"'                                          > $ENV_FILE
           echo "APP_ENV=production"                                            >> $ENV_FILE
           echo "APP_KEY=PLACEHOLDER_KEY"                                       >> $ENV_FILE
-          echo "APP_DEBUG=false"                                               >> $ENV_FILE
+          echo "APP_DEBUG=true"                                                >> $ENV_FILE
           echo "APP_URL=https://cpgestao.creativeprintjp.com"                 >> $ENV_FILE
           echo "DB_CONNECTION=mysql"                                           >> $ENV_FILE
           echo "DB_HOST=127.0.0.1"                                            >> $ENV_FILE
@@ -159,4 +159,6 @@ jobs:
 
             # 7. Voltar ao ar
             php artisan up
+            echo "===== ULTIMAS LINHAS DO LOG ====="
+            tail -30 storage/logs/laravel.log 2>/dev/null || echo "Log vazio ou nao encontrado"
             echo "Deploy v2 Concluido!"
