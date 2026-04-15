@@ -334,18 +334,25 @@ class PublicTerminalController extends Controller
             }
 
             // Create Customer
-            $customer = Customer::create([
-                'tenant_id' => $tenant->id,
-                'name' => $request->name,
-                'phone' => $phone,
-                'email' => $request->email,
-                'city' => $request->city,
-                'province' => $request->province,
-                'address' => $request->address,
-                'instagram' => $request->instagram,
-                'source' => $device ? 'terminal' : 'web_portal',
+            // Nota: instagram pode nao existir no banco de v1 - verificacao defensiva
+            $customerData = [
+                'tenant_id'        => $tenant->id,
+                'name'             => $request->name,
+                'phone'            => $phone,
+                'email'            => $request->email,
+                'city'             => $request->city,
+                'province'         => $request->province,
+                'address'          => $request->address,
+                'source'           => $device ? 'terminal' : 'web_portal',
                 'last_activity_at' => now()
-            ]);
+            ];
+
+            // Adiciona instagram apenas se a coluna existir no banco
+            if (\Illuminate\Support\Facades\Schema::hasColumn('customers', 'instagram') && $request->instagram) {
+                $customerData['instagram'] = $request->instagram;
+            }
+
+            $customer = Customer::create($customerData);
 
             // Handle Photo if present
             if ($request->photo) {
