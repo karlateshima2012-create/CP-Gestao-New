@@ -110,7 +110,7 @@ class ClientController extends Controller
 
         try {
             return DB::transaction(function() use ($request, $phone, $initialPoints, $signupBonus) {
-                $customer = Customer::create([
+                $customerData = [
                     'name' => $request->name,
                     'phone' => $phone,
                     'company_name' => $request->company_name,
@@ -119,19 +119,24 @@ class ClientController extends Controller
                     'province' => $request->province,
                     'postal_code' => $request->postal_code,
                     'address' => $request->address,
-                    'instagram' => $request->instagram,
                     'points_balance' => $initialPoints + $signupBonus,
                     'source' => $request->source ?? 'crm',
-                    'last_activity_at' => now(),
                     'notes' => $request->notes,
                     'last_contacted' => $request->last_contacted,
                     'reminder_date' => $request->reminder_date,
                     'reminder_text' => $request->reminder_text,
                     'birthday' => $request->birthday,
                     'tags' => $request->tags ?? [],
-                    'preferences' => $request->preferences ?? [],
-                    'attendance_count' => 0,
-                ]);
+                ];
+
+                $hasCol = fn($c) => \Illuminate\Support\Facades\Schema::hasColumn('customers', $c);
+
+                if ($hasCol('instagram'))        $customerData['instagram'] = $request->instagram;
+                if ($hasCol('preferences'))      $customerData['preferences'] = $request->preferences ?? [];
+                if ($hasCol('attendance_count')) $customerData['attendance_count'] = 0;
+                if ($hasCol('last_activity_at')) $customerData['last_activity_at'] = now();
+
+                $customer = Customer::create($customerData);
 
                 if ($request->photo) {
                     $path = $this->photoService->processAndSave($request->photo, $customer->id);
@@ -245,9 +250,15 @@ class ClientController extends Controller
             }
         }
 
-        $data = $request->except(['phone', 'photo', 'foto_perfil_url']);
+        $data = $request->except(['phone', 'photo', 'foto_perfil_url', 'instagram', 'preferences', 'last_activity_at']);
+        
+        $hasCol = fn($c) => \Illuminate\Support\Facades\Schema::hasColumn('customers', $c);
+
+        if ($hasCol('instagram'))        $data['instagram'] = $request->instagram;
+        if ($hasCol('preferences'))      $data['preferences'] = $request->preferences;
+        if ($hasCol('last_activity_at')) $data['last_activity_at'] = now();
+
         $customer->fill($data);
-        $customer->last_activity_at = now();
         $customer->save();
 
         if ($request->has('points_balance')) {
@@ -546,15 +557,20 @@ class ClientController extends Controller
             }
 
             // Update or Create TenantSettings
+            $settingsData = [
+                'telegram_chat_id' => $request->telegram_chat_id,
+                'telegram_sound_registration' => $request->boolean('telegram_sound_registration', true),
+                'telegram_sound_points' => $request->boolean('telegram_sound_points', true),
+                'telegram_sound_reminders' => $request->boolean('telegram_sound_reminders', true),
+            ];
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('tenant_settings', 'dashboard_sound_enabled')) {
+                $settingsData['dashboard_sound_enabled'] = $request->boolean('dashboard_sound_enabled', true);
+            }
+
             $settings = TenantSetting::updateOrCreate(
                 ['tenant_id' => $tenant->id],
-                [
-                    'telegram_chat_id' => $request->telegram_chat_id,
-                    'telegram_sound_registration' => $request->boolean('telegram_sound_registration', true),
-                    'telegram_sound_points' => $request->boolean('telegram_sound_points', true),
-                    'telegram_sound_reminders' => $request->boolean('telegram_sound_reminders', true),
-                    'dashboard_sound_enabled' => $request->boolean('dashboard_sound_enabled', true),
-                ]
+                $settingsData
             );
 
             $settings->save();

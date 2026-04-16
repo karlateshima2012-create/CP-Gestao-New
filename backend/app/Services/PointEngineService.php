@@ -38,7 +38,7 @@ class PointEngineService
                 return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
             }
             $isNew = true;
-            $customer = Customer::create([
+            $customerData = [
                 'tenant_id' => $tenant->id,
                 'phone' => $data['phone'],
                 'name' => $data['name'] ?? 'Cliente',
@@ -48,8 +48,12 @@ class PointEngineService
                 'email' => $data['email'] ?? null,
                 'birthday' => $data['birthday'] ?? null,
                 'source' => 'terminal',
-                'last_activity_at' => now()
-            ]);
+            ];
+
+            $hasCol = fn($c) => \Illuminate\Support\Facades\Schema::hasColumn('customers', $c);
+            if ($hasCol('last_activity_at')) $customerData['last_activity_at'] = now();
+
+            $customer = Customer::create($customerData);
 
             $tenant->verifyAndNotifyLimit();
 
@@ -174,6 +178,8 @@ class PointEngineService
                 $pointsToAdd = (int) $levelsConfig[$lvlIdx]['points_per_visit'];
             }
         }
+
+        $currentGoal = (int)($tenant->points_goal ?? 10);
 
         if (is_array($levelsConfig)) {
             $lvlIdx = max(0, (int)$currentLevel - 1);
