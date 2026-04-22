@@ -75,10 +75,14 @@ return new class extends Migration
         $this->restoreSlug('garagem-lata-velha', 'garagem-lata-velha-1');
 
         // 4. FIX SUPER ADMIN
-        $adminEmail = 'suporte@creativeprintjp.com';
-        DB::table('users')
-            ->where('email', $adminEmail)
-            ->update(['role' => 'super_admin']);
+        try {
+            $adminEmail = 'suporte@creativeprintjp.com';
+            DB::table('users')
+                ->where('email', $adminEmail)
+                ->update(['role' => 'super_admin']);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not set super_admin role for {$adminEmail}: " . $e->getMessage());
+        }
     }
 
 
