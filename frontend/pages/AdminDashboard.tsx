@@ -1019,8 +1019,8 @@ export const AdminDashboard: React.FC = () => {
         {/* Modal Criar Novo CRM */}
         {
           isCreateModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-              <Card className="w-full max-w-md p-6 shadow-2xl">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
+              <Card className="w-full max-w-md p-6 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="font-bold text-lg">Novo CRM SaaS</h3>
                   <button onClick={() => { setIsCreateModalOpen(false); setCreatedCredentials(null); }}><X className="w-5 h-5" /></button>
@@ -1028,12 +1028,12 @@ export const AdminDashboard: React.FC = () => {
 
                 {createdCredentials ? (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-2">
-                        <CheckCircle className="w-10 h-10 text-green-500" />
+                    <div className="flex flex-col items-center text-center space-y-1">
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-1">
+                        <CheckCircle className="w-8 h-8 text-green-500" />
                       </div>
-                      <h4 className="text-xl font-bold text-gray-900">Configuração Concluída!</h4>
-                      <p className="text-sm text-gray-500">O acesso para {createdCredentials.name} foi gerado.</p>
+                      <h4 className="text-lg font-bold text-gray-900 leading-tight">Configuração Concluída!</h4>
+                      <p className="text-xs text-gray-500">O acesso para {createdCredentials.name} foi gerado.</p>
                     </div>
 
                     <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-3">
@@ -1041,7 +1041,7 @@ export const AdminDashboard: React.FC = () => {
                         <span>Mensagem de Boas-vindas</span>
                         <Badge color="green">Pronta para envio</Badge>
                       </div>
-                      <div className="bg-white p-4 rounded-xl border border-gray-200 text-sm font-mono whitespace-pre-wrap leading-relaxed">
+                      <div className="bg-white p-4 rounded-xl border border-gray-200 text-[11px] font-mono whitespace-pre-wrap leading-relaxed max-h-[180px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                         {`Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n🌐 Site Oficial:\n${createdCredentials.landingUrl}\n(Basta clicar em 'Login' para acessar seu painel)\n\n🔗 Link Direto do Sistema:\n${createdCredentials.url}\n\n📧 E-mail:\n${createdCredentials.email}\n\n🔑 Senha Provisória:\n${createdCredentials.password}\n\nNo primeiro acesso, o sistema irá redirecionar automaticamente para a alteração de senha, que é obrigatória para sua segurança.`}
                       </div>
                     </div>
