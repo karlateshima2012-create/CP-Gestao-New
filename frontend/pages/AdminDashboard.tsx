@@ -213,7 +213,7 @@ export const AdminDashboard: React.FC = () => {
 
   const copyWhatsAppMessage = async () => {
     if (!createdCredentials) return;
-    const msg = `Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n📍 *Dados de Acesso:*\n📧 Login: ${createdCredentials.email}\n🔑 Senha: ${createdCredentials.password}\n\n🔗 *Acesso Principal (Landing Page):*\n${createdCredentials.landingUrl}\n\n🌐 *URL do Sistema (Alternativa):*\n${createdCredentials.url}\n\n⚠️ *OBS:* Por segurança, sua senha deve ser redefinida no primeiro acesso. (A nova senha deve ter exatamente 8 dígitos, uma letra maiúscula e um número).\n\nSeja bem-vindo(a)!`;
+    const msg = `Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n🌐 *Site Oficial:*\n${createdCredentials.landingUrl}\n(Basta clicar em 'Login' para acessar seu painel)\n\n🔗 *Link Direto do Sistema:*\n${createdCredentials.url}\n\n📧 *E-mail:*\n${createdCredentials.email}\n\n🔑 *Senha Provisória:*\n${createdCredentials.password}\n\nNo primeiro acesso, o sistema irá redirecionar automaticamente para a alteração de senha, que é obrigatória para sua segurança.`;
     const success = await copyToClipboard(msg);
     if (success) {
       setStatusModal({
@@ -1029,7 +1029,7 @@ export const AdminDashboard: React.FC = () => {
                         <Badge color="green">Pronta para envio</Badge>
                       </div>
                       <div className="bg-white p-4 rounded-xl border border-gray-200 text-sm font-mono whitespace-pre-wrap leading-relaxed">
-                        {`Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n📍 *Dados de Acesso:*\n📧 Login: ${createdCredentials.email}\n🔑 Senha: ${createdCredentials.password}\n\n🔗 *Acesso Principal:*\n${createdCredentials.landingUrl}\n\n🌐 *Sistema (Alt):*\n${createdCredentials.url}\n\n⚠️ *OBS:* Por segurança, sua senha deve ser redefinida no primeiro acesso.`}
+                        {`Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n🌐 Site Oficial:\n${createdCredentials.landingUrl}\n(Basta clicar em 'Login' para acessar seu painel)\n\n🔗 Link Direto do Sistema:\n${createdCredentials.url}\n\n📧 E-mail:\n${createdCredentials.email}\n\n🔑 Senha Provisória:\n${createdCredentials.password}\n\nNo primeiro acesso, o sistema irá redirecionar automaticamente para a alteração de senha, que é obrigatória para sua segurança.`}
                       </div>
                     </div>
 
