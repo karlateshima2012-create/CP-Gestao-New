@@ -826,16 +826,10 @@ export const AdminDashboard: React.FC = () => {
                         
                         <div className="flex gap-2">
                            <button
-                              onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 6) })}
-                              className="flex-1 py-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 rounded-xl text-[10px] font-black text-[#38B6FF] transition-all uppercase tracking-widest border border-blue-100 dark:border-blue-900/50"
+                              onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 1) })}
+                              className="w-full py-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 rounded-xl text-[10px] font-black text-[#38B6FF] transition-all uppercase tracking-widest border border-blue-100 dark:border-blue-900/50"
                             >
-                              +6 Meses
-                            </button>
-                            <button
-                              onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 12) })}
-                              className="flex-1 py-3 bg-[#38B6FF] hover:bg-blue-600 rounded-xl text-[10px] font-black text-white transition-all uppercase tracking-widest shadow-md"
-                            >
-                              +1 Ano
+                              +1 Mês
                             </button>
                         </div>
                       </div>
