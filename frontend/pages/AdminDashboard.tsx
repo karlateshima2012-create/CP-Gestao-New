@@ -1219,8 +1219,8 @@ export const AdminDashboard: React.FC = () => {
                       </p>
                     </div>
                   </div>
-
                 )}
+                </div>
               </Card>
             </div>
           )
