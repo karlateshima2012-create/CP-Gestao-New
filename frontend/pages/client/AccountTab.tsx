@@ -38,7 +38,8 @@ export const AccountTab: React.FC<AccountTabProps> = ({ darkMode, setDarkMode })
     customers_count: 0,
     plan_limit: 0,
     email: 'contato@exemplo.com.br',
-    phone: '(11) 99999-9999'
+    phone: '(11) 99999-9999',
+    plan_started_at: ''
   });
   
   const [telegramSettings, setTelegramSettings] = useState({
@@ -89,6 +90,15 @@ Plano Atual: ${tenantInfo.plan}
 Pacote Escolhido: ${pack.name} (${pack.extra} contatos)
 Valor: ${pack.price}`;
     window.open(`https://wa.me/819011886491?text=${encodeURIComponent(message)}`, '_blank');
+  };
+  
+  const formatDateDisplay = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '--/--/----';
+    // Handle both YYYY-MM-DD and full ISO strings
+    const dateOnly = dateStr.split('T')[0];
+    const parts = dateOnly.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
   useEffect(() => {
@@ -417,14 +427,18 @@ Valor: ${pack.price}`;
 
                     <div className="space-y-1">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Início do plano</p>
-                      <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">01/01/2026</p>
+                      <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">
+                        {formatDateDisplay(tenantInfo.plan_started_at)}
+                      </p>
                     </div>
                   </div>
 
                   <div className="space-y-6">
                     <div className="space-y-1">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Próximo Vencimento</p>
-                      <p className="text-xs font-black text-primary-500 uppercase tracking-tighter">--/--/--</p>
+                      <p className="text-xs font-black text-primary-500 uppercase tracking-tighter">
+                        {formatDateDisplay(tenantInfo.plan_expires_at)}
+                      </p>
                     </div>
 
                     <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800/50">
