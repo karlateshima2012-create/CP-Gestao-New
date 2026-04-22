@@ -753,11 +753,11 @@ export const AdminDashboard: React.FC = () => {
                   <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                     <Users className="w-4 h-4 text-[#38B6FF]" /> Informações Gerais
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input label="Nome da Empresa" value={editingTenant.name} onChange={(e) => setEditingTenant({ ...editingTenant, name: e.target.value })} />
-                    <Input label="E-mail Administrativo" value={editingTenant.email} onChange={(e) => setEditingTenant({ ...editingTenant, email: e.target.value })} />
                     <Input label="Responsável" value={editingTenant.owner_name || ''} onChange={(e) => setEditingTenant({ ...editingTenant, owner_name: e.target.value })} />
                     <Input label="Telefone de Suporte" placeholder="090-0000-0000" value={editingTenant.phone || ''} onChange={(e) => setEditingTenant({ ...editingTenant, phone: formatJapanesePhone(e.target.value) })} />
+                    <Input label="E-mail Administrativo" value={editingTenant.email} onChange={(e) => setEditingTenant({ ...editingTenant, email: e.target.value })} />
                   </div>
                 </Card>
 
