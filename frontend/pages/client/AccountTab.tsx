@@ -242,9 +242,9 @@ Valor: ${pack.price}`;
               </div>
 
               {/* ALERTAS TELEGRAM UNIFICADO - LAYOUT PRESERVADO */}
-              <div className="grid grid-cols-1 md:grid-cols-2 p-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-lg border border-slate-100 dark:border-slate-800 divide-x divide-slate-200/50 dark:divide-slate-800/50 min-h-[72px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 p-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-lg border border-slate-100 dark:border-slate-800 md:divide-x divide-y md:divide-y-0 divide-slate-200/50 dark:divide-slate-800/50 min-h-[72px]">
                 {/* Lado Esquerdo: Ativação */}
-                <div className="flex items-center justify-between pr-6 w-full">
+                <div className="flex items-center justify-between md:pr-6 w-full pb-4 md:pb-0">
                   <div className="space-y-1">
                     <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
                       ALERTAS VIA TELEGRAM
@@ -273,23 +273,23 @@ Valor: ${pack.price}`;
                 </div>
 
                 {/* Lado Direito: Configuração */}
-                <div className="flex items-center justify-between pl-6 w-full gap-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between md:pl-6 w-full gap-4 pt-4 md:pt-0">
                   <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none shrink-0">
                     ID PARA NOTIFICAÇÕES
                   </h4>
-                  <div className="flex gap-2 items-center ml-auto">
+                  <div className="flex gap-2 items-center w-full sm:w-auto">
                     <Input 
                       id="onboarding-telegram-chatid"
-                      placeholder="COLE SEU CHAT ID"
+                      placeholder="CHAT ID"
                       value={telegramSettings.chat_id}
                       onChange={e => setTelegramSettings({...telegramSettings, chat_id: e.target.value})}
-                      className="h-10 text-[11px] font-black bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-lg px-3 w-36 outline-none shadow-sm placeholder:text-slate-300"
+                      className="h-10 text-[11px] font-black bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 rounded-lg px-3 flex-1 sm:w-36 outline-none shadow-sm placeholder:text-slate-300"
                     />
                     <a 
                       href="https://t.me/cpgestao_fidelidade_bot" 
                       target="_blank" 
                       rel="noreferrer"
-                      className="h-8 px-3 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white flex items-center justify-center gap-2 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all whitespace-nowrap shadow-sm active:scale-95"
+                      className="h-10 px-3 bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white flex items-center justify-center gap-2 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all whitespace-nowrap shadow-sm active:scale-95"
                     >
                       PEGAR CHAT ID
                     </a>

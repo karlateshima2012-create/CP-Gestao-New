@@ -220,7 +220,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantSlug }) => {
                                                             handleSaveDevice(device.id, { active: newActive });
                                                         }}
                                                     >
-                                                        {device.active ? 'PAUSAR QR CODE' : 'RETOMAR QR CODE'}
+                                                        {device.active ? 'PAUSAR' : 'RETOMAR'}
                                                     </button>
                                                 </div>
                                             </div>
