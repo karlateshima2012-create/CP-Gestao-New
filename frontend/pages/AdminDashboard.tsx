@@ -1020,11 +1020,26 @@ export const AdminDashboard: React.FC = () => {
         {
           isCreateModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
-              <Card className="w-full max-w-md p-6 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-bold text-lg">Novo CRM SaaS</h3>
-                  <button onClick={() => { setIsCreateModalOpen(false); setCreatedCredentials(null); }}><X className="w-5 h-5" /></button>
+              <Card className="w-full max-w-2xl p-0 shadow-2xl overflow-hidden rounded-3xl">
+                <div className="flex justify-between items-center px-8 py-6 border-b border-slate-100 bg-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#38B6FF]/10 rounded-xl flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-[#38B6FF]" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-xl text-slate-900 tracking-tighter uppercase">Novo CRM SaaS</h3>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração de Unidade e Plano</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => { setIsCreateModalOpen(false); setCreatedCredentials(null); }}
+                    className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
+
+                <div className="p-8 max-h-[calc(100vh-10rem)] overflow-y-auto bg-white">
 
                 {createdCredentials ? (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -1063,93 +1078,148 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <Input label="Nome da Loja" placeholder="Ex: Barber Shop" value={newTenantData.name} onChange={(e) => setNewTenantData({ ...newTenantData, name: capitalizeWords(e.target.value) })} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input label="Proprietário" placeholder="Nome completo" value={newTenantData.owner_name} onChange={(e) => setNewTenantData({ ...newTenantData, owner_name: capitalizeWords(e.target.value) })} />
-                      <Input label="Telefone (Japão)" placeholder="090-0000-0000" value={newTenantData.phone} onChange={(e) => setNewTenantData({ ...newTenantData, phone: formatJapanesePhone(e.target.value) })} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input label="E-mail Administrativo" placeholder="dono@loja.com" value={newTenantData.email} onChange={(e) => setNewTenantData({ ...newTenantData, email: e.target.value })} />
-                      <Input
-                        label="Limite de Contatos"
-                        type="text"
-                        value={newTenantData.extra_contacts_quota === -1 ? 'ILIMITADO' : (PLAN_LIMITS[newTenantData.plan] + (newTenantData.extra_contacts_quota || 0)).toLocaleString()}
-                        readOnly
-                        className="bg-gray-100 font-bold"
+                  <div className="space-y-5">
+                    {/* Seção 1: Informações da Unidade */}
+                    <div className="bg-slate-50/50 border border-slate-200/60 p-5 rounded-2xl space-y-4">
+                      <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                        <Building2 className="w-4 h-4 text-[#38B6FF]" /> Informações da Unidade
+                      </h4>
+                      <Input 
+                        label="Nome Fantasia da Loja" 
+                        placeholder="Ex: Barber Shop Premium" 
+                        value={newTenantData.name} 
+                        onChange={(e) => setNewTenantData({ ...newTenantData, name: capitalizeWords(e.target.value) })} 
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <Input 
+                          label="Proprietário / Gestor" 
+                          placeholder="Nome completo" 
+                          value={newTenantData.owner_name} 
+                          onChange={(e) => setNewTenantData({ ...newTenantData, owner_name: capitalizeWords(e.target.value) })} 
+                        />
+                        <Input 
+                          label="Telefone (WhatsApp)" 
+                          placeholder="090-0000-0000" 
+                          value={newTenantData.phone} 
+                          onChange={(e) => setNewTenantData({ ...newTenantData, phone: formatJapanesePhone(e.target.value) })} 
+                        />
+                      </div>
+                      <Input 
+                        label="E-mail Administrativo (Login)" 
+                        placeholder="dono@loja.com" 
+                        value={newTenantData.email} 
+                        onChange={(e) => setNewTenantData({ ...newTenantData, email: e.target.value })} 
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Plano</label>
-                        <select
-                          className="w-full bg-gray-50 border border-gray-200 rounded-[15px] px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 transition-all outline-none"
-                          value={newTenantData.plan}
-                          onChange={(e) => {
-                            const p = e.target.value as PlanType;
-                            setNewTenantData({ ...newTenantData, plan: p });
-                          }}
-                        >
-                          <option value={PlanType.PRO}>🔵 Pro: Limite de 4.000 contatos.</option>
-                          <option value={PlanType.UNLIMITED}>🟣 Elite: Limite de 6.000 contatos.</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Input label="Validade" type="date" value={newTenantData.plan_expires_at} onChange={(e) => setNewTenantData({ ...newTenantData, plan_expires_at: e.target.value })} />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setNewTenantData({ ...newTenantData, plan_expires_at: addMonths(newTenantData.plan_expires_at, 6) })}
-                            className="flex-1 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded text-[10px] font-bold text-gray-500 transition-colors"
-                          >
-                            6 MESES
-                          </button>
-                          <button
-                            onClick={() => setNewTenantData({ ...newTenantData, plan_expires_at: addMonths(newTenantData.plan_expires_at, 12) })}
-                            className="flex-1 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded text-[10px] font-bold text-gray-500 transition-colors"
-                          >
-                            12 MESES
-                          </button>
-                        </div>
-                      </div>
 
-                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Pacote de Expansão</label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[
-                            { label: 'Off', value: 0 },
-                            { label: 'Bronze', value: 1000 },
-                            { label: 'Prata', value: 2000 },
-                            { label: 'Ouro', value: 4000 },
-                            { label: 'Infinity', value: -1 },
-                          ].map((pack) => (
+                    {/* Seção 2: Plano e Vigência */}
+                    <div className="bg-slate-50/50 border border-slate-200/60 p-5 rounded-2xl space-y-4">
+                      <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                        <Crown className="w-4 h-4 text-amber-500" /> Plano e Assinatura
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5 ml-0.5">Selecione o Plano</label>
+                          <select
+                            className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none font-medium"
+                            value={newTenantData.plan}
+                            onChange={(e) => {
+                              const p = e.target.value as PlanType;
+                              setNewTenantData({ ...newTenantData, plan: p });
+                            }}
+                          >
+                            <option value={PlanType.PRO}>🔵 Plano Pro (4.000 contatos)</option>
+                            <option value={PlanType.UNLIMITED}>🟣 Plano Elite (6.000 contatos)</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Input 
+                            label="Data de Vencimento" 
+                            type="date" 
+                            value={newTenantData.plan_expires_at} 
+                            onChange={(e) => setNewTenantData({ ...newTenantData, plan_expires_at: e.target.value })} 
+                          />
+                          <div className="flex items-center justify-between gap-3 pt-1">
                             <button
-                              key={pack.label}
                               type="button"
-                              onClick={() => setNewTenantData({ ...newTenantData, extra_contacts_quota: pack.value })}
-                              className={`py-2 rounded-lg border text-[9px] font-bold uppercase transition-all
-                                ${newTenantData.extra_contacts_quota === pack.value
-                                  ? 'bg-orange-500 text-white border-orange-500'
-                                  : 'bg-white text-gray-500 border-gray-200 hover:border-orange-200'
-                                }`}
+                              onClick={() => setNewTenantData({ ...newTenantData, plan_expires_at: addMonths(newTenantData.plan_expires_at, 1) })}
+                              className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 transition-all flex items-center gap-2 shadow-sm"
                             >
-                              {pack.label}
+                              <Plus className="w-3 h-3 text-[#38B6FF]" /> + 1 MÊS
                             </button>
-                          ))}
+                            <div className="text-right">
+                               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Expira em:</p>
+                               <p className="text-xs font-black text-[#38B6FF]">{formatDateDisplay(newTenantData.plan_expires_at)}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <Input
-                        label="Qtd de Totens"
-                        type="number"
-                        min={0}
-                        max={10}
-                        value={newTenantData.totems_count}
-                        onChange={(e) => setNewTenantData({ ...newTenantData, totems_count: parseInt(e.target.value) })}
-                      />
                     </div>
-                    <Button className="w-full bg-[#25aae1] text-white py-4 mt-2 font-bold shadow-lg shadow-cyan-500/20" onClick={handleCreateTenant} disabled={isLoading}>
-                      {isLoading ? 'Criando...' : 'Finalizar Setup'}
-                    </Button>
+
+                    {/* Seção 3: Hardware e Cotas */}
+                    <div className="bg-slate-50/50 border border-slate-200/60 p-5 rounded-2xl space-y-4">
+                      <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                        <Settings className="w-4 h-4 text-slate-400" /> Expansão e Hardware
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-0.5">Pacote de Contatos</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {[
+                              { label: 'Off', value: 0 },
+                              { label: 'Bronze', value: 1000 },
+                              { label: 'Prata', value: 2000 },
+                              { label: 'Ouro', value: 4000 },
+                              { label: 'Elite', value: 6000 },
+                              { label: 'Infinity', value: -1 },
+                            ].map((pack) => (
+                              <button
+                                key={pack.label}
+                                type="button"
+                                onClick={() => setNewTenantData({ ...newTenantData, extra_contacts_quota: pack.value })}
+                                className={`py-2 rounded-lg border text-[9px] font-black uppercase transition-all
+                                  ${newTenantData.extra_contacts_quota === pack.value
+                                    ? 'bg-[#38B6FF] text-white border-[#38B6FF] shadow-lg shadow-[#38B6FF]/20'
+                                    : 'bg-white text-slate-500 border-slate-200 hover:border-[#38B6FF]/40 hover:text-[#38B6FF]'
+                                  }`}
+                              >
+                                {pack.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Input
+                            label="Quantidade de Totens"
+                            type="number"
+                            min={0}
+                            max={20}
+                            value={newTenantData.totems_count}
+                            onChange={(e) => setNewTenantData({ ...newTenantData, totems_count: parseInt(e.target.value) })}
+                          />
+                          <div className="p-3 bg-white border border-slate-200 rounded-lg">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Capacidade Total:</p>
+                            <p className="text-sm font-black text-slate-900">
+                              {newTenantData.extra_contacts_quota === -1 ? 'CONTATOS ILIMITADOS' : (PLAN_LIMITS[newTenantData.plan] + (newTenantData.extra_contacts_quota || 0)).toLocaleString() + ' Contatos'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="pt-8">
+                      <Button 
+                        className="w-full bg-[#38B6FF] hover:bg-[#38B6FF]/90 text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-sm shadow-xl shadow-[#38B6FF]/20" 
+                        onClick={handleCreateTenant} 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Configurando Unidade...' : 'Finalizar Setup e Gerar Acesso'}
+                      </Button>
+                      <p className="text-center text-[10px] font-bold text-slate-400 mt-4 uppercase tracking-widest">
+                        Ao finalizar, as credenciais serão geradas e enviadas por e-mail.
+                      </p>
+                    </div>
                   </div>
+
                 )}
               </Card>
             </div>
