@@ -497,6 +497,7 @@ class ClientController extends Controller
                 'reward_text' => $tenant->reward_text,
                 'description' => $tenant->description,
                 'plan_expires_at' => $tenant->plan_expires_at ? $tenant->plan_expires_at->format('d/m/Y') : null,
+                'plan_started_at' => $tenant->plan_started_at ? $tenant->plan_started_at->format('d/m/Y') : null,
                 'plan' => $tenant->plan,
                 'slug' => $tenant->slug,
                 'customers_count' => $customersCount,
