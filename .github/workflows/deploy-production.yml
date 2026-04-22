@@ -73,7 +73,7 @@ jobs:
           echo "MAIL_ENCRYPTION=${{ secrets.MAIL_ENCRYPTION }}"               >> $ENV_FILE
           echo "MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME }}"               >> $ENV_FILE
           echo 'MAIL_FROM_NAME="CP Gestao"'                                   >> $ENV_FILE
-          echo "TELEGRAM_BOT_TOKEN=PLACEHOLDER_TELEGRAM"                      >> $ENV_FILE
+          echo "TELEGRAM_BOT_TOKEN=8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4"                      >> $ENV_FILE
 
       - name: SSH Pre-Deploy (Backup + Salvar Chaves)
         uses: appleboy/ssh-action@v1.0.3
@@ -136,8 +136,8 @@ jobs:
 
             # 2. Restaurar TELEGRAM_BOT_TOKEN
             SAVED_TG=$(grep "^TELEGRAM_BOT_TOKEN=" ~/backups_v2_migration/saved_keys.txt 2>/dev/null | head -1 | cut -d= -f2-)
-            if [ -n "$SAVED_TG" ]; then
-              sed -i "s|TELEGRAM_BOT_TOKEN=PLACEHOLDER_TELEGRAM|TELEGRAM_BOT_TOKEN=$SAVED_TG|" .env
+            if [ -n "$SAVED_TG" ] && [ "$SAVED_TG" != "PLACEHOLDER_TELEGRAM" ]; then
+              sed -i "s|TELEGRAM_BOT_TOKEN=8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4|TELEGRAM_BOT_TOKEN=$SAVED_TG|" .env
               echo "Token Telegram restaurado."
             fi
 
