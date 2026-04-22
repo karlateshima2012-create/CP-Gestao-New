@@ -169,6 +169,7 @@ class TenantController extends Controller
     public function update(Request $request, $id)
     {
         $tenant = Tenant::findOrFail($id);
+        \Illuminate\Support\Facades\Log::info("Updating tenant {$id}", $request->all());
         
         try {
             $validated = $request->validate([
@@ -199,11 +200,11 @@ class TenantController extends Controller
         }
 
         // Normalize date format if present to avoid precision issues in database
-        if (!empty($validated['plan_expires_at'])) {
-            $validated['plan_expires_at'] = \Illuminate\Support\Carbon::parse($validated['plan_expires_at'])->format('Y-m-d');
+        if ($request->has('plan_expires_at')) {
+            $validated['plan_expires_at'] = $request->plan_expires_at ? \Illuminate\Support\Carbon::parse($request->plan_expires_at)->format('Y-m-d H:i:s') : null;
         }
-        if (!empty($validated['plan_started_at'])) {
-            $validated['plan_started_at'] = \Illuminate\Support\Carbon::parse($validated['plan_started_at'])->format('Y-m-d');
+        if ($request->has('plan_started_at')) {
+            $validated['plan_started_at'] = $request->plan_started_at ? \Illuminate\Support\Carbon::parse($request->plan_started_at)->format('Y-m-d H:i:s') : null;
         }
 
         try {

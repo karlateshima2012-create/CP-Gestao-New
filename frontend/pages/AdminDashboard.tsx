@@ -23,7 +23,8 @@ export const AdminDashboard: React.FC = () => {
     plan: PlanType.PRO,
     extra_contacts_quota: 0,
     totems_count: 2,
-    plan_expires_at: ''
+    plan_started_at: new Date().toISOString().split('T')[0],
+    plan_expires_at: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0]
   });
   const [tenantForDevices, setTenantForDevices] = useState<Tenant | null>(null);
   const [storeDevices, setStoreDevices] = useState<any[]>([]);
