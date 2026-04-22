@@ -30,6 +30,14 @@ export const AdminDashboard: React.FC = () => {
   const [newDeviceData, setNewDeviceData] = useState({ name: '', mode: 'approval' });
   const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string; name: string; url: string; landingUrl: string } | null>(null);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
+    isOpen: boolean;
+    tenant: Tenant | null;
+  }>({
+    isOpen: false,
+    tenant: null
+  });
+
   const [statusModal, setStatusModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -371,12 +379,16 @@ export const AdminDashboard: React.FC = () => {
   };
 
 
-  const handleDeleteTenant = async (tenant: Tenant) => {
-    const confirmDelete = window.confirm(
-      `ATENÇÃO: Você tem certeza que deseja excluir a loja "${tenant.name}"?\n\nEsta ação é PERMANENTE e excluirá todos os dados, clientes, dispositivos e acessos vinculados a esta loja.`
-    );
+  const handleDeleteTenant = (tenant: Tenant) => {
+    setDeleteConfirmModal({
+      isOpen: true,
+      tenant
+    });
+  };
 
-    if (!confirmDelete) return;
+  const handleConfirmActionDelete = async () => {
+    const tenant = deleteConfirmModal.tenant;
+    if (!tenant) return;
 
     setIsLoading(true);
     try {
@@ -393,11 +405,12 @@ export const AdminDashboard: React.FC = () => {
       setStatusModal({
         isOpen: true,
         title: 'Erro',
-        message: 'Erro ao excluir loja do sistema.',
+        message: 'Erro ao excluir loja do sistema. Verifique a conexão.',
         type: 'error'
       });
     } finally {
       setIsLoading(false);
+      setDeleteConfirmModal({ isOpen: false, tenant: null });
     }
   };
 
@@ -1152,6 +1165,22 @@ export const AdminDashboard: React.FC = () => {
               type={statusModal.type}
               theme="accent"
               onClose={() => setStatusModal(prev => ({ ...prev, isOpen: false }))}
+            />
+          )
+        }
+
+        {
+          deleteConfirmModal.isOpen && deleteConfirmModal.tenant && (
+            <StatusModal
+              isOpen={deleteConfirmModal.isOpen}
+              title="Atenção: Exclusão"
+              message={`Você tem certeza que deseja excluir a loja "${deleteConfirmModal.tenant.name}"? Esta ação é PERMANENTE e apagará todos os dados, clientes e dispositivos vinculados.`}
+              type="error"
+              theme="accent"
+              confirmLabel="EXCLUIR DEFINITIVAMENTE"
+              cancelLabel="CANCELAR"
+              onConfirm={handleConfirmActionDelete}
+              onClose={() => setDeleteConfirmModal({ isOpen: false, tenant: null })}
             />
           )
         }
