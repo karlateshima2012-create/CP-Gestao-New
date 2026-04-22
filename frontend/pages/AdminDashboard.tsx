@@ -352,6 +352,7 @@ export const AdminDashboard: React.FC = () => {
         owner_name: editingTenant.owner_name,
         phone: editingTenant.phone,
         plan: editingTenant.plan,
+        plan_started_at: editingTenant.plan_started_at,
         plan_expires_at: editingTenant.plan_expires_at,
         status: editingTenant.status,
         extra_contacts_quota: editingTenant.extra_contacts_quota,
@@ -791,7 +792,7 @@ export const AdminDashboard: React.FC = () => {
                               <input
                                 type="date"
                                 className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none"
-                                value={editingTenant.plan_started_at ? editingTenant.plan_started_at.split(/[T ]/)[0] : ''}
+                                value={editingTenant.plan_started_at ? editingTenant.plan_started_at.toString().split('T')[0] : ''}
                                 onChange={(e) => setEditingTenant({ ...editingTenant, plan_started_at: e.target.value })}
                               />
                             </div>
@@ -803,7 +804,7 @@ export const AdminDashboard: React.FC = () => {
                               <input
                                 type="date"
                                 className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#38B6FF] transition-all outline-none"
-                                value={editingTenant.plan_expires_at ? editingTenant.plan_expires_at.split(/[T ]/)[0] : ''}
+                                value={editingTenant.plan_expires_at ? editingTenant.plan_expires_at.toString().split('T')[0] : ''}
                                 onChange={(e) => setEditingTenant({ ...editingTenant, plan_expires_at: e.target.value })}
                               />
                             </div>

@@ -44,8 +44,8 @@ class Tenant extends Model
     ];
 
     protected $casts = [
-        'plan_expires_at' => 'date',
-        'plan_started_at' => 'date',
+        'plan_expires_at' => 'date:Y-m-d',
+        'plan_started_at' => 'date:Y-m-d',
         'loyalty_active' => 'boolean',
         'custom_contact_limit' => 'integer',
         'extra_contacts_quota' => 'integer',
