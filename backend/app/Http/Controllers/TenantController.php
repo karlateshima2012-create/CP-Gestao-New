@@ -143,11 +143,20 @@ class TenantController extends Controller
                     'must_change_password' => true,
                 ]);
 
+                // Automatic Email Notification
+                try {
+                    $systemUrl = config('app.url') ?? 'https://cpgestao.creativeprintjp.com';
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TenantCredentialsMail($tenant, $user->email, $password, $systemUrl));
+                } catch (\Exception $mailEx) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send credentials email: " . $mailEx->getMessage());
+                }
+
                 return ApiResponse::ok([
                     'tenant' => $tenant,
                     'credentials' => [
                         'email' => $user->email,
-                        'password' => $password
+                        'password' => $password,
+                        'system_url' => config('app.url') ?? 'https://cpgestao.creativeprintjp.com'
                     ]
                 ], 'Tenant e usuário criados com sucesso');
             });

@@ -28,7 +28,7 @@ export const AdminDashboard: React.FC = () => {
   const [tenantForDevices, setTenantForDevices] = useState<Tenant | null>(null);
   const [storeDevices, setStoreDevices] = useState<any[]>([]);
   const [newDeviceData, setNewDeviceData] = useState({ name: '', mode: 'approval' });
-  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string; name: string; url: string } | null>(null);
+  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string; name: string; url: string; landingUrl: string } | null>(null);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [statusModal, setStatusModal] = useState<{
     isOpen: boolean;
@@ -184,7 +184,8 @@ export const AdminDashboard: React.FC = () => {
         email: res.data.credentials.email,
         password: res.data.credentials.password,
         name: newTenantData.owner_name || newTenantData.name,
-        url: window.location.origin
+        url: res.data.credentials.system_url || window.location.origin,
+        landingUrl: 'https://saibamaiscpgestao.creativeprintjp.com/'
       });
       fetchTenants();
       setNewTenantData({
@@ -212,7 +213,7 @@ export const AdminDashboard: React.FC = () => {
 
   const copyWhatsAppMessage = async () => {
     if (!createdCredentials) return;
-    const msg = `Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n📍 *Dados de Acesso:*\n📧 Login: ${createdCredentials.email}\n🔑 Senha: ${createdCredentials.password}\n\n🔗 *Painel de Gestão:*\n${createdCredentials.url}\n\n⚠️ *OBS:* Por segurança, sua senha deve ser redefinida no primeiro acesso. (A nova senha deve ter exatamente 8 dígitos, uma letra maiúscula e um número).\n\nSeja bem-vindo(a)!`;
+    const msg = `Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n📍 *Dados de Acesso:*\n📧 Login: ${createdCredentials.email}\n🔑 Senha: ${createdCredentials.password}\n\n🔗 *Acesso Principal (Landing Page):*\n${createdCredentials.landingUrl}\n\n🌐 *URL do Sistema (Alternativa):*\n${createdCredentials.url}\n\n⚠️ *OBS:* Por segurança, sua senha deve ser redefinida no primeiro acesso. (A nova senha deve ter exatamente 8 dígitos, uma letra maiúscula e um número).\n\nSeja bem-vindo(a)!`;
     const success = await copyToClipboard(msg);
     if (success) {
       setStatusModal({
@@ -1028,7 +1029,7 @@ export const AdminDashboard: React.FC = () => {
                         <Badge color="green">Pronta para envio</Badge>
                       </div>
                       <div className="bg-white p-4 rounded-xl border border-gray-200 text-sm font-mono whitespace-pre-wrap leading-relaxed">
-                        {`Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n📍 *Dados de Acesso:*\n📧 Login: ${createdCredentials.email}\n🔑 Senha: ${createdCredentials.password}\n\n🔗 *Painel de Gestão:*\n${createdCredentials.url}\n\n⚠️ *OBS:* Por segurança, sua senha deve ser redefinida no primeiro acesso. (Regra: Mínimo de 8 dígitos, maiúscula e número).`}
+                        {`Olá *${createdCredentials.name}*! 👋\n\nSeu acesso ao sistema CPgestão Fidelidade foi configurado com sucesso.\n\n📍 *Dados de Acesso:*\n📧 Login: ${createdCredentials.email}\n🔑 Senha: ${createdCredentials.password}\n\n🔗 *Acesso Principal:*\n${createdCredentials.landingUrl}\n\n🌐 *Sistema (Alt):*\n${createdCredentials.url}\n\n⚠️ *OBS:* Por segurança, sua senha deve ser redefinida no primeiro acesso.`}
                       </div>
                     </div>
 
