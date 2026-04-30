@@ -26,6 +26,13 @@ class TelegramWebhookController extends Controller
      */
     public function handle(Request $request)
     {
+        // [SEG-MED-01] Verifica o Secret Token do Telegram para garantir autenticidade da requisição
+        $webhookSecret = config('services.telegram.webhook_secret');
+        if ($webhookSecret && $request->header('X-Telegram-Bot-Api-Secret-Token') !== $webhookSecret) {
+            Log::warning('TelegramWebhook: Secret token inválido.', ['ip' => $request->ip()]);
+            return response()->json(['status' => 'unauthorized'], 403);
+        }
+
         $update = $request->all();
         Log::info('Incoming Telegram Update', ['payload' => $update]);
 
@@ -156,7 +163,8 @@ class TelegramWebhookController extends Controller
         $settings = \App\Models\TenantSetting::where('tenant_id', $visit->tenant_id)->first();
         $authorizedId = $settings ? $settings->telegram_chat_id : null;
 
-        if ($authorizedId && (string)$chatId !== (string)$authorizedId) {
+        // [SEG-MED-02] Bloqueia por padrão se não há chat_id autorizado configurado
+        if (!$authorizedId || (string)$chatId !== (string)$authorizedId) {
             $this->telegramService->answerCallbackQuery($callbackQueryId, "⚠️ Acesso negado.", true);
             return response()->json(['status' => 'unauthorized'], 403);
         }
@@ -271,7 +279,8 @@ class TelegramWebhookController extends Controller
             $authorizedId = $settings ? $settings->telegram_chat_id : null;
         }
 
-        if ($authorizedId && (string)$chatId !== (string)$authorizedId) {
+        // [SEG-MED-02] Bloqueia por padrão se não há chat_id autorizado configurado
+        if (!$authorizedId || (string)$chatId !== (string)$authorizedId) {
             Log::warning("Unauthorized Telegram approval attempt for request {$requestId} from chat {$chatId}. Expected {$authorizedId}.");
             $this->telegramService->answerCallbackQuery($callbackQueryId, "⚠️ Acesso negado. Você não tem permissão para esta ação.", true);
             return response()->json(['status' => 'unauthorized'], 403);

@@ -36,9 +36,10 @@ return [
     ],
 
     'telegram' => [
-        'bot_token' => env('TELEGRAM_BOT_TOKEN', '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4'),
-        'monitor_token' => env('TELEGRAM_MONITOR_TOKEN'),
+        'bot_token'       => env('TELEGRAM_BOT_TOKEN'),
+        'monitor_token'   => env('TELEGRAM_MONITOR_TOKEN'),
         'monitor_chat_id' => env('TELEGRAM_CHAT_ID'),
+        'webhook_secret'  => env('TELEGRAM_WEBHOOK_SECRET'),
     ],
 
 ];

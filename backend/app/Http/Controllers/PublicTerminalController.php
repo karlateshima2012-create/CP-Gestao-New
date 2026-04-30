@@ -154,7 +154,7 @@ class PublicTerminalController extends Controller
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("API_ERROR: getInfo - " . $e->getMessage());
-            return response()->json(['message' => 'Erro ao processar dados da loja.', 'debug' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Erro ao processar dados da loja.'], 500);
         }
     }
 
@@ -268,138 +268,59 @@ class PublicTerminalController extends Controller
             ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("LOOKUP_ERROR: " . $e->getMessage() . " at " . $e->getLine());
-            return response()->json(['message' => 'Sys: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Ocorreu um erro interno no servidor.'], 500);
         }
     }
 
-        public function earn(Request $request, $slug, $uid = null)
+    public function earn(Request $request, $slug, $uid = null)
     {
-        // LOG 1: Entrada do método
-        \Illuminate\Support\Facades\Log::info('EARN_METHOD_START', [
-            'slug' => $slug,
-            'uid' => $uid,
-            'phone' => $request->phone,
-            'has_token' => !empty($request->token),
-            'has_session_token' => !empty($request->session_token),
-            'all_params' => $request->all()
-        ]);
+        \Illuminate\Support\Facades\Log::debug('EARN_METHOD_START', ['slug' => $slug, 'uid' => $uid]);
 
         return DB::transaction(function () use ($request, $slug, $uid) {
             try {
-                // LOG 2: Antes de validar device
-                \Illuminate\Support\Facades\Log::info('EARN_VALIDATING_DEVICE', [
-                    'slug' => $slug,
-                    'uid' => $uid,
-                    'token' => $request->token ? substr($request->token, 0, 20) . '...' : null
-                ]);
-
                 [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
-                
-                // LOG 3: Resultado da validação do device
-                \Illuminate\Support\Facades\Log::info('EARN_DEVICE_VALIDATED', [
-                    'tenant_id' => $tenant?->id,
-                    'tenant_name' => $tenant?->name,
-                    'device_id' => $device?->id,
-                    'device_type' => $device?->type,
-                    'tenant_status' => $tenant?->status
-                ]);
 
                 if (!$tenant) {
-                    \Illuminate\Support\Facades\Log::error('EARN_TENANT_NOT_FOUND', ['slug' => $slug]);
                     return ApiResponse::error('Loja não encontrada.', 'NOT_FOUND', 404);
                 }
 
-                // LOG 4: Antes de validar sessão
-                \Illuminate\Support\Facades\Log::info('EARN_VALIDATING_SESSION', [
-                    'session_token' => $request->session_token ? substr($request->session_token, 0, 20) . '...' : null,
-                    'tenant_id' => $tenant->id
-                ]);
-
                 if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
-                    \Illuminate\Support\Facades\Log::warning('EARN_SESSION_INVALID', [
-                        'tenant_id' => $tenant->id,
-                        'ip' => $request->ip(),
-                        'ua' => $request->header('User-Agent')
-                    ]);
+                    \Illuminate\Support\Facades\Log::warning('EARN_SESSION_INVALID', ['tenant_id' => $tenant->id, 'ip' => $request->ip()]);
                     return ApiResponse::error('Sessão inválida.', 'SESSION_REQUIRED', 403);
                 }
 
-                // LOG 5: Sessão OK, normalizando telefone
-                \Illuminate\Support\Facades\Log::info('EARN_NORMALIZING_PHONE', [
-                    'original_phone' => $request->phone
-                ]);
-
                 $phone = PhoneHelper::normalize($request->phone);
-                
-                // LOG 6: Telefone normalizado
-                \Illuminate\Support\Facades\Log::info('EARN_PHONE_NORMALIZED', [
-                    'normalized_phone' => $phone,
-                    'original_phone' => $request->phone
-                ]);
-
-                // LOG 7: Buscando cliente
-                \Illuminate\Support\Facades\Log::info('EARN_SEARCHING_CUSTOMER', [
-                    'tenant_id' => $tenant->id,
-                    'phone' => $phone
-                ]);
-
                 $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
-                
-                // LOG 8: Resultado da busca do cliente
-                \Illuminate\Support\Facades\Log::info('EARN_CUSTOMER_FOUND', [
-                    'found' => !is_null($customer),
-                    'customer_id' => $customer?->id,
-                    'customer_name' => $customer?->name,
-                    'current_balance' => $customer?->points_balance
-                ]);
 
                 if (!$customer) {
-                    \Illuminate\Support\Facades\Log::warning('EARN_CUSTOMER_NOT_FOUND', [
-                        'tenant_id' => $tenant->id,
-                        'phone' => $phone
-                    ]);
+                    \Illuminate\Support\Facades\Log::debug('EARN_CUSTOMER_NOT_FOUND', ['tenant_id' => $tenant->id, 'phone' => $phone]);
                 }
 
-                // LOG 9: Antes de chamar processEarn
-                \Illuminate\Support\Facades\Log::info('EARN_CALLING_PROCESS_EARN', [
-                    'tenant_id' => $tenant->id,
-                    'device_id' => $device?->id,
-                    'customer_id' => $customer?->id,
-                    'has_token' => !empty($request->token),
-                    'request_data' => $request->all()
-                ]);
-
-                // LOG 10: Chamando o serviço
                 $result = $this->pointEngineService->processEarn($tenant, $device, $customer, $request->token, $request->all());
                 
-                // LOG 11: Resultado do processEarn
-                $resultData = $result->getData();
-                \Illuminate\Support\Facades\Log::info('EARN_PROCESS_EARN_RESULT', [
-                    'success' => !isset($resultData->error),
-                    'status_code' => $result->status(),
-                    'response' => json_encode($resultData)
+                \Illuminate\Support\Facades\Log::debug('EARN_SUCCESS', [
+                    'tenant_id' => $tenant->id,
+                    'customer_id' => $customer?->id,
+                    'status' => $result->status()
                 ]);
 
                 return $result;
                 
             } catch (\Throwable $e) {
-                // LOG 12: Capturando qualquer exceção
                 \Illuminate\Support\Facades\Log::error('EARN_EXCEPTION_CAUGHT', [
                     'message' => $e->getMessage(),
-                    'code' => $e->getCode(),
                     'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString()
+                    'line' => $e->getLine()
                 ]);
                 
-                // Retorna a mensagem específica que você mencionou
                 return ApiResponse::error(
-                    'Houve uma instabilidade momentânea no processamento do seu ponto. Erro: ' . $e->getMessage(),
+                    'Houve uma instabilidade momentânea no processamento do seu ponto. Por favor, tente novamente em instantes.',
                     'INTERNAL_ERROR',
                     500
                 );
             }
         });
+    }
     }
 
     public function autoEarn(Request $request, $slug, $uid = null) { return $this->earn($request, $slug, $uid); }
@@ -573,7 +494,7 @@ class PublicTerminalController extends Controller
             });
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("PHOTO_UPLOAD_ERROR: " . $e->getMessage());
-            return ApiResponse::error('Falha no servidor: ' . $e->getMessage(), 'UPLOAD_ERROR', 500);
+            return ApiResponse::error('Falha no servidor ao processar imagem.', 'UPLOAD_ERROR', 500);
         }
     }
 
@@ -590,21 +511,25 @@ class PublicTerminalController extends Controller
 
     public function serveFile($path)
     {
-        // Prevent directory traversal
-        if (str_contains($path, '..') && !str_starts_with($path, '../')) {
-            // we only allow ../ if it's explicitly resolved securely, but let's just use basename or strict paths
-            // Actually, we trust Laravel's Storage::disk('public')->exists() which protects against traversal
+        // [SEG-MED-03] Proteção contra Directory Traversal via Whitelist e sanitização de path
+        $allowedPrefixes = ['clientes/', 'logos/', 'covers/', 'thumbs/'];
+        $isAllowed = false;
+        foreach ($allowedPrefixes as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $isAllowed = true;
+                break;
+            }
+        }
+
+        if (!$isAllowed || str_contains($path, '..')) {
+            \Illuminate\Support\Facades\Log::warning("Bloqueada tentativa de acesso a arquivo fora da whitelist: {$path}");
+            abort(403, 'Acesso negado.');
         }
 
         if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
             return response()->file(\Illuminate\Support\Facades\Storage::disk('public')->path($path));
         }
         
-        $legacyPath = base_path('../storage/app/public/' . $path);
-        if (file_exists($legacyPath)) {
-            return response()->file($legacyPath);
-        }
-
         return response()->json(['message' => 'Image not found.'], 404);
     }
 
@@ -627,7 +552,7 @@ class PublicTerminalController extends Controller
 
     private function findCustomer($tenantId, $phoneInput)
     {
-        $normalized = $this->normalizePhone($phoneInput);
+        $normalized = \App\Utils\PhoneHelper::normalize($phoneInput);
         $dbCustomer = DB::table('customers')
             ->where('tenant_id', $tenantId)
             ->where('phone', $normalized)
@@ -644,16 +569,5 @@ class PublicTerminalController extends Controller
         ];
     }
 
-    private function normalizePhone($phone)
-    {
-        $normalized = preg_replace('/\D/', '', (string)$phone);
-        if (str_starts_with($normalized, '81') && strlen($normalized) >= 11) {
-             $normalized = substr($normalized, 2);
-        }
-        $normalized = ltrim($normalized, '0');
-        if (!empty($normalized)) {
-            $normalized = '0' . $normalized;
-        }
-        return $normalized;
-    }
+
 }

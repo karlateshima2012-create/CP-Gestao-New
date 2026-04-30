@@ -63,7 +63,7 @@ class ClientController extends Controller
 
     public function getContact(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = Customer::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
             
         return ApiResponse::ok($customer);
     }
@@ -188,7 +188,7 @@ class ClientController extends Controller
 
     public function updateContact(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = Customer::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
 
         $request->validate([
             'name' => 'sometimes|string',
@@ -351,7 +351,7 @@ class ClientController extends Controller
     public function getContactReminders(Request $request, $id)
     {
         try {
-            $customer = Customer::findOrFail($id);
+            $customer = Customer::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
             $reminders = $customer->reminders()
                 ->orderBy('reminder_date', 'desc')
                 ->orderBy('reminder_time', 'desc')
@@ -368,7 +368,7 @@ class ClientController extends Controller
     public function storeContactReminder(Request $request, $id)
     {
         try {
-            $customer = Customer::findOrFail($id);
+            $customer = Customer::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
             
             $activeCount = $customer->reminders()
                 ->where('status', 'pending')
@@ -410,7 +410,7 @@ class ClientController extends Controller
 
     public function deleteContact(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = Customer::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
         $customer->delete();
 
         return ApiResponse::ok(null, 'Contato excluído com sucesso');
@@ -461,7 +461,8 @@ class ClientController extends Controller
 
         $tenant->update($request->only(['loyalty_active', 'points_goal', 'reward_text', 'description', 'rules_text', 'logo_url', 'cover_url']));
 
-        $loyalty = \App\Models\LoyaltySetting::firstOrNew([]);
+        $loyalty = \App\Models\LoyaltySetting::firstOrNew(['tenant_id' => $tenant->id]);
+        $loyalty->tenant_id = $tenant->id;
         $loyalty->fill($request->only([
             'vip_points_per_scan',
             'regular_points_per_scan',
@@ -836,60 +837,5 @@ class ClientController extends Controller
         }
     }
 
-    /**
-     * Process a base64 image: Crop to square (centralized), resize to 400x400,
-     * convert to WEBP and compress.
-     */
-    private function processAndStorePhoto(string $base64Image): string
-    {
-        try {
-            // Strip out header if present (data:image/png;base64,...)
-            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
-                $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
-                $type = strtolower($type[1]); // png, jpg, etc.
-            } else {
-                throw new \Exception('Invalid image format');
-            }
 
-            $imgData = base64_decode($base64Image);
-            if (!$imgData) throw new \Exception('Base64 decode failed');
-
-            $sourceImage = imagecreatefromstring($imgData);
-            if (!$sourceImage) throw new \Exception('Failed to create image from string');
-
-            $width = imagesx($sourceImage);
-            $height = imagesy($sourceImage);
-
-            // 1. Crop to square (centralized)
-            $size = min($width, $height);
-            $x = ($width - $size) / 2;
-            $y = ($height - $size) / 2;
-
-            $squareImage = imagecreatetruecolor(400, 400);
-            
-            // Preserve transparency for PNGs before conversion to webp
-            imagealphablending($squareImage, false);
-            imagesavealpha($squareImage, true);
-            
-            imagecopyresampled($squareImage, $sourceImage, 0, 0, $x, $y, 400, 400, $size, $size);
-
-            // 2. Generate filename
-            $filename = 'customers/' . uniqid() . '.webp';
-            
-            // 3. Save as WEBP with compression
-            ob_start();
-            imagewebp($squareImage, null, 80); // 80 quality (approx 80-120KB)
-            $webpData = ob_get_clean();
-
-            \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $webpData);
-
-            imagedestroy($sourceImage);
-            imagedestroy($squareImage);
-
-            return $filename;
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Photo processing failed: ' . $e->getMessage());
-            return '';
-        }
-    }
 }

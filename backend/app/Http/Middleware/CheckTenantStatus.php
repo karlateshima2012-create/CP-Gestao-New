@@ -50,16 +50,14 @@ class CheckTenantStatus
         // 2. Check Contact Limit (Optional: only block creation of new contacts?)
         // The user said: "garanta que limite de contatos atingidos e validade expirada o cliente tenha acesso ao CRM bloqueado"
         // This suggests blocking the WHOLE CRM.
-        $limit = \App\Models\Tenant::PLAN_LIMITS[$tenant->plan] ?? 2000;
+        $limit = $tenant->total_contact_limit;
         $count = $tenant->customers()->count();
         
         if ($count >= $limit) {
              return response()->json([
                 'ok' => false,
                 'error' => 'Limite Atingido',
-                'code' => 'LIMIT_REACHED',
-                'current' => $count,
-                'limit' => $limit
+                'code' => 'LIMIT_REACHED'
             ], 403);
         }
 

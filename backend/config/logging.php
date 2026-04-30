@@ -127,6 +127,14 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/audit.log'),
+            'level' => 'info',
+            'days' => 31, // Manter logs de auditoria por 1 mês por padrão
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

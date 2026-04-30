@@ -50,7 +50,7 @@ jobs:
           echo 'APP_NAME="CP Gestao"'                                          > $ENV_FILE
           echo "APP_ENV=production"                                            >> $ENV_FILE
           echo "APP_KEY=PLACEHOLDER_KEY"                                       >> $ENV_FILE
-          echo "APP_DEBUG=true"                                                >> $ENV_FILE
+          echo "APP_DEBUG=false"                                               >> $ENV_FILE
           echo "APP_URL=https://cpgestao.creativeprintjp.com"                 >> $ENV_FILE
           echo "DB_CONNECTION=mysql"                                           >> $ENV_FILE
           echo "DB_HOST=127.0.0.1"                                            >> $ENV_FILE
@@ -73,9 +73,10 @@ jobs:
           echo "MAIL_ENCRYPTION=${{ secrets.MAIL_ENCRYPTION }}"               >> $ENV_FILE
           echo "MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME }}"               >> $ENV_FILE
           echo 'MAIL_FROM_NAME="CP Gestao"'                                   >> $ENV_FILE
-          echo "TELEGRAM_BOT_TOKEN=8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4"                      >> $ENV_FILE
+          echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}"              >> $ENV_FILE
           echo "TELEGRAM_MONITOR_TOKEN=${{ secrets.TELEGRAM_MONITOR_TOKEN }}"          >> $ENV_FILE
           echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}"                      >> $ENV_FILE
+          echo "TELEGRAM_WEBHOOK_SECRET=${{ secrets.TELEGRAM_WEBHOOK_SECRET }}"        >> $ENV_FILE
 
       - name: SSH Pre-Deploy (Backup + Salvar Chaves)
         uses: appleboy/ssh-action@v1.0.3

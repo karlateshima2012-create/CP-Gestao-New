@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ADMIN GROUP (Super Admin)
     // Protection: auth:sanctum + role:admin
     // =========================================================================
-    Route::prefix('admin')->middleware('role:admin')->group(function () {
+    Route::prefix('admin')->middleware(['role:admin', 'audit'])->group(function () {
         Route::get('/tenants', [TenantController::class, 'index']);
         Route::post('/tenants', [TenantController::class, 'store']);
         Route::patch('/tenants/{id}', [TenantController::class, 'update']);
@@ -61,7 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Protection: auth:sanctum + role:client
     // Multi-tenancy: Scoped by user()->tenant_id in controllers
     // =========================================================================
-    Route::prefix('client')->middleware(['role:client', 'tenant.status'])->group(function () {
+    Route::prefix('client')->middleware(['role:client', 'tenant.status', 'audit'])->group(function () {
         Route::get('/contacts', [ClientController::class, 'getContacts']);
         Route::get('/contacts/{id}', [ClientController::class, 'getContact']);
         Route::post('/contacts', [ClientController::class, 'storeContact']);
