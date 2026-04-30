@@ -51,6 +51,12 @@ class AuthController extends Controller
                     \Log::info("Security alert email sent to {$user->email}");
                 } catch (\Exception $e) {
                     \Log::error("Failed to send security alert: " . $e->getMessage());
+                    \App\Utils\Monitor::logCritical("Falha no envio de e-mail (Segurança)", $e->getMessage(), [
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'recipient' => $user->email,
+                        'type' => 'LoginSecurityAlertMail'
+                    ]);
                 }
             }
 
@@ -136,6 +142,12 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             // Log if needed, but return success to avoid leaking email existence
             \Log::error("Failed to send reset email: " . $e->getMessage());
+            \App\Utils\Monitor::logCritical("Falha no envio de e-mail (Reset)", $e->getMessage(), [
+                'file' => __FILE__,
+                'line' => __LINE__,
+                'recipient' => $request->email,
+                'type' => 'ResetPasswordMail'
+            ]);
         }
 
         return response()->json([

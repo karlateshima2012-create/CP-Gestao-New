@@ -74,6 +74,8 @@ jobs:
           echo "MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME }}"               >> $ENV_FILE
           echo 'MAIL_FROM_NAME="CP Gestao"'                                   >> $ENV_FILE
           echo "TELEGRAM_BOT_TOKEN=8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4"                      >> $ENV_FILE
+          echo "TELEGRAM_MONITOR_TOKEN=${{ secrets.TELEGRAM_MONITOR_TOKEN }}"          >> $ENV_FILE
+          echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}"                      >> $ENV_FILE
 
       - name: SSH Pre-Deploy (Backup + Salvar Chaves)
         uses: appleboy/ssh-action@v1.0.3
@@ -93,6 +95,8 @@ jobs:
             if [ -f "$PROD_ENV" ]; then
               grep "^APP_KEY=" "$PROD_ENV" > ~/backups_v2_migration/saved_keys.txt || true
               grep "^TELEGRAM_BOT_TOKEN=" "$PROD_ENV" >> ~/backups_v2_migration/saved_keys.txt || true
+              grep "^TELEGRAM_MONITOR_TOKEN=" "$PROD_ENV" >> ~/backups_v2_migration/saved_keys.txt || true
+              grep "^TELEGRAM_CHAT_ID=" "$PROD_ENV" >> ~/backups_v2_migration/saved_keys.txt || true
               echo "Chaves salvas."
             fi
 
@@ -139,6 +143,24 @@ jobs:
             if [ -n "$SAVED_TG" ] && [ "$SAVED_TG" != "PLACEHOLDER_TELEGRAM" ]; then
               sed -i "s|TELEGRAM_BOT_TOKEN=8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4|TELEGRAM_BOT_TOKEN=$SAVED_TG|" .env
               echo "Token Telegram restaurado."
+            fi
+
+            # 3. Restaurar Variáveis de Monitoramento (se existirem no backup e não estiverem no .env novo)
+            SAVED_MONITOR_TOKEN=$(grep "^TELEGRAM_MONITOR_TOKEN=" ~/backups_v2_migration/saved_keys.txt 2>/dev/null | head -1 | cut -d= -f2-)
+            if [ -n "$SAVED_MONITOR_TOKEN" ]; then
+               # Apenas restaura se o valor vindo do Github Secrets estiver vazio (fallback)
+               CURRENT_MONITOR_TOKEN=$(grep "^TELEGRAM_MONITOR_TOKEN=" .env | cut -d= -f2-)
+               if [ -z "$CURRENT_MONITOR_TOKEN" ]; then
+                 sed -i "s|TELEGRAM_MONITOR_TOKEN=|TELEGRAM_MONITOR_TOKEN=$SAVED_MONITOR_TOKEN|" .env
+               fi
+            fi
+
+            SAVED_CHAT_ID=$(grep "^TELEGRAM_CHAT_ID=" ~/backups_v2_migration/saved_keys.txt 2>/dev/null | head -1 | cut -d= -f2-)
+            if [ -n "$SAVED_CHAT_ID" ]; then
+               CURRENT_CHAT_ID=$(grep "^TELEGRAM_CHAT_ID=" .env | cut -d= -f2-)
+               if [ -z "$CURRENT_CHAT_ID" ]; then
+                 sed -i "s|TELEGRAM_CHAT_ID=|TELEGRAM_CHAT_ID=$SAVED_CHAT_ID|" .env
+               fi
             fi
 
             # 3. Dependencias

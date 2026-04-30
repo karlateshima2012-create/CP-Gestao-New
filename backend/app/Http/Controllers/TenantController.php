@@ -149,6 +149,11 @@ class TenantController extends Controller
                     \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TenantCredentialsMail($tenant, $user->email, $password, $systemUrl));
                 } catch (\Exception $mailEx) {
                     \Illuminate\Support\Facades\Log::error("Failed to send credentials email: " . $mailEx->getMessage());
+                    \App\Utils\Monitor::logCritical("Falha no envio de e-mail", $mailEx->getMessage(), [
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'recipient' => $user->email
+                    ]);
                 }
 
                 return ApiResponse::ok([

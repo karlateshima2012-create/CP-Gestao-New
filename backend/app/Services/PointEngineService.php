@@ -271,6 +271,13 @@ class PointEngineService
             $visit = Visit::create($visit_data);
         } catch (\Exception $de) {
             \Illuminate\Support\Facades\Log::error("EARN_ERROR: Visit creation failed: " . $de->getMessage());
+            
+            \App\Utils\Monitor::logCritical("Erro ao criar agendamento (Infra)", $de->getMessage(), [
+                'file' => $de->getFile(),
+                'line' => $de->getLine(),
+                'stack' => substr($de->getTraceAsString(), 0, 500)
+            ]);
+
             if (isset($visit_data['device_id'])) {
                 unset($visit_data['device_id']);
                 $visit = Visit::create($visit_data);
