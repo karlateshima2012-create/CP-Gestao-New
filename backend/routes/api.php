@@ -16,17 +16,6 @@ Route::post('/auth/login', [AuthController::class, 'login'])->middleware('thrott
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
 
-// Rota temporária de teste de monitoramento
-Route::get('/debug/monitor-test', function() {
-    // 1. Alerta Manual
-    \App\Utils\Monitor::logCritical("Teste de Monitoramento", "Se você está vendo esta mensagem, o bot de monitoramento está configurado corretamente!");
-    
-    // 2. Simular Exceção (opcional: descomente para testar crash real)
-    // throw new \Exception("Simulação de Erro para Teste de Bot");
-
-    return response()->json(['message' => 'Teste enviado! Verifique o seu Telegram.']);
-});
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
