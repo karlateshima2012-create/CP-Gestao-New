@@ -28,7 +28,29 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+            php-version: '8.2'
+            extensions: mbstring, xml, ctype, iconv, mysql, gd
+            coverage: none
+
+      - name: Install Dependencies (Blindagem)
+        run: |
+            cd backend
+            composer install --no-interaction --prefer-dist
+
+      - name: 🛡️ Static Analysis (PHPStan)
+        run: |
+            cd backend
+            ./vendor/bin/phpstan analyze --memory-limit=1G
+
+      - name: 🛡️ Code Style Check (Pint)
+        run: |
+            cd backend
+            ./vendor/bin/pint --test
+
+      - name: 🛡️ Run Tests (PHPUnit)
+        run: |
+            cd backend
+            php artisan test --parallel
 
       - name: Prepare Package
         run: |
