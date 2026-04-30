@@ -138,49 +138,31 @@ jobs:
               echo "APP_KEY gerada (primeiro deploy)."
             fi
 
-            # 2. Restaurar TELEGRAM_BOT_TOKEN
+            # 2. Restaurar TELEGRAM_BOT_TOKEN (Legado)
             SAVED_TG=$(grep "^TELEGRAM_BOT_TOKEN=" ~/backups_v2_migration/saved_keys.txt 2>/dev/null | head -1 | cut -d= -f2-)
-            if [ -n "$SAVED_TG" ] && [ "$SAVED_TG" != "PLACEHOLDER_TELEGRAM" ]; then
+            if [ -n "$SAVED_TG" ] && [ "$SAVED_TG" != "PLACEHOLDER_TELEGRAM" ] && [ "$SAVED_TG" != "8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4" ]; then
               sed -i "s|TELEGRAM_BOT_TOKEN=8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4|TELEGRAM_BOT_TOKEN=$SAVED_TG|" .env
-              echo "Token Telegram restaurado."
-            fi
-
-            # 3. Restaurar Variáveis de Monitoramento (se existirem no backup e não estiverem no .env novo)
-            SAVED_MONITOR_TOKEN=$(grep "^TELEGRAM_MONITOR_TOKEN=" ~/backups_v2_migration/saved_keys.txt 2>/dev/null | head -1 | cut -d= -f2-)
-            if [ -n "$SAVED_MONITOR_TOKEN" ]; then
-               # Apenas restaura se o valor vindo do Github Secrets estiver vazio (fallback)
-               CURRENT_MONITOR_TOKEN=$(grep "^TELEGRAM_MONITOR_TOKEN=" .env | cut -d= -f2-)
-               if [ -z "$CURRENT_MONITOR_TOKEN" ]; then
-                 sed -i "s|TELEGRAM_MONITOR_TOKEN=|TELEGRAM_MONITOR_TOKEN=$SAVED_MONITOR_TOKEN|" .env
-               fi
-            fi
-
-            SAVED_CHAT_ID=$(grep "^TELEGRAM_CHAT_ID=" ~/backups_v2_migration/saved_keys.txt 2>/dev/null | head -1 | cut -d= -f2-)
-            if [ -n "$SAVED_CHAT_ID" ]; then
-               CURRENT_CHAT_ID=$(grep "^TELEGRAM_CHAT_ID=" .env | cut -d= -f2-)
-               if [ -z "$CURRENT_CHAT_ID" ]; then
-                 sed -i "s|TELEGRAM_CHAT_ID=|TELEGRAM_CHAT_ID=$SAVED_CHAT_ID|" .env
-               fi
+              echo "Token Telegram restaurado do backup."
             fi
 
             # 3. Dependencias
-            composer install --no-dev --optimize-autoloader 2>&1 | tail -5
+            composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | tail -5
 
-            # 4. Verificar .env antes de migrar
-            echo "=== .env DB config ===" 
-            grep "^DB_" .env
-            grep "^APP_KEY=" .env | cut -c1-20
+            # 4. Migracoes e Seed
+            php artisan migrate --force --no-interaction
+            php artisan db:seed --class=SpecificTestUsersSeeder --force --no-interaction
 
-            # 5. Migracoes (verbose para ver o que executa)
-            php artisan migrate --force --verbose
-
-            # 5. Seed Admin Master
-            php artisan db:seed --class=SpecificTestUsersSeeder --force
-
-            # 6. Cache e otimizacao
+            # 5. Limpeza e Otimizacao
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            
+            # 6. Garantir que o site volte ao ar
+            php artisan up || true
+            echo "Deploy Concluido!"
             php artisan storage:link || true
             chmod -R 775 storage bootstrap/cache
 
